@@ -1,0 +1,484 @@
+html, body { margin: 0; }
+html, body, #root { height: 100%; }
+
+/* Page */
+.authPage{
+  width: 100vw;
+  height: 100vh;
+  padding: 25px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background:
+    radial-gradient(1200px 600px at 20% 10%, rgba(46, 204, 170, 0.14), transparent 60%),
+    radial-gradient(900px 600px at 85% 20%, rgba(64, 120, 255, 0.12), transparent 55%),
+    radial-gradient(1200px 700px at 50% 110%, rgba(0, 0, 0, 0.55), transparent 55%),
+    #0b1220;
+}
+
+/* Card */
+.authCard{
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  border-radius: 22px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(14px);
+}
+
+/* Left/Right */
+.authLeft, .authRight { height: 100%; min-height: 0; }
+
+/* Left */
+.authLeft{
+  padding: 22px;
+  background:
+    linear-gradient(180deg, rgba(8, 68, 60, 0.55), rgba(6, 28, 40, 0.35)),
+    rgba(0, 0, 0, 0.15);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ Shared Header */
+.authHeader{ margin-bottom: 14px; }
+
+.authBrand{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.authLogo{
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #d9fff7;
+  background: linear-gradient(135deg, rgba(46, 204, 170, 0.22), rgba(60, 170, 255, 0.18));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.authBrandName{
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(220, 255, 249, 0.92);
+  line-height: 1.1;
+}
+
+.authBrandSub{
+  font-size: 12px;
+  color: rgba(220, 255, 249, 0.60);
+  margin-top: 3px;
+}
+
+/* Illustration */
+.authIllusWrap{
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+
+.authIllus{
+  width: min(430px, 90%);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 34px rgba(0, 0, 0, 0.35));
+}
+
+
+/* Right */
+.authRight{
+  background:
+    radial-gradient(900px 500px at 20% 10%, rgba(46, 204, 170, 0.10), transparent 55%),
+    rgba(255, 255, 255, 0.02);
+  display: grid;
+  place-items: center;
+  padding: 26px 22px;
+  overflow: auto;
+}
+
+.authRightInner{ width: min(460px, 100%); }
+
+/* Headings */
+.authTitle{
+  margin: 0;
+  text-align: center;
+  color: rgba(235, 255, 252, 0.92);
+  font-size: 22px;
+  letter-spacing: 0.4px;
+  font-weight: 900;
+}
+
+.authSubtitle{
+  margin: 8px 0 18px;
+  text-align: center;
+  color: rgba(235, 255, 252, 0.6);
+  font-size: 12.5px;
+}
+
+.authTitleLeft, .authSubtitleLeft { text-align: left; }
+
+/* Form */
+.authForm{ display: grid; gap: 12px; }
+.authFormLogin{ gap: 16px; }
+
+.authGrid2{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.authField{ display: grid; gap: 6px; }
+
+.authLabel{
+  font-size: 12px;
+  color: rgba(235, 255, 252, 0.68);
+  font-weight: 700;
+}
+
+/* Signup boxed inputs */
+.authInput{
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  outline: none;
+  color: rgba(240, 255, 252, 0.92);
+  background: rgba(10, 16, 26, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  transition: 0.15s ease;
+}
+
+/* Login screen css */
+
+.authError{
+  margin: 10px 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 70, 70, 0.12);
+  border: 1px solid rgba(255, 70, 70, 0.25);
+  color: #ffb4b4;
+  font-size: 13px;
+}
+
+.authInput::placeholder{ color: rgba(240, 255, 252, 0.35); }
+
+.authInput:focus{
+  border-color: rgba(46, 204, 170, 0.55);
+  box-shadow: 0 0 0 3px rgba(46, 204, 170, 0.12);
+}
+
+/* Login underline inputs */
+.uWrap{ position: relative; width: 100%; }
+
+.uInput{
+  width: 100%;
+  height: 40px;
+  padding: 10px 0;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(236, 252, 250, 0.92);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.uInput:focus{
+  outline: none;
+  border-bottom-color: rgba(46, 204, 170, 0.85);
+}
+
+.uInput--withIcon{ padding-right: 34px; }
+
+.uIcon{
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: rgba(236, 252, 250, 0.70);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.uIcon:hover{ color: rgba(236, 252, 250, 0.92); }
+
+/* Buttons */
+.authBtn{
+  height: 42px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 800;
+  color: #06201c;
+  background: linear-gradient(135deg, rgba(46, 204, 170, 0.95), rgba(60, 170, 255, 0.75));
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.authBtn:hover{ transform: translateY(-1px); filter: brightness(1.02); }
+.authBtn:active{ transform: translateY(0); }
+
+.authBtnDark{
+  background: rgba(0, 0, 0, 0.70);
+  color: rgba(235, 255, 252, 0.92);
+  box-shadow: none;
+}
+.authBtnDark:hover{ filter: brightness(1.08); }
+
+.authBtnOutline{
+  height: 42px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 800;
+  background: rgba(10, 16, 26, 0.45);
+  color: rgba(235, 255, 252, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.authBtnOutline:hover{
+  border-color: rgba(46, 204, 170, 0.40);
+  box-shadow: 0 0 0 3px rgba(46, 204, 170, 0.10);
+}
+
+/* Links / Rows */
+.authLinksRow{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.authLink{
+  color: rgba(140, 255, 230, 0.78);
+  font-size: 12px;
+  text-decoration: none;
+}
+.authLink:hover{ text-decoration: underline; }
+
+.authInlineText{
+  color: rgba(235, 255, 252, 0.6);
+  font-size: 12px;
+}
+
+.authLinkStrong{
+  color: rgba(235, 255, 252, 0.92);
+  font-weight: 800;
+  text-decoration: none;
+}
+.authLinkStrong:hover{ text-decoration: underline; }
+
+.authRowBetween{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.authCheck{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(235, 255, 252, 0.72);
+}
+.authCheck input{ accent-color: rgba(46, 204, 170, 0.95); }
+
+.authDivider{
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 2px;
+}
+.authDivider span{ height: 1px; background: rgba(255, 255, 255, 0.10); }
+.authDivider p{ margin: 0; font-size: 12px; color: rgba(235, 255, 252, 0.55); }
+
+.authFinePrint{
+  margin-top: 12px;
+  text-align: center;
+  font-size: 11px;
+  color: rgba(235, 255, 252, 0.5);
+}
+
+.authBottomLine{
+  margin-top: 10px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(235, 255, 252, 0.65);
+}
+
+/* Responsive */
+@media (max-width: 920px) {
+  .authCard{ grid-template-columns: 1fr; }
+  .authLeft{ display: none; }
+}
+@media (max-width: 520px) {
+  .authGrid2{ grid-template-columns: 1fr; }
+}
+
+
+/* ===== Forgot Password (Figma light style) ===== */
+
+.authCardForgot {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.authLeftLight {
+  background: #f7fbfb;
+  border-right: 0;
+}
+
+.authRightLight {
+  background: #eaf3f3;
+}
+
+.authTitleGreen {
+  color: #103d34;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+/* Right small box like figma */
+.fpBox {
+  width: min(520px, 100%);
+  margin: 0 auto;
+  padding: 18px 18px 16px;
+
+  background: #0e3f35;
+  border-radius: 4px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+}
+
+.fpForm {
+  display: grid;
+  gap: 12px;
+}
+
+.fpField {
+  display: grid;
+  gap: 6px;
+}
+
+.fpLabel {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.fpInput {
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  outline: none;
+  background: #ffffff;
+  color: #0f2c27;
+  font-size: 13px;
+}
+
+.fpActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  align-items: center;
+}
+
+.fpLinkBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.fpLinkBtn:hover {
+  text-decoration: underline;
+}
+
+.fpPrimaryBtn {
+  height: 28px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  background: #f2f2f2;
+  color: #0e3f35;
+  font-weight: 700;
+  font-size: 12px;
+}
+.authLinkBtn{
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: rgba(140, 255, 230, 0.78);
+  font-size: 12px;
+}
+.authLinkBtn:hover{
+  text-decoration: underline;
+}
+/* =========================
+   FIX: Role dropdown (select) readability
+   Paste at END of auth.css
+   ========================= */
+
+/* make select look like your underline input but readable */
+.authForm .uInput[type="text"],
+.authForm .uInput[type="email"],
+.authForm .uInput[type="password"]{
+  color: rgba(236, 252, 250, 0.92);
+}
+
+/* ✅ specifically fix select */
+.authForm select.uInput{
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 100%;
+  height: 40px;
+  color: rgba(236, 252, 250, 0.95) !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22) !important;
+  padding: 10px 34px 10px 0; /* right space for arrow */
+  cursor: pointer;
+}
+
+/* focus */
+.authForm select.uInput:focus{
+  outline: none !important;
+  border-bottom-color: rgba(46, 204, 170, 0.85) !important;
+}
+
+/* ✅ dropdown list options */
+.authForm select.uInput option{
+  background: #0b1220 !important;
+  color: rgba(236, 252, 250, 0.95) !important;
+}
+
+/* ✅ disabled/placeholder look (if ever used) */
+.authForm select.uInput option:disabled{
+  color: rgba(236, 252, 250, 0.45) !important;
+}
+
+/* add a custom arrow */
+.authForm select.uInput{
+  background-image: linear-gradient(45deg, transparent 50%, rgba(236,252,250,.9) 50%),
+                    linear-gradient(135deg, rgba(236,252,250,.9) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 18px, calc(100% - 9px) 18px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
