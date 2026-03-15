@@ -1,38 +1,50 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import "./auth.css";
 import illus from "../assets/login.png";
 
 export default function Login() {
+
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ email: "", password: "", terms: false });
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    terms: false
+  });
+
   const [showPass, setShowPass] = useState(false);
-
-  // TEMP role for testing (backend ready ho jaye to remove)
-  const [tempRole, setTempRole] = useState("manager");
-
-  // Show user-friendly error
   const [error, setError] = useState("");
 
-  // ✅ Already logged-in user ko correct dashboard pe redirect
   useEffect(() => {
+
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
 
     if (token && role) {
-      if (role === "manager") navigate("/manager/dashboard", { replace: true });
-      if (role === "employee") navigate("/employee/dashboard", { replace: true });
-      if (role === "client") navigate("/client/dashboard", { replace: true });
+
+      if (role === "manager") navigate("/manager/dashboard");
+      if (role === "employee") navigate("/employee/dashboard");
+      if (role === "client") navigate("/client/dashboard");
+
     }
+
   }, [navigate]);
 
   const onChange = (e) => {
+
     const { name, value, type, checked } = e.target;
-    setForm((p) => ({ ...p, [name]: type === "checkbox" ? checked : value }));
+
+    setForm((p) => ({
+      ...p,
+      [name]: type === "checkbox" ? checked : value
+    }));
+
   };
 
   const onSubmit = async (e) => {
+
     e.preventDefault();
     setError("");
 
@@ -42,155 +54,144 @@ export default function Login() {
     }
 
     if (!form.terms) {
-      setError("Please accept Terms & Conditions to continue.");
+      setError("Please accept Terms & Conditions.");
       return;
     }
 
-    // TEMP login (backend later)
-    const tokenFromBackend = "dummy-token";
-    const roleFromBackend = tempRole;
+    try {
 
-    localStorage.setItem("token", tokenFromBackend);
-    localStorage.setItem("role", roleFromBackend);
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        {
+          email: form.email,
+          password: form.password
+        }
+      );
 
-    // ✅ Login ke baad correct panel dashboard pe bhejo
-    if (roleFromBackend === "manager") navigate("/manager/dashboard", { replace: true });
-    if (roleFromBackend === "employee") navigate("/employee/dashboard", { replace: true });
-    if (roleFromBackend === "client") navigate("/client/dashboard", { replace: true });
+      const token = res.data.token;
+      const role = res.data.user.role;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
+
+      if (role === "manager") navigate("/manager/dashboard");
+      if (role === "employee") navigate("/employee/dashboard");
+      if (role === "client") navigate("/client/dashboard");
+
+    } catch (err) {
+
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Login failed");
+      }
+
+    }
+
   };
 
   return (
+
     <div className="authPage">
+
       <div className="authCard">
-        {/* Left */}
+
         <div className="authLeft">
+
           <div className="authHeader">
+
             <div className="authBrand">
+
               <div className="authLogo">SC</div>
+
               <div className="authBrandText">
+
                 <div className="authBrandName">SmartCollab</div>
+
                 <div className="authBrandSub">
                   A Real-Time Project Coordination Platform
                 </div>
+
               </div>
+
             </div>
+
           </div>
 
           <div className="authIllusWrap">
-            <img className="authIllus authIllusLogin" src={illus} alt="Login" />
+            <img className="authIllus authIllusLogin" src={illus} alt="Login"/>
           </div>
+
         </div>
 
-        {/* Right */}
         <div className="authRight">
+
           <div className="authRightInner">
-            <h1 className="authTitle authTitleLeft">Welcome back, Username</h1>
-            <p className="authSubtitle authSubtitleLeft">
-              Welcome back! Please enter your details.
-            </p>
+
+            <h1 className="authTitle">Welcome Back</h1>
 
             {error && <div className="authError">{error}</div>}
 
-            <form className="authForm authFormLogin" onSubmit={onSubmit}>
+            <form className="authForm" onSubmit={onSubmit}>
+
               <div className="authField">
-                <label className="authLabel">Email</label>
+
+                <label>Email</label>
+
                 <input
-                  className="uInput"
                   type="email"
                   name="email"
                   value={form.email}
                   onChange={onChange}
-                  autoComplete="email"
                 />
+
               </div>
 
               <div className="authField">
-                <label className="authLabel">Password</label>
 
-                <div className="uWrap">
-                  <input
-                    className="uInput uInput--withIcon"
-                    type={showPass ? "text" : "password"}
-                    name="password"
-                    value={form.password}
-                    onChange={onChange}
-                    autoComplete="current-password"
-                  />
+                <label>Password</label>
 
-                  <button
-                    type="button"
-                    className="uIcon"
-                    onClick={() => setShowPass((s) => !s)}
-                    aria-label="Toggle password visibility"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z"
-                        stroke="currentColor"
-                        strokeWidth="1.7"
-                      />
-                      <path
-                        d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
-                        stroke="currentColor"
-                        strokeWidth="1.7"
-                      />
-                      {!showPass && (
-                        <path
-                          d="M4 4l16 16"
-                          stroke="currentColor"
-                          strokeWidth="1.7"
-                          opacity="0.85"
-                        />
-                      )}
-                    </svg>
-                  </button>
-                </div>
+                <input
+                  type={showPass ? "text" : "password"}
+                  name="password"
+                  value={form.password}
+                  onChange={onChange}
+                />
+
               </div>
 
-              {/* TEMP Role selector for testing */}
-              <div className="authField">
-                <label className="authLabel">Login as</label>
-                <select
-                  className="uInput"
-                  value={tempRole}
-                  onChange={(e) => setTempRole(e.target.value)}
-                >
-                  <option value="manager">Manager</option>
-                  <option value="employee">Employee</option>
-                  <option value="client">Client</option>
-                </select>
-              </div>
+              <label>
 
-              <div className="authRowBetween">
-                <label className="authCheck">
-                  <input
-                    type="checkbox"
-                    name="terms"
-                    checked={form.terms}
-                    onChange={onChange}
-                  />
-                  <span>Terms &amp; Conditions</span>
-                </label>
+                <input
+                  type="checkbox"
+                  name="terms"
+                  checked={form.terms}
+                  onChange={onChange}
+                />
 
-                <Link className="authLink" to="/forgot-password">
-                  Forgot Password
-                </Link>
-              </div>
+                Accept Terms
 
-              <button className="authBtn authBtnDark" type="submit">
-                Log in
+              </label>
+
+              <button type="submit" className="authBtn">
+                Login
               </button>
 
               <div className="authBottomLine">
-                Don&apos;t have an account?{" "}
-                <Link className="authLinkStrong" to="/signup">
-                  Sign up for free
-                </Link>
+                Don't have an account?
+                <Link to="/signup">Signup</Link>
               </div>
+
             </form>
+
           </div>
+
         </div>
+
       </div>
+
     </div>
+
   );
+
 }
