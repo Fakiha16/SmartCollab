@@ -11,12 +11,10 @@ export default function Signup() {
   const [error,setError] = useState("");
 
   const [form,setForm] = useState({
-
     firstName:"",
     lastName:"",
     email:"",
     password:""
-
   });
 
   const [role,setRole] = useState("client");
@@ -26,10 +24,8 @@ export default function Signup() {
     const {name,value} = e.target;
 
     setForm((p)=>({
-
       ...p,
       [name]:value
-
     }));
 
   };
@@ -43,12 +39,10 @@ export default function Signup() {
       await axios.post(
         "http://localhost:5000/api/auth/signup",
         {
-
           name: form.firstName + " " + form.lastName,
           email: form.email,
           password: form.password,
           role: role
-
         }
       );
 
@@ -78,56 +72,111 @@ export default function Signup() {
 
         <div className="authLeft">
 
-          <img src={illus} alt="signup"/>
+          <div className="authHeader">
+
+            <div className="authBrand">
+
+              <div className="authLogo">SC</div>
+
+              <div>
+                <div className="authBrandName">SmartCollab</div>
+                <div className="authBrandSub">
+                  A Real-Time Project Coordination Platform
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <div className="authIllusWrap">
+            <img className="authIllus" src={illus} alt="signup"/>
+          </div>
 
         </div>
 
         <div className="authRight">
 
-          <h1>Create Account</h1>
+          <div className="authRightInner">
 
-          {error && <div className="authError">{error}</div>}
+            <h1 className="authTitle">Create Account</h1>
 
-          <form onSubmit={onSubmit}>
+            {error && <div className="authError">{error}</div>}
 
-            <input
-              name="firstName"
-              placeholder="First Name"
-              onChange={onChange}
-            />
+            <form className="authForm" onSubmit={onSubmit}>
 
-            <input
-              name="lastName"
-              placeholder="Last Name"
-              onChange={onChange}
-            />
+              <div className="authGrid2">
 
-            <input
-              name="email"
-              placeholder="Email"
-              onChange={onChange}
-            />
+                <div className="authField">
+                  <label className="authLabel">First Name</label>
+                  <input
+                    className="authInput"
+                    name="firstName"
+                    placeholder="First Name"
+                    onChange={onChange}
+                  />
+                </div>
 
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              onChange={onChange}
-            />
+                <div className="authField">
+                  <label className="authLabel">Last Name</label>
+                  <input
+                    className="authInput"
+                    name="lastName"
+                    placeholder="Last Name"
+                    onChange={onChange}
+                  />
+                </div>
 
-            <select value={role} onChange={(e)=>setRole(e.target.value)}>
+              </div>
 
-              <option value="manager">Manager</option>
-              <option value="employee">Employee</option>
-              <option value="client">Client</option>
+              <div className="authField">
+                <label className="authLabel">Email</label>
+                <input
+                  className="authInput"
+                  name="email"
+                  placeholder="Enter email"
+                  onChange={onChange}
+                />
+              </div>
 
-            </select>
+              <div className="authField">
+                <label className="authLabel">Password</label>
+                <input
+                  className="authInput"
+                  name="password"
+                  type="password"
+                  placeholder="Enter password"
+                  onChange={onChange}
+                />
+              </div>
 
-            <button type="submit">Signup</button>
+              <div className="authField">
+                <label className="authLabel">Role</label>
 
-          </form>
+                <select
+                  className="authInput"
+                  value={role}
+                  onChange={(e)=>setRole(e.target.value)}
+                >
+                  <option value="manager">Manager</option>
+                  <option value="employee">Employee</option>
+                  <option value="client">Client</option>
+                </select>
 
-          <Link to="/login">Already have account?</Link>
+              </div>
+
+              <button type="submit" className="authBtn">
+                Signup
+              </button>
+
+              <div className="authBottomLine">
+                Already have an account?
+                <Link to="/login"> Login</Link>
+              </div>
+
+            </form>
+
+          </div>
 
         </div>
 

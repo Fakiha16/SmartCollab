@@ -76,10 +76,6 @@ export default function ForgotPassword() {
                 </div>
               </div>
             </form>
-
-            <div className="authFinePrint">
-              If you don&apos;t see the email, check your spam folder.
-            </div>
           </div>
         </div>
       </div>

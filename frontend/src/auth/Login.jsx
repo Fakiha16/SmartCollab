@@ -10,8 +10,7 @@ export default function Login() {
 
   const [form, setForm] = useState({
     email: "",
-    password: "",
-    terms: false
+    password: ""
   });
 
   const [showPass, setShowPass] = useState(false);
@@ -34,11 +33,11 @@ export default function Login() {
 
   const onChange = (e) => {
 
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
 
     setForm((p) => ({
       ...p,
-      [name]: type === "checkbox" ? checked : value
+      [name]: value
     }));
 
   };
@@ -50,11 +49,6 @@ export default function Login() {
 
     if (!form.email || !form.password) {
       setError("Email and password are required.");
-      return;
-    }
-
-    if (!form.terms) {
-      setError("Please accept Terms & Conditions.");
       return;
     }
 
@@ -138,12 +132,16 @@ export default function Login() {
 
                 <label>Email</label>
 
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={onChange}
-                />
+                <div className="uWrap">
+                  <input
+                    className="uInput"
+                    type="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    value={form.email}
+                    onChange={onChange}
+                  />
+                </div>
 
               </div>
 
@@ -151,27 +149,28 @@ export default function Login() {
 
                 <label>Password</label>
 
-                <input
-                  type={showPass ? "text" : "password"}
-                  name="password"
-                  value={form.password}
-                  onChange={onChange}
-                />
+                <div className="uWrap">
+
+  <input
+    className="uInput"
+    type="password"
+    name="password"
+    placeholder="Enter your password"
+    value={form.password}
+    onChange={onChange}
+  />
+
+</div>
 
               </div>
 
-              <label>
+              <div className="authRowBetween">
 
-                <input
-                  type="checkbox"
-                  name="terms"
-                  checked={form.terms}
-                  onChange={onChange}
-                />
+                <Link to="/forgot-password" className="authLink">
+                  Forgot Password?
+                </Link>
 
-                Accept Terms
-
-              </label>
+              </div>
 
               <button type="submit" className="authBtn">
                 Login
@@ -179,7 +178,7 @@ export default function Login() {
 
               <div className="authBottomLine">
                 Don't have an account?
-                <Link to="/signup">Signup</Link>
+                <Link to="/signup"> Signup</Link>
               </div>
 
             </form>
