@@ -13,7 +13,6 @@ export default function Login() {
     password: ""
   });
 
-  const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -63,10 +62,14 @@ export default function Login() {
       );
 
       const token = res.data.token;
-      const role = res.data.user.role;
+      const user = res.data.user;
+      const role = user.role;
 
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
+
+      // ⭐ IMPORTANT (profile ke liye)
+      localStorage.setItem("user", JSON.stringify(user));
 
       if (role === "manager") navigate("/manager/dashboard");
       if (role === "employee") navigate("/employee/dashboard");
@@ -151,16 +154,16 @@ export default function Login() {
 
                 <div className="uWrap">
 
-  <input
-    className="uInput"
-    type="password"
-    name="password"
-    placeholder="Enter your password"
-    value={form.password}
-    onChange={onChange}
-  />
+                  <input
+                    className="uInput"
+                    type="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    value={form.password}
+                    onChange={onChange}
+                  />
 
-</div>
+                </div>
 
               </div>
 
