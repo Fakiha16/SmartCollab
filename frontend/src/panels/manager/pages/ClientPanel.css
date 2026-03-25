@@ -66,6 +66,12 @@
   cursor: pointer;
 }
 
+.chatTime{
+  font-size:10px;
+  margin-top:4px;
+  opacity:0.7;
+  text-align:right;
+}
 /* FILES */
 
 .uploadBox {
@@ -78,47 +84,110 @@
   font-size: 24px;
 }
 
-.docBody {
-  margin-top: 10px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+
+.docBody{
+  flex:1;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;   
+  justify-content:flex-start;
+  gap:10px;
 }
 
-.fileCard {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: #065f46;
-  padding: 12px;
-  border-radius: 10px;
-  color: white;
+
+
+
+
+
+
+
+/* CARD */
+
+
+.fileCard{
+  width:100%;                 
+  display:flex;
+  align-items:center;
+
+  background:linear-gradient(135deg,#065f46,#047857);
+
+  padding:12px 14px;
+  border-radius:12px;
+
+  color:white;
+
+  transition:0.2s;
+
+  box-sizing:border-box;      /* 🔥 IMPORTANT */
 }
 
-.deleteBtn {
-  position: absolute;
-  top: 5px;
-  right: 8px;
-  cursor: pointer;
+/* LEFT ICON */
+.fileLeft{
+  font-size:22px;
 }
 
-.fileMiddle {
-  flex: 1;
-  margin-left: 10px;
+/* TEXT */
+.fileMiddle{
+  flex:1;
+  margin-left:10px;
 }
 
-.fileName {
-  font-size: 14px;
+.fileName{
+  font-size:14px;
+  color:#ecfcfa;
+  font-weight:600;
 }
 
-.fileType {
-  font-size: 11px;
-  opacity: 0.7;
+.fileMeta{
+  font-size:11px;
+  color:rgba(255,255,255,0.6);
 }
 
-.downloadBtn {
-  text-decoration: none;
-  color: white;
-  font-size: 18px;
+/* ACTIONS */
+.fileActions{
+  display:flex;
+  gap:6px;
 }
+
+/* BUTTONS */
+.fileBtn{
+  width:30px;
+  height:30px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:8px;
+  border:none;
+
+  background: rgba(255,255,255,0.08);
+  color:#ecfcfa;
+
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.fileBtn:hover{
+  background: rgba(59,130,246,0.25);
+}
+
+/* DELETE */
+.fileBtn.delete:hover{
+  background: rgba(255,70,70,0.25);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

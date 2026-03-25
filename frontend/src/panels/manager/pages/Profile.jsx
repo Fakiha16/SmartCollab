@@ -21,23 +21,17 @@ const projects = [
 export default function Profile() {
 
   const navigate = useNavigate();
-
   const [user,setUser] = useState(null);
 
   useEffect(()=>{
-
     const storedUser = localStorage.getItem("user");
-
     if(storedUser){
       setUser(JSON.parse(storedUser));
     }
-
   },[]);
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("user");
+    localStorage.clear();
     navigate("/login",{replace:true});
   };
 
@@ -67,9 +61,8 @@ export default function Profile() {
             {user?.role || "Role"}
           </div>
 
-          <button className="pf-logoutBtn" type="button" onClick={logout}>
-            Logout
-          </button>
+          {/* ✅ ACTION BUTTONS */}
+          
 
           <div className="pf-info">
 
@@ -89,15 +82,30 @@ export default function Profile() {
             </div>
 
           </div>
+          <div className="pf-actions">
+
+            <button
+              className="pf-editBtn"
+              onClick={() => navigate("/manager/edit-profile")}
+            >
+              ✏️ Edit Profile
+            </button>
+
+            <button
+              className="pf-logoutBtn"
+              onClick={logout}
+            >
+              Logout
+            </button>
+
+          </div>
 
         </section>
 
         {/* CENTER */}
-
         <section className="pf-card pf-center">
-
           <div className="pf-breadcrumb">
-            Inicio &nbsp;&gt;&nbsp; Profile
+            Inicio &gt; Profile
           </div>
 
           <div className="pf-title">
@@ -120,13 +128,10 @@ export default function Profile() {
               </div>
             ))}
           </div>
-
         </section>
 
         {/* RIGHT PROJECTS */}
-
         <section className="pf-card pf-projects">
-
           <div className="pf-rightHead">
             <div className="pf-rightTitle">Projects</div>
           </div>
@@ -139,38 +144,24 @@ export default function Profile() {
               </div>
             ))}
           </div>
-
         </section>
 
         {/* RIGHT BOTTOM */}
-
         <section className="pf-card pf-total">
-
           <div className="pf-rightHead">
             <div className="pf-rightTitle">Total work done</div>
           </div>
 
           <div className="pf-donutWrap">
-
             <div className="pf-donut">
-
               <div className="pf-donutInner">
-                <div className="pf-donutText">
-                  Active
-                </div>
-
+                <div className="pf-donutText">Active</div>
               </div>
-
             </div>
-
           </div>
-
         </section>
 
       </div>
-
     </div>
-
   );
-
 }

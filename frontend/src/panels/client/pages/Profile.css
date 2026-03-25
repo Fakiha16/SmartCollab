@@ -1,14 +1,12 @@
 .pf-wrap{
   height: 100%;
-  min-height: 0;
-  padding: 6px 2px 0;
+  padding: 8px;
 }
 
 .pf-grid{
   height: 100%;
-  min-height: 0;
   display: grid;
-  grid-template-columns: 320px 1fr 360px;
+  grid-template-columns: 340px 1fr 360px;
   grid-template-rows: 1fr 240px;
   gap: 18px;
 }
