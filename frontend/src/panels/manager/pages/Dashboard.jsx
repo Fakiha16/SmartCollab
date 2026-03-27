@@ -1,5 +1,5 @@
-
 import React, { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ ADDED
 import "./Dashboard.css";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
@@ -19,8 +19,6 @@ const mockLeadership = [
   { id: 10, img: "https://i.pravatar.cc/120?img=20" },
   { id: 11, img: "https://i.pravatar.cc/120?img=21" },
   { id: 12, img: "https://i.pravatar.cc/120?img=22" },
-
-  // duplicated to simulate more people
   { id: 13, img: "https://i.pravatar.cc/120?img=23" },
   { id: 14, img: "https://i.pravatar.cc/120?img=24" },
   { id: 15, img: "https://i.pravatar.cc/120?img=25" },
@@ -41,19 +39,15 @@ const doneDelivered = [
   { title: "Client Panel", tag: "Delivered" },
   { title: "Access Control", tag: "Done" },
   { title: "Reports", tag: "Delivered" },
-  { title: "Dashboard UI", tag: "Delivered" },
-  { title: "Auth Flow", tag: "Done" },
-  { title: "Client Panel", tag: "Delivered" },
-  { title: "Access Control", tag: "Done" },
-  { title: "Reports", tag: "Delivered" },
 ];
 
 export default function Dashboard({ standalone = false }) {
+  const navigate = useNavigate(); // ✅ ADDED
+
   const [activeMenu, setActiveMenu] = useState("Project");
   const [leadSearch, setLeadSearch] = useState("");
 
-  // pagination for leadership (NO SCROLL)
-  const PAGE_SIZE = 14; // 7 cols x 2 rows look
+  const PAGE_SIZE = 14;
   const [leadPage, setLeadPage] = useState(1);
 
   const leadershipFiltered = useMemo(() => {
@@ -90,10 +84,8 @@ export default function Dashboard({ standalone = false }) {
       </div>
 
       <div className="sc-dashLayout">
-        {/* LEFT SIDE */}
         <div className="sc-dashLeft">
           <div className="sc-grid2">
-            {/* Projects */}
             <Card className="sc-card-project">
               <div className="sc-cardHead">
                 <div>
@@ -111,20 +103,17 @@ export default function Dashboard({ standalone = false }) {
               </div>
 
               <div className="sc-cardFooter">
-                <button className="sc-btn sc-btnPrimary" type="button">
-                  Open
-                </button>
-                <button className="sc-btn sc-btnGhost" type="button">
-                  Manage
-                </button>
+                <button className="sc-btn sc-btnPrimary">Open</button>
+                <button className="sc-btn sc-btnGhost">Manage</button>
               </div>
             </Card>
 
-            {/* Performance */}
-            <PerformanceCard />
+            <div onClick={() => navigate("/manager/performance")}>
+              <PerformanceCard />
+            </div>
           </div>
 
-          {/* Leadership Panel (avatars only + pagination, NO SCROLL) */}
+          {/* 🔥 UPDATED PART */}
           <Card className="sc-leadership sc-leadershipCompact">
             <div className="sc-cardHead sc-cardHeadRow">
               <div>
@@ -143,7 +132,12 @@ export default function Dashboard({ standalone = false }) {
                     placeholder="Search team..."
                   />
                 </div>
-                <button className="sc-linkBtn" type="button">
+
+                {/* ✅ CONNECTED BUTTON */}
+                <button
+                  className="sc-linkBtn"
+                  onClick={() => navigate("/manager/team")}
+                >
                   View all
                 </button>
               </div>
@@ -160,7 +154,6 @@ export default function Dashboard({ standalone = false }) {
             <div className="sc-pagination">
               <button
                 className="sc-pageBtn"
-                type="button"
                 onClick={() => setLeadPage((p) => Math.max(1, p - 1))}
                 disabled={leadPageSafe === 1}
               >
@@ -171,12 +164,12 @@ export default function Dashboard({ standalone = false }) {
                 .slice(0, 3)
                 .map((_, i) => {
                   const pageNum = i + 1;
-                  const isActive = pageNum === leadPageSafe;
                   return (
                     <button
                       key={pageNum}
-                      className={`sc-pageNum ${isActive ? "sc-active" : ""}`}
-                      type="button"
+                      className={`sc-pageNum ${
+                        pageNum === leadPageSafe ? "sc-active" : ""
+                      }`}
                       onClick={() => setLeadPage(pageNum)}
                     >
                       {pageNum}
@@ -186,7 +179,6 @@ export default function Dashboard({ standalone = false }) {
 
               <button
                 className="sc-pageBtn"
-                type="button"
                 onClick={() =>
                   setLeadPage((p) => Math.min(totalLeadPages, p + 1))
                 }
@@ -197,31 +189,6 @@ export default function Dashboard({ standalone = false }) {
             </div>
           </Card>
         </div>
-
-        {/* RIGHT SIDE */}
-        <Card className="sc-doneDelivered">
-          <div className="sc-cardHead">
-            <div>
-              <div className="sc-cardTitle">Done & Delivered</div>
-              <div className="sc-muted">Recent outcomes</div>
-            </div>
-            <button className="sc-linkBtn" type="button">
-              View all
-            </button>
-          </div>
-
-          <div className="sc-deliveredList sc-deliveredScroll">
-            {doneDelivered.map((it) => (
-              <div key={it.title} className="sc-deliveredItem">
-                <div className="sc-deliveredThumb" />
-                <div className="sc-deliveredInfo">
-                  <div className="sc-deliveredTitle">{it.title}</div>
-                  <div className="sc-tag">{it.tag}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
       </div>
     </div>
   );

@@ -4,6 +4,8 @@
   gap: 20px;
 }
 
+/* ================= CARD ================= */
+
 .empCard {
   background: #0f172a;
   border-radius: 16px;
@@ -11,14 +13,18 @@
   height: 500px;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .empCard__title {
   font-weight: bold;
   margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* CHAT */
+/* ================= CHAT ================= */
 
 .chatBody {
   flex: 1;
@@ -26,53 +32,116 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding-right: 6px;
 }
 
+/* scrollbar */
+.chatBody::-webkit-scrollbar {
+  width: 6px;
+}
+.chatBody::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
+}
+
+/* chat bubbles */
 .chatBubble {
   max-width: 70%;
-  padding: 10px;
-  border-radius: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
   color: white;
+  font-size: 13px;
+  position: relative;
+  word-wrap: break-word;
 }
 
+/* sender */
 .chatBubble.me {
-  background: #047857;
+  background: linear-gradient(135deg,#047857,#059669);
   align-self: flex-end;
+  border-bottom-right-radius: 4px;
 }
 
+/* receiver */
 .chatBubble.other {
   background: #111827;
   align-self: flex-start;
+  border-bottom-left-radius: 4px;
 }
 
+/* time */
+.chatTime {
+  font-size: 10px;
+  margin-top: 4px;
+  opacity: 0.7;
+  text-align: right;
+}
+
+/* delete button */
+.chatBubble span {
+  position: absolute;
+  top: 4px;
+  right: -18px;
+  font-size: 11px;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.chatBubble span:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* input */
 .chatInput {
   display: flex;
   gap: 10px;
+  margin-top: 10px;
 }
 
 .chatInput input {
   flex: 1;
-  padding: 10px;
+  padding: 10px 14px;
   border-radius: 20px;
-  border: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: #020617;
+  color: white;
+  outline: none;
 }
 
+/* send button */
 .chatInput button {
-  background: #047857;
+  background: linear-gradient(135deg,#047857,#059669);
   color: white;
   border: none;
-  padding: 10px;
+  padding: 10px 14px;
   border-radius: 50%;
   cursor: pointer;
+  transition: 0.2s;
 }
 
-.chatTime{
-  font-size:10px;
-  margin-top:4px;
-  opacity:0.7;
-  text-align:right;
+.chatInput button:hover {
+  transform: scale(1.1);
 }
-/* FILES */
+
+/* clear button */
+.empCard__title button {
+  background: rgba(255,70,70,0.2);
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: #ff4d4d;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.empCard__title button:hover {
+  background: rgba(255,70,70,0.35);
+}
+
+/* ================= FILES ================= */
 
 .uploadBox {
   border: 2px dashed #3b82f6;
@@ -82,112 +151,92 @@
   cursor: pointer;
   color: #3b82f6;
   font-size: 24px;
+  transition: 0.2s;
 }
 
-
-.docBody{
-  flex:1;
-  overflow-y:auto;
-  display:flex;
-  flex-direction:column;
-  align-items:stretch;   
-  justify-content:flex-start;
-  gap:10px;
+.uploadBox:hover {
+  background: rgba(59,130,246,0.1);
 }
 
-
-
-
-
-
-
-
-/* CARD */
-
-
-.fileCard{
-  width:100%;                 
-  display:flex;
-  align-items:center;
-
-  background:linear-gradient(135deg,#065f46,#047857);
-
-  padding:12px 14px;
-  border-radius:12px;
-
-  color:white;
-
-  transition:0.2s;
-
-  box-sizing:border-box;      /* 🔥 IMPORTANT */
+.docBody {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-/* LEFT ICON */
-.fileLeft{
-  font-size:22px;
+/* ================= FILE CARD ================= */
+
+.fileCard {
+  width: 100%;
+  display: flex;
+  align-items: center;
+
+  background: linear-gradient(135deg,#065f46,#047857);
+  padding: 12px 14px;
+  border-radius: 12px;
+
+  color: white;
+  transition: 0.2s;
 }
 
-/* TEXT */
-.fileMiddle{
-  flex:1;
-  margin-left:10px;
+.fileCard:hover {
+  transform: translateY(-2px);
 }
 
-.fileName{
-  font-size:14px;
-  color:#ecfcfa;
-  font-weight:600;
+/* icon */
+.fileLeft {
+  font-size: 22px;
 }
 
-.fileMeta{
-  font-size:11px;
-  color:rgba(255,255,255,0.6);
+/* text */
+.fileMiddle {
+  flex: 1;
+  margin-left: 10px;
 }
 
-/* ACTIONS */
-.fileActions{
-  display:flex;
-  gap:6px;
+.fileName {
+  font-size: 14px;
+  color: #ecfcfa;
+  font-weight: 600;
 }
 
-/* BUTTONS */
-.fileBtn{
-  width:30px;
-  height:30px;
+.fileMeta {
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+}
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
+/* actions */
+.fileActions {
+  display: flex;
+  gap: 6px;
+}
 
-  border-radius:8px;
-  border:none;
+/* buttons */
+.fileBtn {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+  border: none;
 
   background: rgba(255,255,255,0.08);
-  color:#ecfcfa;
+  color: #ecfcfa;
 
-  cursor:pointer;
-  transition:0.2s;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.fileBtn:hover{
+.fileBtn:hover {
   background: rgba(59,130,246,0.25);
 }
 
-/* DELETE */
-.fileBtn.delete:hover{
-  background: rgba(255,70,70,0.25);
+/* delete */
+.fileBtn.delete:hover {
+  background: rgba(255,70,70,0.3);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

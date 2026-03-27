@@ -2,34 +2,29 @@ const express = require("express");
 const router = express.Router();
 const Message = require("../models/Message");
 
-// send message
-router.post("/", async (req,res)=>{
-  try{
-    const msg = await Message.create(req.body);
-    res.json(msg);
-  }catch(err){
-    res.status(500).json({message: err.message});
-  }
+// GET all messages
+router.get("/", async (req, res) => {
+  const messages = await Message.find().sort({ createdAt: 1 });
+  res.json(messages);
 });
 
-// get messages
-router.get("/:user1/:user2", async (req,res)=>{
-  try{
-
-    const {user1,user2} = req.params;
-
-    const messages = await Message.find({
-      $or:[
-        {sender:user1, receiver:user2},
-        {sender:user2, receiver:user1}
-      ]
-    });
-
-    res.json(messages);
-
-  }catch(err){
-    res.status(500).json({message: err.message});
-  }
+// POST message
+router.post("/", async (req, res) => {
+  const msg = new Message(req.body);
+  await msg.save();
+  res.json(msg);
 });
 
-module.exports = router;
+// DELETE single
+router.delete("/:id", async (req, res) => {
+  await Message.findByIdAndDelete(req.params.id);
+  res.json({ success: true });
+});
+
+// DELETE all
+router.delete("/", async (req, res) => {
+  await Message.deleteMany({});
+  res.json({ success: true });
+});
+
+module.exports = router;   // ✅ IMPORTANT

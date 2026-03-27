@@ -1,0 +1,58 @@
+.perf-page {
+  padding: 20px;
+  color: white;
+}
+
+.perf-title {
+  font-size: 26px;
+  margin-bottom: 20px;
+}
+
+.perf-select {
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  background: #111;
+  color: white;
+  border: 1px solid #333;
+}
+
+.perf-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.perf-tabs button {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  background: #222;
+  color: white;
+  cursor: pointer;
+}
+
+.perf-tabs button:hover {
+  background: #00d4ff;
+  color: black;
+}
+
+.perf-chart {
+  background: rgba(255,255,255,0.05);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+}
+
+.perf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.perf-card {
+  background: rgba(255,255,255,0.05);
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+}

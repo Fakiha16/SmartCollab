@@ -9,10 +9,9 @@ export default function ClientPanel() {
   const [messages, setMessages] = useState([]);
 
   const fileInputRef = useRef();
-
   const user = JSON.parse(localStorage.getItem("user"));
 
-  // fetch files
+  // ================= FILES =================
   useEffect(() => {
     const fetchFiles = async () => {
       const res = await axios.get("http://localhost:5000/api/upload");
@@ -21,26 +20,53 @@ export default function ClientPanel() {
     fetchFiles();
   }, []);
 
-  // send message
-const sendMessage = () => {
-  if (!message.trim()) return;
+  // ================= MESSAGES =================
+  useEffect(() => {
+    const fetchMessages = async () => {
+      const res = await axios.get("http://localhost:5000/api/messages");
+      setMessages(res.data);
+    };
+    fetchMessages();
+  }, []);
 
-  const now = new Date();
+  // SEND MESSAGE (DB)
+  const sendMessage = async () => {
+    if (!message.trim()) return;
 
-  const time = now.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+    const now = new Date();
+    const time = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
-  setMessages([
-    ...messages,
-    { text: message, sender: "me", time }
-  ]);
+    const newMsg = {
+      text: message,
+      sender: user?.email || "me",
+      time,
+    };
 
-  setMessage("");
-};
+    const res = await axios.post(
+      "http://localhost:5000/api/messages",
+      newMsg
+    );
 
-  // upload file
+    setMessages([...messages, res.data]);
+    setMessage("");
+  };
+
+  // DELETE SINGLE MESSAGE
+  const deleteMessage = async (id) => {
+    await axios.delete(`http://localhost:5000/api/messages/${id}`);
+    setMessages(messages.filter((m) => m._id !== id));
+  };
+
+  // CLEAR ALL CHAT
+  const clearChat = async () => {
+    await axios.delete("http://localhost:5000/api/messages");
+    setMessages([]);
+  };
+
+  // ================= FILE UPLOAD =================
   const handleUpload = async (e) => {
     const file = e.target.files[0];
 
@@ -56,16 +82,14 @@ const sendMessage = () => {
     setFiles([res.data, ...files]);
   };
 
-  // delete file
+  // DELETE FILE (UNCHANGED)
   const deleteFile = async (id, uploadedBy) => {
-
     if (uploadedBy !== user?.email) {
       alert("You can only delete your own file");
       return;
     }
 
     await axios.delete(`http://localhost:5000/api/upload/${id}`);
-
     setFiles(files.filter(f => f._id !== id));
   };
 
@@ -73,18 +97,31 @@ const sendMessage = () => {
     <div className="empDash">
       <div className="empDash__wrap">
 
-        {/* CHAT */}
+        {/* ================= CHAT ================= */}
         <section className="empCard">
-          <div className="empCard__title">Client Messages</div>
+          <div className="empCard__title">
+            Client Messages
+
+            <button onClick={clearChat}>
+              Clear All
+            </button>
+          </div>
 
           <div className="chatBody">
-            {messages.map((msg, i) => (
+            {messages.map((msg) => (
               <div
-                key={i}
-                className={`chatBubble ${msg.sender === "me" ? "me" : "other"}`}
+                key={msg._id}
+                className={`chatBubble ${
+                  msg.sender === user?.email ? "me" : "other"
+                }`}
               >
                 <div>{msg.text}</div>
                 <div className="chatTime">{msg.time}</div>
+
+                {/* delete message */}
+                <span onClick={() => deleteMessage(msg._id)}>
+                  ❌
+                </span>
               </div>
             ))}
           </div>
@@ -100,32 +137,32 @@ const sendMessage = () => {
           </div>
         </section>
 
-        {/* FILES */}
+        {/* ================= FILES (AS IT IS - FRIEND CODE) ================= */}
         <section className="empCard">
           <div className="empCard__title">Shared Document</div>
+
           <input
             type="file"
             ref={fileInputRef}
             style={{ display: "none" }}
-             onChange={handleUpload}
+            onChange={handleUpload}
           />
 
-        {/* ✅ NEW WRAPPER */}
-        <div className="docContainer">
+          <div className="docContainer">
 
-          {/* Upload Box */}
-          <div
-            className="uploadBox"
-            onClick={() => fileInputRef.current.click()}
-          >
-            +
-          </div>
+            {/* Upload Box */}
+            <div
+              className="uploadBox"
+              onClick={() => fileInputRef.current.click()}
+            >
+              +
+            </div>
 
-          {/* File List */}
-          <div className="docBody">
+            {/* File List */}
+            <div className="docBody">
 
-            {files.map((f) => (
-              <div className="fileCard" key={f._id}>
+              {files.map((f) => (
+                <div className="fileCard" key={f._id}>
 
                   <div className="fileLeft">📄</div>
 
@@ -142,7 +179,6 @@ const sendMessage = () => {
                     <button
                       className="fileBtn"
                       onClick={() => window.open(f.url, "_blank")}
-                      title="Open"
                     >
                       ⬇
                     </button>
@@ -152,21 +188,20 @@ const sendMessage = () => {
                       <button
                         className="fileBtn delete"
                         onClick={() => deleteFile(f._id, f.uploadedBy)}
-                        title="Delete"
                       >
                         ×
                       </button>
                     )}
 
-  </div>
+                  </div>
 
-</div>
-            ))}
+                </div>
+              ))}
+
+            </div>
 
           </div>
-
-        </div>
-      </section>
+        </section>
 
       </div>
     </div>

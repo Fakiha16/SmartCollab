@@ -1,7 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "../components/Layout";
-
+import Performance from "../pages/Performance";
 import Dashboard from "../pages/Dashboard";
+import Team from "../pages/Team";
 import Projects from "../pages/Projects";
 import WorkLogs from "../pages/WorkLogs";
 import ClientPanel from "../pages/ClientPanel";
@@ -19,6 +20,10 @@ export default function ManagerRoutes() {
         <Route path="client-panel" element={<ClientPanel />} />
         <Route path="access-control" element={<AccessControl />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="team" element={<Team />} />
+        <Route path="performance" element={<Performance />} />
+
+
       </Route>
 
       <Route path="*" element={<Navigate to="dashboard" replace />} />
