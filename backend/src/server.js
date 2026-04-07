@@ -28,6 +28,8 @@ app.use("/api/messages", messageRoutes);
 const uploadRoutes = require("./routes/uploadRoutes");
 app.use("/api/upload", uploadRoutes);
 
+const inviteRoutes = require("./routes/inviteRoutes");
+app.use("/api/invite", inviteRoutes);
 
 
 app.use((req, res) => {

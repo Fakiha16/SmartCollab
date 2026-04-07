@@ -2,8 +2,15 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-}
+  position: relative;
+  z-index: 1;
+    pointer-events: auto;
 
+}
+.empDash {
+  position: relative;
+  z-index: 1;
+}
 /* ================= CARD ================= */
 
 .empCard{
@@ -13,7 +20,7 @@
   height:500px;
   display:flex;
   flex-direction:column;
-  overflow:hidden;   /* 🔥 IMPORTANT */
+  overflow:visible;
 }
 
 
@@ -260,4 +267,29 @@
 /* delete */
 .fileBtn.delete:hover {
   background: rgba(255,70,70,0.3);
+}
+.inviteBtnWrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+  z-index: 9999;
+    pointer-events: auto;
+
+}
+
+.inviteBtn {
+  position: relative;
+  z-index: 999;
+  background: #38bdf8;
+  color: black;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  z-index: 99999;
+}
+
+.inviteBtn:hover {
+  transform: scale(1.05);
 }

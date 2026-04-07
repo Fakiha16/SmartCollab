@@ -8,6 +8,10 @@ export default function ClientPanel() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
 
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const fileInputRef = useRef();
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -29,7 +33,6 @@ export default function ClientPanel() {
     fetchMessages();
   }, []);
 
-  // SEND MESSAGE (DB)
   const sendMessage = async () => {
     if (!message.trim()) return;
 
@@ -39,31 +42,56 @@ export default function ClientPanel() {
       minute: "2-digit",
     });
 
-    const newMsg = {
-      text: message,
-      sender: user?.email || "me",
-      time,
-    };
-
     const res = await axios.post(
       "http://localhost:5000/api/messages",
-      newMsg
+      {
+        text: message,
+        sender: user?.email,
+        time,
+      }
     );
 
     setMessages([...messages, res.data]);
     setMessage("");
   };
 
-  // DELETE SINGLE MESSAGE
   const deleteMessage = async (id) => {
     await axios.delete(`http://localhost:5000/api/messages/${id}`);
     setMessages(messages.filter((m) => m._id !== id));
   };
 
-  // CLEAR ALL CHAT
   const clearChat = async () => {
     await axios.delete("http://localhost:5000/api/messages");
     setMessages([]);
+  };
+
+  // ================= INVITE =================
+  const sendInvite = async () => {
+    if (!inviteEmail) {
+      alert("Please enter email");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      console.log("Sending invite to:", inviteEmail);
+
+      await axios.post("http://localhost:5000/api/invite", {
+        email: inviteEmail,
+      });
+
+      alert("✅ Invitation sent successfully!");
+
+      setInviteEmail("");
+      setShowInvite(false);
+
+    } catch (err) {
+      console.error(err);
+      alert("❌ Email failed");
+    }
+
+    setLoading(false);
   };
 
   // ================= FILE UPLOAD =================
@@ -82,7 +110,6 @@ export default function ClientPanel() {
     setFiles([res.data, ...files]);
   };
 
-  // DELETE FILE (UNCHANGED)
   const deleteFile = async (id, uploadedBy) => {
     if (uploadedBy !== user?.email) {
       alert("You can only delete your own file");
@@ -95,16 +122,27 @@ export default function ClientPanel() {
 
   return (
     <div className="empDash">
+
+      {/* INVITE BUTTON */}
+      <div className="inviteBtnWrap">
+        <button
+  className="inviteBtn"
+  onClick={() => {
+    console.log("CLICK WORKING");
+    setShowInvite(true);
+  }}
+>
+  + Send Invitation
+</button>
+      </div>
+
       <div className="empDash__wrap">
 
-        {/* ================= CHAT ================= */}
+        {/* CHAT */}
         <section className="empCard">
           <div className="empCard__title">
             Client Messages
-
-            <button onClick={clearChat}>
-              Clear All
-            </button>
+            <button onClick={clearChat}>Clear All</button>
           </div>
 
           <div className="chatBody">
@@ -117,11 +155,7 @@ export default function ClientPanel() {
               >
                 <div>{msg.text}</div>
                 <div className="chatTime">{msg.time}</div>
-
-                {/* delete message */}
-                <span onClick={() => deleteMessage(msg._id)}>
-                  ❌
-                </span>
+                <span onClick={() => deleteMessage(msg._id)}>❌</span>
               </div>
             ))}
           </div>
@@ -129,15 +163,15 @@ export default function ClientPanel() {
           <div className="chatInput">
             <input
               type="text"
-              placeholder="Type a message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type a message"
             />
             <button onClick={sendMessage}>➤</button>
           </div>
         </section>
 
-        {/* ================= FILES (AS IT IS - FRIEND CODE) ================= */}
+        {/* FILES */}
         <section className="empCard">
           <div className="empCard__title">Shared Document</div>
 
@@ -149,8 +183,6 @@ export default function ClientPanel() {
           />
 
           <div className="docContainer">
-
-            {/* Upload Box */}
             <div
               className="uploadBox"
               onClick={() => fileInputRef.current.click()}
@@ -158,24 +190,18 @@ export default function ClientPanel() {
               +
             </div>
 
-            {/* File List */}
             <div className="docBody">
-
               {files.map((f) => (
                 <div className="fileCard" key={f._id}>
-
                   <div className="fileLeft">📄</div>
 
                   <div className="fileMiddle">
                     <div className="fileName">
                       {f.url.split("/").pop()}
                     </div>
-                    <div className="fileMeta">File</div>
                   </div>
 
                   <div className="fileActions">
-
-                    {/* open */}
                     <button
                       className="fileBtn"
                       onClick={() => window.open(f.url, "_blank")}
@@ -183,7 +209,6 @@ export default function ClientPanel() {
                       ⬇
                     </button>
 
-                    {/* delete */}
                     {f.uploadedBy === user?.email && (
                       <button
                         className="fileBtn delete"
@@ -192,18 +217,38 @@ export default function ClientPanel() {
                         ×
                       </button>
                     )}
-
                   </div>
-
                 </div>
               ))}
-
             </div>
-
           </div>
         </section>
 
       </div>
+
+      {/* INVITE MODAL */}
+      {showInvite && (
+        <div className="pf-modalOverlay">
+          <div className="pf-modal">
+            <h3>Send Invitation</h3>
+
+            <input
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="Enter email"
+            />
+
+            <div className="pf-modalActions">
+              <button onClick={sendInvite} disabled={loading}>
+                {loading ? "Sending..." : "Send"}
+              </button>
+              <button onClick={() => setShowInvite(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
