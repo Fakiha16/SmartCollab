@@ -14,13 +14,19 @@ export default function ClientPanel() {
 
   const fileInputRef = useRef();
   const user = JSON.parse(localStorage.getItem("user"));
+  const docRef = useRef();
 
   // ================= FILES =================
   useEffect(() => {
     const fetchFiles = async () => {
-      const res = await axios.get("http://localhost:5000/api/upload");
-      setFiles(res.data);
-    };
+  const res = await axios.get("http://localhost:5000/api/upload");
+
+  const sorted = res.data.sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
+
+  setFiles(sorted);
+};
     fetchFiles();
   }, []);
 
@@ -32,6 +38,8 @@ export default function ClientPanel() {
     };
     fetchMessages();
   }, []);
+
+
 
   const sendMessage = async () => {
     if (!message.trim()) return;
@@ -107,7 +115,7 @@ export default function ClientPanel() {
       formData
     );
 
-    setFiles([res.data, ...files]);
+    setFiles(prev => [res.data, ...prev]);
   };
 
   const deleteFile = async (id, uploadedBy) => {
@@ -190,7 +198,7 @@ export default function ClientPanel() {
               +
             </div>
 
-            <div className="docBody">
+            <div className="docBody" ref={docRef}>
               {files.map((f) => (
                 <div className="fileCard" key={f._id}>
                   <div className="fileLeft">📄</div>
@@ -228,8 +236,14 @@ export default function ClientPanel() {
 
       {/* INVITE MODAL */}
       {showInvite && (
-        <div className="pf-modalOverlay">
-          <div className="pf-modal">
+        <div
+            className="pf-modalOverlay"
+            onClick={() => setShowInvite(false)}
+          >
+            <div
+              className="pf-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
             <h3>Send Invitation</h3>
 
             <input

@@ -48,40 +48,41 @@ export default function Performance() {
 
   return (
     <div className="perf-page">
-      <h1 className="perf-title">Project Performance</h1>
-
-      {/* 🔽 PROJECT SELECT */}
-      <select
-        className="perf-select"
-        onChange={(e) =>
-          setSelectedProject(
-            mockProjects.find((p) => p.name === e.target.value)
-          )
-        }
-      >
-        {mockProjects.map((p) => (
-          <option key={p.name}>{p.name}</option>
-        ))}
-      </select>
-
-      {/* 🔘 TABS */}
-      <div className="perf-tabs">
-        <button onClick={() => setView("daily")}>Daily</button>
-        <button onClick={() => setView("weekly")}>Weekly</button>
-        <button onClick={() => setView("monthly")}>Monthly</button>
+      <div className="perf-proj">
+        <h1 className="perf-title">Project Performance</h1>
+        {/* 🔽 PROJECT SELECT */}
+        <select
+          className="perf-select"
+          onChange={(e) =>
+            setSelectedProject(
+              mockProjects.find((p) => p.name === e.target.value)
+            )
+          }
+        >
+          {mockProjects.map((p) => (
+            <option key={p.name}>{p.name}</option>
+          ))}
+        </select>
       </div>
 
       {/* 🥧 PIE CHART */}
       <div className="perf-chart">
+        {/* 🔘 TABS */}
+        <div className="perf-tabs">
+          <button onClick={() => setView("daily")}>Daily</button>
+          <button onClick={() => setView("weekly")}>Weekly</button>
+          <button onClick={() => setView("monthly")}>Monthly</button>
+        </div>
         <Pie data={chartData} />
-      </div>
-
-      {/* 📊 DETAILS */}
+        {/* 📊 DETAILS */}
       <div className="perf-grid">
         <div className="perf-card">✅ Completed: {data.done}</div>
         <div className="perf-card">⏳ Pending: {data.pending}</div>
         <div className="perf-card">❌ Errors: {data.errors}</div>
       </div>
+      </div>
+
+      
     </div>
   );
 }

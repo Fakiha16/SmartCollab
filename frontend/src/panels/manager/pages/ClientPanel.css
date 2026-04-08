@@ -2,14 +2,21 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  position: relative;
-  z-index: 1;
-    pointer-events: auto;
 
+  max-width: 1200px;
+  margin: 0 auto;
+
+  flex: 1;            
+  min-height: 0;      
 }
 .empDash {
-  position: relative;
-  z-index: 1;
+  padding: 20px;
+
+  display: flex;
+  flex-direction: column;
+
+  height: 100vh;
+  overflow: hidden;
 }
 /* ================= CARD ================= */
 
@@ -17,31 +24,43 @@
   background:#0f172a;
   border-radius:16px;
   padding:16px;
-  height:500px;
+
   display:flex;
   flex-direction:column;
-  overflow:visible;
+
+  flex: 1;         
+  min-height: 0;    
+
+  overflow: hidden;
 }
 
-
+/* title */
 .empCard__title {
   font-weight: bold;
   margin-bottom: 10px;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  flex-shrink: 0;
 }
 
 /* ================= CHAT ================= */
 
 .chatBody {
   flex: 1;
+  min-height: 0;
+
   overflow-y: auto;
+
   display: flex;
   flex-direction: column;
   gap: 10px;
+
   padding-right: 6px;
 }
+
 
 /* scrollbar */
 .chatBody::-webkit-scrollbar {
@@ -52,15 +71,22 @@
   border-radius: 10px;
 }
 
+
 /* chat bubbles */
 .chatBubble {
   max-width: 70%;
-  padding: 10px 12px;
   border-radius: 14px;
   color: white;
   font-size: 13px;
+  padding: 10px 32px 10px 12px;
   position: relative;
+
   word-wrap: break-word;
+
+  transition: transform 0.2s ease; 
+}
+.chatBubble:hover {
+  transform: translateX(-3px);  
 }
 
 /* sender */
@@ -70,12 +96,14 @@
   border-bottom-right-radius: 4px;
 }
 
+
 /* receiver */
 .chatBubble.other {
   background: #111827;
   align-self: flex-start;
   border-bottom-left-radius: 4px;
 }
+
 
 /* time */
 .chatTime {
@@ -85,29 +113,34 @@
   text-align: right;
 }
 
+
 /* delete button */
 .chatBubble span {
   position: absolute;
-  top: 4px;
-  right: -18px;
-  font-size: 11px;
-  opacity: 0.6;
+  top: 6px;
+  right: 8px;
+
+  font-size: 12px;
   cursor: pointer;
-  transition: 0.2s;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-.chatBubble span:hover {
+.chatBubble:hover span {
   opacity: 1;
-  transform: scale(1.2);
 }
+/* ================= INPUT ================= */
 
-/* input */
 .chatInput {
   display: flex;
   gap: 10px;
   margin-top: 10px;
+  margin-bottom: 5px;
+  flex-shrink: 0;
 }
 
+
+/* input */
 .chatInput input {
   flex: 1;
   padding: 10px 14px;
@@ -117,6 +150,7 @@
   color: white;
   outline: none;
 }
+
 
 /* send button */
 .chatInput button {
@@ -132,6 +166,7 @@
 .chatInput button:hover {
   transform: scale(1.1);
 }
+
 
 /* clear button */
 .empCard__title button {
@@ -161,33 +196,31 @@
   font-size: 24px;
   transition: 0.2s;
   flex-shrink: 0;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .uploadBox:hover {
   background: rgba(59,130,246,0.1);
 }
 
-.docContainer{
+.docContainer {
   display:flex;
   flex-direction:column;
-  flex:1;   
-  min-height:0;  
-  gap:2px;
-}
 
-
-.docBody{
   flex:1;
   min-height:0;
-  overflow-y:auto;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  box-sizing:border-box;
-  scroll-padding-top: 10px;
+
 }
 
+.docBody{
+  flex: 1;
+  min-height: 0;
+
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 6px;
+}
 
 /* ================= FILE CARD ================= */
 
@@ -204,6 +237,7 @@
   transition: 0.2s;
   min-height:auto; 
   scroll-padding-top: 10px;
+  margin-top: 5px;
 
 
 }
@@ -269,12 +303,11 @@
   background: rgba(255,70,70,0.3);
 }
 .inviteBtnWrap {
+  max-width: 1200px;
+  margin-top: -10px;
+  margin-bottom: 5px;
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 10px;
-  z-index: 9999;
-    pointer-events: auto;
-
+  justify-content: flex-end; 
 }
 
 .inviteBtn {
@@ -292,4 +325,76 @@
 
 .inviteBtn:hover {
   transform: scale(1.05);
+}
+
+
+/* ===== MODAL OVERLAY ===== */
+.pf-modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  background: rgba(0,0,0,0.6);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 9999;
+}
+
+/* ===== MODAL BOX ===== */
+.pf-modal {
+  background: #0f172a;
+  padding: 20px;
+  border-radius: 16px;
+  width: 400px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+/* title */
+.pf-modal h3 {
+  color: white;
+  margin: 0;
+}
+
+/* input */
+.pf-modal input {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+}
+
+/* buttons */
+.pf-modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pf-modalActions button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+/* send */
+.pf-modalActions button:first-child {
+  background: #10b981;
+  color: white;
+}
+
+/* cancel */
+.pf-modalActions button:last-child {
+  background: #374151;
+  color: white;
 }
