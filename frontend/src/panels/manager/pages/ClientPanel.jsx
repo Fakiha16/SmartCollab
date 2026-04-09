@@ -7,6 +7,7 @@ export default function ClientPanel() {
   const [files, setFiles] = useState([]);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+
   const [showInvite, setShowInvite] = useState(false);
   const [showUpdate, setShowUpdate] = useState(false); // State for the update status modal
   const [inviteEmail, setInviteEmail] = useState("");
@@ -20,17 +21,21 @@ export default function ClientPanel() {
   const user = JSON.parse(localStorage.getItem("user"));
   const docRef = useRef();
 
+  // ================= FILES =================
   useEffect(() => {
     const fetchFiles = async () => {
-      const res = await axios.get("http://localhost:5000/api/upload");
-      const sorted = res.data.sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
-      setFiles(sorted);
-    };
+  const res = await axios.get("http://localhost:5000/api/upload");
+
+  const sorted = res.data.sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
+
+  setFiles(sorted);
+};
     fetchFiles();
   }, []);
 
+  // ================= MESSAGES =================
   useEffect(() => {
     const fetchMessages = async () => {
       const res = await axios.get("http://localhost:5000/api/messages");
@@ -39,50 +44,83 @@ export default function ClientPanel() {
     fetchMessages();
   }, []);
 
+
+
   const sendMessage = async () => {
     if (!message.trim()) return;
 
     const now = new Date();
-    const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
-    const res = await axios.post("http://localhost:5000/api/messages", {
-      text: message,
-      sender: user?.email,
-      time,
+    const time = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
     });
+
+    const res = await axios.post(
+      "http://localhost:5000/api/messages",
+      {
+        text: message,
+        sender: user?.email,
+        time,
+      }
+    );
 
     setMessages([...messages, res.data]);
     setMessage("");
   };
 
+  const deleteMessage = async (id) => {
+    await axios.delete(`http://localhost:5000/api/messages/${id}`);
+    setMessages(messages.filter((m) => m._id !== id));
+  };
+
+  const clearChat = async () => {
+    await axios.delete("http://localhost:5000/api/messages");
+    setMessages([]);
+  };
+
+  // ================= INVITE =================
   const sendInvite = async () => {
     if (!inviteEmail) {
       alert("Please enter email");
       return;
     }
+
     setLoading(true);
+
     try {
+      console.log("Sending invite to:", inviteEmail);
+
       await axios.post("http://localhost:5000/api/invite", {
         email: inviteEmail,
       });
+
       alert("✅ Invitation sent successfully!");
+
       setInviteEmail("");
       setShowInvite(false);
+
     } catch (err) {
       console.error(err);
       alert("❌ Email failed");
     }
+
     setLoading(false);
   };
 
+  // ================= FILE UPLOAD =================
   const handleUpload = async (e) => {
     const file = e.target.files[0];
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("user", user?.email);
 
-    const res = await axios.post("http://localhost:5000/api/upload", formData);
-    setFiles((prev) => [res.data, ...prev]);
+    const res = await axios.post(
+      "http://localhost:5000/api/upload",
+      formData
+    );
+
+    setFiles(prev => [res.data, ...prev]);
   };
 
   const deleteFile = async (id, uploadedBy) => {
@@ -95,7 +133,7 @@ export default function ClientPanel() {
     setFiles(files.filter(f => f._id !== id));
   };
 
-  // Function to handle the Update Status form submission
+// Function to handle the Update Status form submission
   const handleUpdateStatus = async () => {
     if (!updateDescription) {
       alert("Please provide a description of the update.");
@@ -120,7 +158,7 @@ export default function ClientPanel() {
     }
   };
 
-  return (
+ return (
     <div className="empDash">
       {/* INVITE AND UPDATE BUTTONS */}
       <div className="inviteBtnWrap">
@@ -140,18 +178,21 @@ export default function ClientPanel() {
       </div>
 
       <div className="empDash__wrap">
-        {/* CHAT SECTION */}
+
+        {/* CHAT */}
         <section className="empCard">
           <div className="empCard__title">
             Client Messages
-            <button onClick={() => setMessages([])}>Clear All</button>
+            <button onClick={clearChat}>Clear All</button>
           </div>
 
           <div className="chatBody">
             {messages.map((msg) => (
               <div
                 key={msg._id}
-                className={`chatBubble ${msg.sender === user?.email ? "me" : "other"}`}
+                className={`chatBubble ${
+                  msg.sender === user?.email ? "me" : "other"
+                }`}
               >
                 <div>{msg.text}</div>
                 <div className="chatTime">{msg.time}</div>
@@ -171,15 +212,17 @@ export default function ClientPanel() {
           </div>
         </section>
 
-        {/* FILES SECTION */}
+        {/* FILES */}
         <section className="empCard">
           <div className="empCard__title">Shared Document</div>
+
           <input
             type="file"
             ref={fileInputRef}
             style={{ display: "none" }}
             onChange={handleUpload}
           />
+
           <div className="docContainer">
             <div
               className="uploadBox"
@@ -194,7 +237,9 @@ export default function ClientPanel() {
                   <div className="fileLeft">📄</div>
 
                   <div className="fileMiddle">
-                    <div className="fileName">{f.url.split("/").pop()}</div>
+                    <div className="fileName">
+                      {f.url.split("/").pop()}
+                    </div>
                   </div>
 
                   <div className="fileActions">
@@ -219,22 +264,28 @@ export default function ClientPanel() {
             </div>
           </div>
         </section>
+
       </div>
 
       {/* INVITE MODAL */}
       {showInvite && (
         <div
-          className="pf-modalOverlay"
-          onClick={() => setShowInvite(false)}
-        >
-          <div className="pf-modal" onClick={(e) => e.stopPropagation()}>
+            className="pf-modalOverlay"
+            onClick={() => setShowInvite(false)}
+          >
+            <div
+              className="pf-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
             <h3>Send Invitation</h3>
+
             <input
               type="email"
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
               placeholder="Enter email"
             />
+
             <div className="pf-modalActions">
               <button onClick={sendInvite} disabled={loading}>
                 {loading ? "Sending..." : "Send"}
@@ -244,7 +295,6 @@ export default function ClientPanel() {
           </div>
         </div>
       )}
-
       {/* UPDATE STATUS MODAL */}
       {showUpdate && (
         <div
@@ -282,6 +332,7 @@ export default function ClientPanel() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
