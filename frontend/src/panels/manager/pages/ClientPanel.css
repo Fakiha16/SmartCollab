@@ -302,99 +302,199 @@
 .fileBtn.delete:hover {
   background: rgba(255,70,70,0.3);
 }
+
+/* ===== INVITE BUTTON ===== */
+
 .inviteBtnWrap {
   max-width: 1200px;
-  margin-top: -10px;
-  margin-bottom: 5px;
+  margin-top: 10px;
+  margin-bottom: 15px;
   display: flex;
-  justify-content: flex-end; 
+  justify-content: flex-end;
 }
 
 .inviteBtn {
-  position: relative;
-  z-index: 999;
-  background: #38bdf8;
-  color: black;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  cursor: pointer;
+  background: linear-gradient(135deg, #0f172a, #2e59a4); /* Deep gradient background */
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 24px;
+  border-radius: 12px;
   font-weight: bold;
-  z-index: 99999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
 }
 
 .inviteBtn:hover {
-  transform: scale(1.05);
+  background: linear-gradient(135deg, #2e59a4, #38bdf8); /* Hover effect with lighter blue */
+  transform: scale(1.05); /* Slightly enlarge button on hover */
+}
+
+.inviteBtn:active {
+  transform: scale(1); /* Return to original size on click */
 }
 
 
-/* ===== MODAL OVERLAY ===== */
+/* Modal Overlay Styles */
 .pf-modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-
-  background: rgba(0,0,0,0.6);
-
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-
-  z-index: 9999;
+  z-index: 1000;
 }
 
-/* ===== MODAL BOX ===== */
 .pf-modal {
   background: #0f172a;
   padding: 20px;
   border-radius: 16px;
-  width: 400px;
-
+  width: 450px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  gap: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
-/* title */
+/* Modal Title */
 .pf-modal h3 {
-  color: white;
+  color: #fff;
+  font-size: 20px;
   margin: 0;
+  font-weight: 600;
 }
 
-/* input */
-.pf-modal input {
-  padding: 10px;
+/* Input Fields */
+.pf-modal input,
+.pf-modal textarea {
+  padding: 12px;
   border-radius: 8px;
-  border: none;
+  border: 1px solid #ccc;
   outline: none;
+  color: #333;
+  background: #1f2937;
+  color: white;
+  font-size: 14px;
 }
 
-/* buttons */
+.pf-modal textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Modal Action Buttons */
 .pf-modalActions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
 }
 
 .pf-modalActions button {
-  padding: 8px 12px;
+  padding: 12px 20px;
   border-radius: 8px;
   border: none;
   cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
 }
 
-/* send */
 .pf-modalActions button:first-child {
-  background: #10b981;
+  background: #10b981; /* Green for submit */
   color: white;
 }
 
-/* cancel */
+.pf-modalActions button:first-child:hover {
+  background: #0f9f7f;
+}
+
 .pf-modalActions button:last-child {
-  background: #374151;
+  background: #374151; /* Grey for cancel */
   color: white;
+}
+
+.pf-modalActions button:last-child:hover {
+  background: #2d2d2d;
+}
+
+/* Improved Modal Appearance */
+.pf-modalActions button {
+  font-size: 16px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.pf-modalActions button:hover {
+  background-color: #38bdf8; /* Same color as button hover effect */
+}
+
+
+/* ===== UPDATE BUTTON ===== */
+
+.updateBtn {
+  background: linear-gradient(135deg, #ff9800, #f57c00); /* Orange gradient for the update button */
+  color: white;
+  border-radius: 12px;
+  padding: 10px;
+  margin-left: 15px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  transition: background 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+
+.updateBtn:hover {
+  background: linear-gradient(135deg, #f57c00, #ff9800); /* Light hover effect */
+  transform: scale(1.05); /* Smooth hover effect */
+}
+
+/* Modal Styles */
+.pf-modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.pf-modal {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pf-modal input,
+.pf-modal textarea {
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.pf-modalActions button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.pf-modalActions button:hover {
+  background-color: #38bdf8;
 }

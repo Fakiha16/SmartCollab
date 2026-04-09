@@ -92,7 +92,6 @@ export default function Dashboard({ standalone = false }) {
                   <div className="sc-cardTitle">Projects</div>
                   <div className="sc-muted">Files & assets overview</div>
                 </div>
-                <span className="sc-badge">52 files</span>
               </div>
 
               <div className="sc-projectThumb">

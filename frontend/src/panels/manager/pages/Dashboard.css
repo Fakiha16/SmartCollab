@@ -335,16 +335,8 @@ body{
 .sc-deliveredScroll::-webkit-scrollbar-track,
 .sc-avatarsScroll::-webkit-scrollbar-track{ background: transparent; }
 
-/* Badge + project thumb */
-.sc-badge{
-  font-size:12px;
-  padding:6px 10px;
-  border-radius:999px;
-  border:1px solid rgba(46,229,157,.25);
-  background: rgba(46,229,157,.10);
-  color: rgba(46,229,157,.95);
-  white-space:nowrap;
-}
+/* project thumb */
+
 .sc-card-performance .sc-metricRow{
   margin: 0 0 8px;
   align-items: flex-start;
