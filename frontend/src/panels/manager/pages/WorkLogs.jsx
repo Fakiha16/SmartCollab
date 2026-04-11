@@ -1,6 +1,22 @@
 import React, { useMemo, useState } from "react";
 import "./WorkLogs.css";
 
+// Dummy data for teams
+const teams = {
+  Development: [
+    { id: "dev1", name: "Yash Ghori" },
+    { id: "dev2", name: "John Doe" },
+  ],
+  Testing: [
+    { id: "test1", name: "Alice Smith" },
+    { id: "test2", name: "Bob Johnson" },
+  ],
+  Design: [
+    { id: "design1", name: "Charlie Brown" },
+    { id: "design2", name: "David Green" },
+  ],
+};
+
 const columns = [
   { key: "backlog", title: "Backlog SubTasks" },
   { key: "inprogress", title: "In progress" },
@@ -9,86 +25,10 @@ const columns = [
 ];
 
 const seed = {
-  backlog: [
-    {
-      id: "b1",
-      title: "Food Research",
-      desc: "Food design is required for our new project let's research the best practices.",
-      days: 12,
-      comments: 5,
-      files: 8,
-      people: 3,
-    },
-    {
-      id: "b2",
-      title: "Mockups",
-      desc: "Create 12 mockups for mobile iphone 13 pro max",
-      days: 12,
-      comments: 3,
-      files: 6,
-      people: 3,
-    },
-    {
-      id: "b3",
-      title: "UI Animation",
-      desc: "Micro interaction loading and progress, story telling, Navigation",
-      days: 12,
-      comments: 2,
-      files: 4,
-      people: 3,
-    },
-    {
-      id: "b4",
-      title: "UI Animation",
-      desc: "Micro interaction loading and progress, story telling, Navigation",
-      days: 12,
-      comments: 2,
-      files: 4,
-      people: 3,
-    },
-  ],
-  inprogress: [
-    {
-      id: "p1",
-      title: "User interface",
-      desc: "Design new user interface design for food delivery app",
-      days: 12,
-      comments: 2,
-      files: 4,
-      people: 3,
-    },
-    {
-      id: "p2",
-      title: "Usability Testing",
-      desc: "Perform the usability testing for the newly develop app",
-      days: 12,
-      comments: 3,
-      files: 5,
-      people: 3,
-    },
-  ],
-  review: [
-    {
-      id: "r1",
-      title: "Mind Mapping",
-      desc: "Mind mapping for the food delivery app for by targeting young users",
-      days: 12,
-      comments: 7,
-      files: 2,
-      people: 3,
-    },
-  ],
-  completed: [
-    {
-      id: "c1",
-      title: "User Feedback",
-      desc: "Perform the user survey and take necessary steps to solve their problem with existing one",
-      days: 12,
-      comments: 5,
-      files: 8,
-      people: 3,
-    },
-  ],
+  backlog: [],
+  inprogress: [],
+  review: [],
+  completed: [],
 };
 
 function Icon({ children }) {
@@ -108,13 +48,29 @@ function People({ count = 3 }) {
 }
 
 function CardItem({ item }) {
+  const calculateRemainingDays = (endDate) => {
+    if (!endDate) return "";
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const taskEndDate = new Date(endDate);
+    taskEndDate.setHours(0, 0, 0, 0);
+
+    const diff = Math.ceil((taskEndDate - today) / (1000 * 3600 * 24));
+
+    if (diff <= 0) return "Today";
+    if (diff === 1) return "Tomorrow";
+    return `${diff} Days`;
+  };
+
   return (
     <div className="wl-card">
       <div className="wl-cardTop">
         <div className="wl-cardTitle">{item.title}</div>
         <div className="wl-days">
           <Icon>⏱</Icon>
-          <span>{item.days} Days</span>
+          <span>{calculateRemainingDays(item.endDate)}</span>
         </div>
       </div>
 
@@ -139,28 +95,104 @@ function CardItem({ item }) {
 }
 
 export default function WorkLogs() {
-  const [q, setQ] = useState(""); // top search
+  const [q, setQ] = useState("");
   const [view, setView] = useState("List View");
   const [data, setData] = useState(seed);
 
-  // ✅ backlog column search (ONLY for backlog top input)
-  const [backlogQ, setBacklogQ] = useState("");
-
-  // ✅ Modal state (move task from previous column)
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [fromCol, setFromCol] = useState(null);
-  const [toCol, setToCol] = useState(null);
-  const [selectedTaskId, setSelectedTaskId] = useState(null);
-  const [modalQ, setModalQ] = useState("");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskType, setTaskType] = useState("");
+  const [taskStartDate, setTaskStartDate] = useState("");
+  const [taskEndDate, setTaskEndDate] = useState("");
+  const [taskDesc, setTaskDesc] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
+
+  const [openMenuCol, setOpenMenuCol] = useState(null);
+  const [columnFilters, setColumnFilters] = useState({
+    backlog: "all",
+    inprogress: "all",
+    review: "all",
+    completed: "all",
+  });
+
+  const openModal = () => setIsModalOpen(true);
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setTaskTitle("");
+    setTaskType("");
+    setTaskStartDate("");
+    setTaskEndDate("");
+    setTaskDesc("");
+    setAssignedTo("");
+  };
+
+  const assignableMembers = taskType ? teams[taskType] || [] : [];
+
+  const handleTaskSubmit = () => {
+    if (
+      taskTitle &&
+      taskDesc &&
+      taskType &&
+      assignedTo &&
+      taskStartDate &&
+      taskEndDate
+    ) {
+      const newTask = {
+        id: Date.now().toString(),
+        title: taskTitle,
+        desc: taskDesc,
+        comments: 0,
+        files: 0,
+        people: 1,
+        type: taskType,
+        startDate: taskStartDate,
+        endDate: taskEndDate,
+        assignedTo,
+      };
+
+      setData((prev) => ({
+        ...prev,
+        backlog: [...prev.backlog, newTask],
+      }));
+
+      closeModal();
+    }
+  };
+
+  const getDayDiff = (dateStr) => {
+    if (!dateStr) return null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const target = new Date(dateStr);
+    target.setHours(0, 0, 0, 0);
+
+    return Math.ceil((target - today) / (1000 * 3600 * 24));
+  };
+
+  const matchesColumnFilter = (item, filterValue) => {
+    if (filterValue === "all") return true;
+
+    const diff = getDayDiff(item.endDate);
+    if (diff === null) return false;
+
+    if (filterValue === "today") return diff <= 0;
+    if (filterValue === "tomorrow") return diff === 1;
+    if (filterValue === "7days") return diff >= 0 && diff <= 7;
+    if (filterValue === "10days") return diff >= 0 && diff <= 10;
+
+    return true;
+  };
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
-
     const next = {};
+
     for (const col of columns) {
       let list = data[col.key] || [];
 
-      // ✅ global search
       if (query) {
         list = list.filter(
           (x) =>
@@ -169,82 +201,50 @@ export default function WorkLogs() {
         );
       }
 
-      // ✅ backlog column local search (works with global search too)
-      if (col.key === "backlog") {
-        const bq = backlogQ.trim().toLowerCase();
-        if (bq) {
-          list = list.filter(
-            (x) =>
-              x.title.toLowerCase().includes(bq) ||
-              x.desc.toLowerCase().includes(bq)
-          );
-        }
-      }
+      list = list.filter((item) =>
+        matchesColumnFilter(item, columnFilters[col.key])
+      );
 
       next[col.key] = list;
     }
 
     return next;
-  }, [q, backlogQ, data]);
+  }, [q, data, columnFilters]);
 
-  const openMoveModal = (targetColKey) => {
-    const idx = columns.findIndex((c) => c.key === targetColKey);
-    if (idx <= 0) return; // backlog has no previous
+  const getPriority = (endDate) => {
+    if (!endDate) return 9999;
 
-    const prevKey = columns[idx - 1].key;
-    setFromCol(prevKey);
-    setToCol(targetColKey);
-    setSelectedTaskId(null);
-    setModalQ("");
-    setIsModalOpen(true);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const taskEnd = new Date(endDate);
+    taskEnd.setHours(0, 0, 0, 0);
+
+    const diff = Math.ceil((taskEnd - today) / (1000 * 3600 * 24));
+
+    if (diff <= 0) return 0;
+    if (diff === 1) return 1;
+    return diff;
   };
 
-  const closeMoveModal = () => {
-    setIsModalOpen(false);
-    setFromCol(null);
-    setToCol(null);
-    setSelectedTaskId(null);
-    setModalQ("");
-  };
+  const sortedData = useMemo(() => {
+    const sorted = {};
 
-  const modalTasks = useMemo(() => {
-    if (!fromCol) return [];
-    const list = data[fromCol] || [];
-    const query = modalQ.trim().toLowerCase();
-    if (!query) return list;
+    for (const col of columns) {
+      const list = [...(filtered[col.key] || [])];
+      list.sort((a, b) => getPriority(a.endDate) - getPriority(b.endDate));
+      sorted[col.key] = list;
+    }
 
-    return list.filter(
-      (x) =>
-        x.title.toLowerCase().includes(query) ||
-        x.desc.toLowerCase().includes(query)
-    );
-  }, [data, fromCol, modalQ]);
+    return sorted;
+  }, [filtered]);
 
-  const onDoneMove = () => {
-    if (!fromCol || !toCol || !selectedTaskId) return;
-
-    setData((prev) => {
-      const fromList = prev[fromCol] || [];
-      const toList = prev[toCol] || [];
-      const task = fromList.find((t) => t.id === selectedTaskId);
-      if (!task) return prev;
-
-      return {
-        ...prev,
-        [fromCol]: fromList.filter((t) => t.id !== selectedTaskId),
-        [toCol]: [task, ...toList],
-      };
-    });
-
-    closeMoveModal();
-  };
-
-  const labelForCol = (key) => {
-    if (key === "backlog") return "Backlog Tasks";
-    if (key === "inprogress") return "In progress Tasks";
-    if (key === "review") return "Review Tasks";
-    if (key === "completed") return "Completed Tasks";
-    return "Tasks";
+  const handleColumnFilterChange = (colKey, value) => {
+    setColumnFilters((prev) => ({
+      ...prev,
+      [colKey]: value,
+    }));
+    setOpenMenuCol(null);
   };
 
   return (
@@ -278,37 +278,77 @@ export default function WorkLogs() {
           <div key={col.key} className="wl-col">
             <div className="wl-colHead">
               <div className="wl-colTitle">{col.title}</div>
-              <button className="wl-more" type="button" title="More">
-                ⋯
-              </button>
+
+              <div className="wl-moreWrap">
+                <button
+                  className="wl-more"
+                  type="button"
+                  title="More"
+                  onClick={() =>
+                    setOpenMenuCol((prev) => (prev === col.key ? null : col.key))
+                  }
+                >
+                  ⋯
+                </button>
+
+                {openMenuCol === col.key && (
+                  <div className="wl-dropdownMenu">
+                    <button
+                      type="button"
+                      onClick={() => handleColumnFilterChange(col.key, "all")}
+                    >
+                      All Tasks
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleColumnFilterChange(col.key, "today")}
+                    >
+                      Today Tasks
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleColumnFilterChange(col.key, "tomorrow")
+                      }
+                    >
+                      Tomorrow Tasks
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleColumnFilterChange(col.key, "7days")}
+                    >
+                      Last 7 Days
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleColumnFilterChange(col.key, "10days")}
+                    >
+                      Last 10 Days
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* ✅ Backlog: search box (NO +) */}
             {col.key === "backlog" ? (
-              <div className="wl-colSearch">
-                <span className="wl-colSearchIco">⌕</span>
-                <input
-                  value={backlogQ}
-                  onChange={(e) => setBacklogQ(e.target.value)}
-                  placeholder="Search for Tasks..."
-                />
-              </div>
-            ) : (
-              /* ✅ Other columns: + button to open modal */
-              <button
-                className="wl-add"
-                type="button"
-                onClick={() => openMoveModal(col.key)}
-                title="Move task from previous column"
-              >
+              <button className="wl-add" onClick={openModal}>
                 <span className="wl-addBox">
                   <span className="wl-plusIcon">+</span>
                 </span>
               </button>
+            ) : (
+              <div className="wl-colSearch">
+                <span className="wl-colSearchIco">⌕</span>
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Search for Tasks..."
+                />
+              </div>
             )}
 
             <div className="wl-list">
-              {(filtered[col.key] || []).map((item) => (
+              {(sortedData[col.key] || []).map((item) => (
                 <CardItem key={item.id} item={item} />
               ))}
             </div>
@@ -316,89 +356,72 @@ export default function WorkLogs() {
         ))}
       </div>
 
-      {/* ✅ Modal */}
       {isModalOpen && (
-        <div className="wl-modalOverlay" onMouseDown={closeMoveModal}>
-          <div
-            className="wl-modal"
-            onMouseDown={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-          >
+        <div className="wl-modalOverlay" onMouseDown={closeModal}>
+          <div className="wl-modal" onMouseDown={(e) => e.stopPropagation()}>
             <div className="wl-modalHead">
-              <div className="wl-modalTitle">Select Task</div>
-
-              <div className="wl-modalSearch">
-                <span className="wl-modalSearchIcon">⌕</span>
-                <input
-                  value={modalQ}
-                  onChange={(e) => setModalQ(e.target.value)}
-                  placeholder="Search tasks..."
-                />
-              </div>
-
-              <button
-                className="wl-modalClose"
-                type="button"
-                onClick={closeMoveModal}
-              >
-                ✕
-              </button>
+              <div>Create New Task</div>
+              <button onClick={closeModal}>✕</button>
             </div>
 
             <div className="wl-modalBody">
-              <div className="wl-modalTable">
-                <div className="wl-modalRow wl-modalRowHead">
-                  <div className="wl-modalCell wl-modalCellTitle">
-                    {labelForCol(fromCol)}
-                  </div>
-                  <div className="wl-modalCell wl-modalCellSelect">Select</div>
-                </div>
+              <input
+                placeholder="Task Title"
+                value={taskTitle}
+                onChange={(e) => setTaskTitle(e.target.value)}
+              />
 
-                {modalTasks.length === 0 ? (
-                  <div className="wl-modalEmpty">No tasks found.</div>
-                ) : (
-                  modalTasks.map((t) => {
-                    const checked = selectedTaskId === t.id;
-                    return (
-                      <div
-                        key={t.id}
-                        className={`wl-modalRow ${checked ? "is-active" : ""}`}
-                        onClick={() => setSelectedTaskId(t.id)}
-                        role="button"
-                        tabIndex={0}
-                      >
-                        <div className="wl-modalCell wl-modalCellTitle">
-                          <div className="wl-modalTaskTitle">{t.title}</div>
-                          <div className="wl-modalTaskSub">{t.desc}</div>
-                        </div>
-                        <div className="wl-modalCell wl-modalCellSelect">
-                          <input type="checkbox" checked={checked} readOnly />
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+              <select
+                value={taskType}
+                onChange={(e) => {
+                  setTaskType(e.target.value);
+                  setAssignedTo("");
+                }}
+              >
+                <option value="">Task Type</option>
+                <option value="Development">Development</option>
+                <option value="Testing">Testing</option>
+                <option value="Design">Design</option>
+              </select>
+
+              <input
+                type="date"
+                value={taskStartDate}
+                onChange={(e) => setTaskStartDate(e.target.value)}
+              />
+
+              <input
+                type="date"
+                value={taskEndDate}
+                onChange={(e) => setTaskEndDate(e.target.value)}
+              />
+
+              <textarea
+                placeholder="Description"
+                value={taskDesc}
+                onChange={(e) => setTaskDesc(e.target.value)}
+              />
+
+              <select
+                value={assignedTo}
+                onChange={(e) => setAssignedTo(e.target.value)}
+                disabled={!taskType}
+              >
+                <option value="">
+                  {taskType ? "Assign to" : "Select type first"}
+                </option>
+
+                {assignableMembers.map((m) => (
+                  <option key={m.id} value={m.name}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="wl-modalFooter">
-              <button
-                className="wl-modalBtn wl-modalBtnGhost"
-                type="button"
-                onClick={closeMoveModal}
-              >
-                Cancel
-              </button>
-
-              <button
-                className="wl-modalBtn wl-modalBtnPrimary"
-                type="button"
-                disabled={!selectedTaskId}
-                onClick={onDoneMove}
-              >
-                Done
-              </button>
+              <button onClick={closeModal}>Cancel</button>
+              <button onClick={handleTaskSubmit}>Create</button>
             </div>
           </div>
         </div>
