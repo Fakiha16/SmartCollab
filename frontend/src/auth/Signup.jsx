@@ -14,20 +14,19 @@ export default function Signup() {
     firstName:"",
     lastName:"",
     email:"",
-    password:""
+    password:"",
+    empType:"" // ✅ NEW
   });
 
   const [role,setRole] = useState("client");
 
   const onChange = (e)=>{
-
     const {name,value} = e.target;
 
     setForm((p)=>({
       ...p,
       [name]:value
     }));
-
   };
 
   const onSubmit = async (e)=>{
@@ -42,7 +41,8 @@ export default function Signup() {
           name: form.firstName + " " + form.lastName,
           email: form.email,
           password: form.password,
-          role: role
+          role: role,
+          empType: role === "employee" ? form.empType : "" // ✅ SEND ONLY FOR EMPLOYEE
         }
       );
 
@@ -70,6 +70,7 @@ export default function Signup() {
 
       <div className="authCard">
 
+        {/* LEFT */}
         <div className="authLeft">
 
           <div className="authHeader">
@@ -95,6 +96,7 @@ export default function Signup() {
 
         </div>
 
+        {/* RIGHT */}
         <div className="authRight">
 
           <div className="authRightInner">
@@ -105,6 +107,7 @@ export default function Signup() {
 
             <form className="authForm" onSubmit={onSubmit}>
 
+              {/* NAME */}
               <div className="authGrid2">
 
                 <div className="authField">
@@ -129,6 +132,7 @@ export default function Signup() {
 
               </div>
 
+              {/* EMAIL */}
               <div className="authField">
                 <label className="authLabel">Email</label>
                 <input
@@ -139,6 +143,7 @@ export default function Signup() {
                 />
               </div>
 
+              {/* PASSWORD */}
               <div className="authField">
                 <label className="authLabel">Password</label>
                 <input
@@ -150,6 +155,7 @@ export default function Signup() {
                 />
               </div>
 
+              {/* ROLE */}
               <div className="authField">
                 <label className="authLabel">Role</label>
 
@@ -162,13 +168,33 @@ export default function Signup() {
                   <option value="employee">Employee</option>
                   <option value="client">Client</option>
                 </select>
-
               </div>
 
+              {/* ✅ NEW CATEGORY (ONLY FOR EMPLOYEE) */}
+              {role === "employee" && (
+                <div className="authField">
+                  <label className="authLabel">Department</label>
+
+                  <select
+                    className="authInput"
+                    name="empType"
+                    value={form.empType}
+                    onChange={onChange}
+                  >
+                    <option value="">Select Department</option>
+                    <option value="development">Development</option>
+                    <option value="testing">Testing</option>
+                    <option value="design">Design</option>
+                  </select>
+                </div>
+              )}
+
+              {/* BUTTON */}
               <button type="submit" className="authBtn">
                 Signup
               </button>
 
+              {/* LOGIN */}
               <div className="authBottomLine">
                 Already have an account?
                 <Link to="/login"> Login</Link>
