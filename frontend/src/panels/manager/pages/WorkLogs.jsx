@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import "./WorkLogs.css";
 import axios from "axios";
 
@@ -31,13 +31,6 @@ const columns = [
   { key: "review", title: "Review" },
   { key: "completed", title: "Completed" },
 ];
-
-const seed = {
-  backlog: [],
-  inprogress: [],
-  review: [],
-  completed: [],
-};
 
 function Icon({ children }) {
   return <span className="wl-ico">{children}</span>;
@@ -80,14 +73,14 @@ function CardItem({ item }) {
         <div className="wl-meta">
           <div className="wl-metaItem">
             <Icon>📎</Icon>
-            <span>{item.comments}</span>
+            <span>{item.comments || 0}</span>
           </div>
           <div className="wl-metaItem">
             <Icon>💬</Icon>
-            <span>{item.files}</span>
+            <span>{item.files || 0}</span>
           </div>
         </div>
-        <People count={item.people} />
+        <People count={item.people || 1} />
       </div>
     </div>
   );
@@ -95,11 +88,15 @@ function CardItem({ item }) {
 
 export default function WorkLogs() {
   const [globalSearch, setGlobalSearch] = useState("");
-  const [data, setData] = useState(seed);
+  const [data, setData] = useState({
+    backlog: [],
+    inprogress: [],
+    review: [],
+    completed: [],
+  });
 
   const [selectedProject, setSelectedProject] = useState(projects[0].id);
 
-  // ✅ Column-wise search
   const [columnSearch, setColumnSearch] = useState({
     backlog: "",
     inprogress: "",
@@ -121,6 +118,31 @@ export default function WorkLogs() {
     ? currentProject?.team || []
     : [];
 
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/tasks");
+
+      const grouped = {
+        backlog: [],
+        inprogress: [],
+        review: [],
+        completed: [],
+      };
+
+      res.data.forEach((task) => {
+        grouped[task.status].push(task);
+      });
+
+      setData(grouped);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const openModal = () => setIsModalOpen(true);
 
   const closeModal = () => {
@@ -134,45 +156,40 @@ export default function WorkLogs() {
   };
 
   const handleTaskSubmit = async () => {
-  if (
-    taskTitle &&
-    taskDesc &&
-    taskType &&
-    assignedTo &&
-    taskStartDate &&
-    taskEndDate
-  ) {
-    try {
-      await axios.post("http://localhost:5000/api/tasks", {
-        title: taskTitle,
-        desc: taskDesc,
-        status: "backlog",
-        projectId: selectedProject,
-        assignedTo,
-      });
+    if (
+      taskTitle &&
+      taskDesc &&
+      taskType &&
+      assignedTo &&
+      taskStartDate &&
+      taskEndDate
+    ) {
+      try {
+        await axios.post("http://localhost:5000/api/tasks", {
+          title: taskTitle,
+          desc: taskDesc,
+          status: "backlog",
+          projectId: selectedProject,
+          assignedTo,
+        });
 
-      alert("✅ Task Created");
+        await fetchTasks();
+        closeModal();
 
-      closeModal();
-
-    } catch (err) {
-      console.error(err);
-      alert("❌ Error creating task");
+      } catch (err) {
+        console.error(err);
+      }
     }
-  }
-};
+  };
 
-  // 🔥 FILTER LOGIC
   const filtered = useMemo(() => {
     const next = {};
 
     for (const col of columns) {
       let list = data[col.key] || [];
 
-      // Project filter
       list = list.filter(item => item.projectId === selectedProject);
 
-      // Global search
       if (globalSearch) {
         list = list.filter(
           x =>
@@ -181,7 +198,6 @@ export default function WorkLogs() {
         );
       }
 
-      // Column search
       if (columnSearch[col.key]) {
         list = list.filter(
           x =>
@@ -232,12 +248,12 @@ export default function WorkLogs() {
               <div className="wl-colTitle">{col.title}</div>
             </div>
 
+            {/* ✅ FIXED BACKLOG BUTTON */}
             {col.key === "backlog" ? (
-              <button className="wl-add" onClick={openModal}>
-                <span className="wl-addBox">
-                  <span className="wl-plusIcon">+</span>
-                </span>
-              </button>
+              <div className="wl-colSearch wl-addLike" onClick={openModal}>
+                <span className="wl-colSearchIco">＋</span>
+                
+              </div>
             ) : (
               <div className="wl-colSearch">
                 <span className="wl-colSearchIco">⌕</span>
@@ -249,14 +265,14 @@ export default function WorkLogs() {
                       [col.key]: e.target.value,
                     }))
                   }
-                  placeholder="Search for Tasks..."
+                  placeholder="Search..."
                 />
               </div>
             )}
 
             <div className="wl-list">
               {(filtered[col.key] || []).map(item => (
-                <CardItem key={item.id} item={item} />
+                <CardItem key={item._id} item={item} />
               ))}
             </div>
           </div>
@@ -266,70 +282,41 @@ export default function WorkLogs() {
       {isModalOpen && (
         <div className="wl-modalOverlay" onMouseDown={closeModal}>
           <div className="wl-modal" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="wl-modalHead">
-              <div>Create New Task</div>
-              <button onClick={closeModal}>✕</button>
-            </div>
+            <input
+              placeholder="Task Title"
+              value={taskTitle}
+              onChange={(e) => setTaskTitle(e.target.value)}
+            />
 
-            <div className="wl-modalBody">
-              <input
-                placeholder="Task Title"
-                value={taskTitle}
-                onChange={(e) => setTaskTitle(e.target.value)}
-              />
+            <textarea
+              placeholder="Description"
+              value={taskDesc}
+              onChange={(e) => setTaskDesc(e.target.value)}
+            />
 
-              <select
-                value={taskType}
-                onChange={(e) => {
-                  setTaskType(e.target.value);
-                  setAssignedTo("");
-                }}
-              >
-                <option value="">Task Type</option>
-                <option value="Development">Development</option>
-                <option value="Testing">Testing</option>
-                <option value="Design">Design</option>
-              </select>
+            <select
+              value={taskType}
+              onChange={(e) => setTaskType(e.target.value)}
+            >
+              <option value="">Task Type</option>
+              <option value="Development">Development</option>
+              <option value="Testing">Testing</option>
+              <option value="Design">Design</option>
+            </select>
 
-              <input
-                type="date"
-                value={taskStartDate}
-                onChange={(e) => setTaskStartDate(e.target.value)}
-              />
-
-              <input
-                type="date"
-                value={taskEndDate}
-                onChange={(e) => setTaskEndDate(e.target.value)}
-              />
-
-              <textarea
-                placeholder="Description"
-                value={taskDesc}
-                onChange={(e) => setTaskDesc(e.target.value)}
-              />
-
-              <select
-                value={assignedTo}
-                onChange={(e) => setAssignedTo(e.target.value)}
-                disabled={!taskType}
-              >
-                <option value="">
-                  {taskType ? "Assign to" : "Select type first"}
+            <select
+              value={assignedTo}
+              onChange={(e) => setAssignedTo(e.target.value)}
+            >
+              <option value="">Assign To</option>
+              {assignableMembers.map(m => (
+                <option key={m.id} value={m.name}>
+                  {m.name}
                 </option>
+              ))}
+            </select>
 
-                {assignableMembers.map(m => (
-                  <option key={m.id} value={m.name}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="wl-modalFooter">
-              <button onClick={closeModal}>Cancel</button>
-              <button onClick={handleTaskSubmit}>Create</button>
-            </div>
+            <button onClick={handleTaskSubmit}>Create</button>
           </div>
         </div>
       )}

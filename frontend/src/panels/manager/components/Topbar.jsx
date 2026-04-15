@@ -5,6 +5,13 @@ import "./Topbar.css";
 export default function Topbar() {
   const navigate = useNavigate();
 
+  // ✅ Get logged-in user data
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  // ✅ Safe values (fallback bhi rakho)
+  const userName = user?.name || "User";
+  const userRole = user?.role || "Member";
+
   return (
     <div className="sc-topbar">
       <div className="sc-left"></div>
@@ -24,7 +31,7 @@ export default function Topbar() {
           🔔
         </button>
 
-        {/* ✅ CLICKABLE USER PROFILE */}
+        {/* ✅ DYNAMIC USER PROFILE */}
         <button
           type="button"
           className="sc-user sc-userBtn"
@@ -32,10 +39,14 @@ export default function Topbar() {
           title="Open Profile"
         >
           <div className="sc-userMeta">
-            <div className="sc-userName">Kashaf</div>
-            <div className="sc-muted">Pakistan</div>
+            <div className="sc-userName">{userName}</div>
+            <div className="sc-muted">{userRole}</div>
           </div>
-          <div className="sc-userAvatar">K</div>
+
+          {/* ✅ Avatar first letter */}
+          <div className="sc-userAvatar">
+            {userName.charAt(0).toUpperCase()}
+          </div>
         </button>
       </div>
     </div>

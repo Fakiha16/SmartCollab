@@ -256,7 +256,10 @@
   margin-bottom: 10px;
 }
 
-.wl-colSearchIcon{ font-size: 14px; opacity: .75; }
+.wl-colSearchIcon{ 
+  font-size: 14px;
+   opacity: .75;
+  }
 
 .wl-colSearch input{
   width: 100%;
@@ -505,4 +508,101 @@
 
 .wl-modalBtnGhost {
   background-color: #f1f1f1;
+}
+
+/* Overlay */
+.wl-modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* Modal box */
+.wl-modal {
+  width: 500px;
+  background: #0f172a;
+  border-radius: 12px;
+  padding: 20px;
+  color: #fff;
+}
+
+/* Header */
+.wl-modalHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.wl-closeBtn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+/* Body */
+.wl-modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Form */
+.wl-formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.wl-formGroup label {
+  font-size: 13px;
+  color: #aaa;
+}
+
+.wl-formGroup input,
+.wl-formGroup select,
+.wl-formGroup textarea {
+  background: #1e293b;
+  border: none;
+  border-radius: 6px;
+  padding: 8px;
+  color: white;
+}
+
+.wl-formRow {
+  display: flex;
+  gap: 10px;
+}
+
+/* Footer */
+.wl-modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.wl-cancelBtn {
+  background: #334155;
+  border: none;
+  padding: 8px 12px;
+  color: white;
+  border-radius: 6px;
+}
+
+.wl-createBtn {
+  background: #3b82f6;
+  border: none;
+  padding: 8px 12px;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
 }
