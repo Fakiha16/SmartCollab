@@ -17,7 +17,7 @@ export default function Sidebar() {
           <div className="sc-brandLogo">SC</div>
           <div>
             <div className="sc-brandName">SmartCollab</div>
-            <div className="sc-brandTag">Admin Panel</div>
+            <div className="sc-brandTag">Manager Panel</div>
           </div>
         </div>
       </Link>

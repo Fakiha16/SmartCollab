@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import "./WorkLogs.css";
 
-// Dummy data for teams
+// Dummy teams
 const teams = {
   Development: [
     { id: "dev1", name: "Yash Ghori" },
@@ -16,6 +16,13 @@ const teams = {
     { id: "design2", name: "David Green" },
   ],
 };
+
+// Projects
+const projects = [
+  { id: "p1", name: "SmartCollab", team: teams.Development },
+  { id: "p2", name: "Auth System", team: teams.Testing },
+  { id: "p3", name: "UI Design", team: teams.Design },
+];
 
 const columns = [
   { key: "backlog", title: "Backlog SubTasks" },
@@ -36,10 +43,9 @@ function Icon({ children }) {
 }
 
 function People({ count = 3 }) {
-  const arr = Array.from({ length: count });
   return (
     <div className="wl-people">
-      {arr.map((_, i) => (
+      {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="wl-person" />
       ))}
       <div className="wl-person wl-plus">+</div>
@@ -50,15 +56,8 @@ function People({ count = 3 }) {
 function CardItem({ item }) {
   const calculateRemainingDays = (endDate) => {
     if (!endDate) return "";
-
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const taskEndDate = new Date(endDate);
-    taskEndDate.setHours(0, 0, 0, 0);
-
-    const diff = Math.ceil((taskEndDate - today) / (1000 * 3600 * 24));
-
+    const diff = Math.ceil((new Date(endDate) - today) / (1000 * 3600 * 24));
     if (diff <= 0) return "Today";
     if (diff === 1) return "Tomorrow";
     return `${diff} Days`;
@@ -87,7 +86,6 @@ function CardItem({ item }) {
             <span>{item.files}</span>
           </div>
         </div>
-
         <People count={item.people} />
       </div>
     </div>
@@ -95,9 +93,18 @@ function CardItem({ item }) {
 }
 
 export default function WorkLogs() {
-  const [q, setQ] = useState("");
-  const [view, setView] = useState("List View");
+  const [globalSearch, setGlobalSearch] = useState("");
   const [data, setData] = useState(seed);
+
+  const [selectedProject, setSelectedProject] = useState(projects[0].id);
+
+  // ✅ Column-wise search
+  const [columnSearch, setColumnSearch] = useState({
+    backlog: "",
+    inprogress: "",
+    review: "",
+    completed: "",
+  });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [taskTitle, setTaskTitle] = useState("");
@@ -107,13 +114,11 @@ export default function WorkLogs() {
   const [taskDesc, setTaskDesc] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
 
-  const [openMenuCol, setOpenMenuCol] = useState(null);
-  const [columnFilters, setColumnFilters] = useState({
-    backlog: "all",
-    inprogress: "all",
-    review: "all",
-    completed: "all",
-  });
+  const currentProject = projects.find(p => p.id === selectedProject);
+
+  const assignableMembers = taskType
+    ? currentProject?.team || []
+    : [];
 
   const openModal = () => setIsModalOpen(true);
 
@@ -126,8 +131,6 @@ export default function WorkLogs() {
     setTaskDesc("");
     setAssignedTo("");
   };
-
-  const assignableMembers = taskType ? teams[taskType] || [] : [];
 
   const handleTaskSubmit = () => {
     if (
@@ -149,9 +152,10 @@ export default function WorkLogs() {
         startDate: taskStartDate,
         endDate: taskEndDate,
         assignedTo,
+        projectId: selectedProject,
       };
 
-      setData((prev) => ({
+      setData(prev => ({
         ...prev,
         backlog: [...prev.backlog, newTask],
       }));
@@ -160,92 +164,39 @@ export default function WorkLogs() {
     }
   };
 
-  const getDayDiff = (dateStr) => {
-    if (!dateStr) return null;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const target = new Date(dateStr);
-    target.setHours(0, 0, 0, 0);
-
-    return Math.ceil((target - today) / (1000 * 3600 * 24));
-  };
-
-  const matchesColumnFilter = (item, filterValue) => {
-    if (filterValue === "all") return true;
-
-    const diff = getDayDiff(item.endDate);
-    if (diff === null) return false;
-
-    if (filterValue === "today") return diff <= 0;
-    if (filterValue === "tomorrow") return diff === 1;
-    if (filterValue === "7days") return diff >= 0 && diff <= 7;
-    if (filterValue === "10days") return diff >= 0 && diff <= 10;
-
-    return true;
-  };
-
+  // 🔥 FILTER LOGIC
   const filtered = useMemo(() => {
-    const query = q.trim().toLowerCase();
     const next = {};
 
     for (const col of columns) {
       let list = data[col.key] || [];
 
-      if (query) {
+      // Project filter
+      list = list.filter(item => item.projectId === selectedProject);
+
+      // Global search
+      if (globalSearch) {
         list = list.filter(
-          (x) =>
-            x.title.toLowerCase().includes(query) ||
-            x.desc.toLowerCase().includes(query)
+          x =>
+            x.title.toLowerCase().includes(globalSearch.toLowerCase()) ||
+            x.desc.toLowerCase().includes(globalSearch.toLowerCase())
         );
       }
 
-      list = list.filter((item) =>
-        matchesColumnFilter(item, columnFilters[col.key])
-      );
+      // Column search
+      if (columnSearch[col.key]) {
+        list = list.filter(
+          x =>
+            x.title.toLowerCase().includes(columnSearch[col.key].toLowerCase()) ||
+            x.desc.toLowerCase().includes(columnSearch[col.key].toLowerCase())
+        );
+      }
 
       next[col.key] = list;
     }
 
     return next;
-  }, [q, data, columnFilters]);
-
-  const getPriority = (endDate) => {
-    if (!endDate) return 9999;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const taskEnd = new Date(endDate);
-    taskEnd.setHours(0, 0, 0, 0);
-
-    const diff = Math.ceil((taskEnd - today) / (1000 * 3600 * 24));
-
-    if (diff <= 0) return 0;
-    if (diff === 1) return 1;
-    return diff;
-  };
-
-  const sortedData = useMemo(() => {
-    const sorted = {};
-
-    for (const col of columns) {
-      const list = [...(filtered[col.key] || [])];
-      list.sort((a, b) => getPriority(a.endDate) - getPriority(b.endDate));
-      sorted[col.key] = list;
-    }
-
-    return sorted;
-  }, [filtered]);
-
-  const handleColumnFilterChange = (colKey, value) => {
-    setColumnFilters((prev) => ({
-      ...prev,
-      [colKey]: value,
-    }));
-    setOpenMenuCol(null);
-  };
+  }, [data, selectedProject, globalSearch, columnSearch]);
 
   return (
     <div className="wl-wrap">
@@ -256,78 +207,31 @@ export default function WorkLogs() {
           <div className="wl-search">
             <span className="wl-searchIco">⌕</span>
             <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search Projects"
+              value={globalSearch}
+              onChange={(e) => setGlobalSearch(e.target.value)}
+              placeholder="Search Tasks"
             />
           </div>
 
           <select
             className="wl-select"
-            value={view}
-            onChange={(e) => setView(e.target.value)}
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
           >
-            <option>List View</option>
-            <option>Board View</option>
+            {projects.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
       <div className="wl-board">
-        {columns.map((col) => (
+        {columns.map(col => (
           <div key={col.key} className="wl-col">
             <div className="wl-colHead">
               <div className="wl-colTitle">{col.title}</div>
-
-              <div className="wl-moreWrap">
-                <button
-                  className="wl-more"
-                  type="button"
-                  title="More"
-                  onClick={() =>
-                    setOpenMenuCol((prev) => (prev === col.key ? null : col.key))
-                  }
-                >
-                  ⋯
-                </button>
-
-                {openMenuCol === col.key && (
-                  <div className="wl-dropdownMenu">
-                    <button
-                      type="button"
-                      onClick={() => handleColumnFilterChange(col.key, "all")}
-                    >
-                      All Tasks
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleColumnFilterChange(col.key, "today")}
-                    >
-                      Today Tasks
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleColumnFilterChange(col.key, "tomorrow")
-                      }
-                    >
-                      Tomorrow Tasks
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleColumnFilterChange(col.key, "7days")}
-                    >
-                      Last 7 Days
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleColumnFilterChange(col.key, "10days")}
-                    >
-                      Last 10 Days
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
 
             {col.key === "backlog" ? (
@@ -340,15 +244,20 @@ export default function WorkLogs() {
               <div className="wl-colSearch">
                 <span className="wl-colSearchIco">⌕</span>
                 <input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
+                  value={columnSearch[col.key]}
+                  onChange={(e) =>
+                    setColumnSearch(prev => ({
+                      ...prev,
+                      [col.key]: e.target.value,
+                    }))
+                  }
                   placeholder="Search for Tasks..."
                 />
               </div>
             )}
 
             <div className="wl-list">
-              {(sortedData[col.key] || []).map((item) => (
+              {(filtered[col.key] || []).map(item => (
                 <CardItem key={item.id} item={item} />
               ))}
             </div>
@@ -411,7 +320,7 @@ export default function WorkLogs() {
                   {taskType ? "Assign to" : "Select type first"}
                 </option>
 
-                {assignableMembers.map((m) => (
+                {assignableMembers.map(m => (
                   <option key={m.id} value={m.name}>
                     {m.name}
                   </option>
