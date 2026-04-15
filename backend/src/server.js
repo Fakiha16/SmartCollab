@@ -30,6 +30,7 @@ app.use("/api/upload", uploadRoutes);
 
 const inviteRoutes = require("./routes/inviteRoutes");
 app.use("/api/invite", inviteRoutes);
+app.use("/api/tasks", require("./routes/taskRoutes"));
 
 
 app.use((req, res) => {

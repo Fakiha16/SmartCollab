@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import "./WorkLogs.css";
+import axios from "axios";
 
 // Dummy teams
 const teams = {
@@ -132,37 +133,34 @@ export default function WorkLogs() {
     setAssignedTo("");
   };
 
-  const handleTaskSubmit = () => {
-    if (
-      taskTitle &&
-      taskDesc &&
-      taskType &&
-      assignedTo &&
-      taskStartDate &&
-      taskEndDate
-    ) {
-      const newTask = {
-        id: Date.now().toString(),
+  const handleTaskSubmit = async () => {
+  if (
+    taskTitle &&
+    taskDesc &&
+    taskType &&
+    assignedTo &&
+    taskStartDate &&
+    taskEndDate
+  ) {
+    try {
+      await axios.post("http://localhost:5000/api/tasks", {
         title: taskTitle,
         desc: taskDesc,
-        comments: 0,
-        files: 0,
-        people: 1,
-        type: taskType,
-        startDate: taskStartDate,
-        endDate: taskEndDate,
-        assignedTo,
+        status: "backlog",
         projectId: selectedProject,
-      };
+        assignedTo,
+      });
 
-      setData(prev => ({
-        ...prev,
-        backlog: [...prev.backlog, newTask],
-      }));
+      alert("✅ Task Created");
 
       closeModal();
+
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error creating task");
     }
-  };
+  }
+};
 
   // 🔥 FILTER LOGIC
   const filtered = useMemo(() => {
