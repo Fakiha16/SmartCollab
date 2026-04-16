@@ -21,12 +21,34 @@ const projects = [
 export default function Profile() {
 
   const navigate = useNavigate();
+
   const [user,setUser] = useState(null);
+
+  // ✅ modal state
+  const [showEdit,setShowEdit] = useState(false);
+
+  const [editData,setEditData] = useState({
+    name:"",
+    email:"",
+    role:"",
+    team:"",
+    isMember:true
+  });
 
   useEffect(()=>{
     const storedUser = localStorage.getItem("user");
+
     if(storedUser){
-      setUser(JSON.parse(storedUser));
+      const parsed = JSON.parse(storedUser);
+      setUser(parsed);
+
+      setEditData({
+        name: parsed.name || "",
+        email: parsed.email || "",
+        role: parsed.role || "",
+        team: parsed.team || "",
+        isMember: parsed.isMember ?? true
+      });
     }
   },[]);
 
@@ -35,14 +57,28 @@ export default function Profile() {
     navigate("/login",{replace:true});
   };
 
+  const handleChange = (e)=>{
+    const {name,value,type,checked} = e.target;
+
+    setEditData(prev=>({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value
+    }));
+  };
+
+  const saveProfile = ()=>{
+    localStorage.setItem("user", JSON.stringify(editData));
+    setUser(editData);
+    setShowEdit(false);
+  };
+
   return (
 
     <div className="pf-wrap">
 
       <div className="pf-grid">
 
-        {/* LEFT PROFILE CARD */}
-
+        {/* LEFT PROFILE */}
         <section className="pf-card pf-profile">
 
           <div className="pf-avatarRing">
@@ -61,32 +97,37 @@ export default function Profile() {
             {user?.role || "Role"}
           </div>
 
-          {/* ✅ ACTION BUTTONS */}
-          
-
           <div className="pf-info">
 
             <div className="pf-row">
               <span className="pf-ico">👤</span>
-              <span>{user?.role || "Role"}</span>
+              <span>{user?.role}</span>
             </div>
 
             <div className="pf-row">
               <span className="pf-ico">✉️</span>
-              <span>{user?.email || "Email"}</span>
+              <span>{user?.email}</span>
+            </div>
+
+            <div className="pf-row">
+              <span className="pf-ico">👥</span>
+              <span>{user?.team || "No Team"}</span>
             </div>
 
             <div className="pf-row">
               <span className="pf-ico">📄</span>
-              <span>SmartCollab Member</span>
+              <span>
+                {user?.isMember ? "SmartCollab Member" : "Not a Member"}
+              </span>
             </div>
 
           </div>
+
           <div className="pf-actions">
 
             <button
               className="pf-editBtn"
-              onClick={() => navigate("/manager/edit-profile")}
+              onClick={()=>setShowEdit(true)}
             >
               ✏️ Edit Profile
             </button>
@@ -104,6 +145,7 @@ export default function Profile() {
 
         {/* CENTER */}
         <section className="pf-card pf-center">
+
           <div className="pf-breadcrumb">
             Inicio &gt; Profile
           </div>
@@ -128,10 +170,12 @@ export default function Profile() {
               </div>
             ))}
           </div>
+
         </section>
 
         {/* RIGHT PROJECTS */}
         <section className="pf-card pf-projects">
+
           <div className="pf-rightHead">
             <div className="pf-rightTitle">Projects</div>
           </div>
@@ -144,10 +188,12 @@ export default function Profile() {
               </div>
             ))}
           </div>
+
         </section>
 
         {/* RIGHT BOTTOM */}
         <section className="pf-card pf-total">
+
           <div className="pf-rightHead">
             <div className="pf-rightTitle">Total work done</div>
           </div>
@@ -159,9 +205,48 @@ export default function Profile() {
               </div>
             </div>
           </div>
+
         </section>
 
       </div>
+
+      {/* ================= EDIT MODAL ================= */}
+
+      {showEdit && (
+        <div className="pf-modalOverlay">
+
+          <div className="pf-modal">
+
+            <h2>Edit Profile</h2>
+
+            <input name="name" value={editData.name} onChange={handleChange} placeholder="Name" />
+            <input name="email" value={editData.email} onChange={handleChange} placeholder="Email" />
+
+            <select name="role" value={editData.role} onChange={handleChange}>
+              <option value="">Select Role</option>
+              <option value="Developer">Developer</option>
+              <option value="Tester">Tester</option>
+              <option value="Designer">Designer</option>
+              <option value="Manager">Manager</option>
+            </select>
+
+            <input name="team" value={editData.team} onChange={handleChange} placeholder="Team Name" />
+
+            <label>
+              <input type="checkbox" name="isMember" checked={editData.isMember} onChange={handleChange}/>
+              SmartCollab Member
+            </label>
+
+            <div className="pf-modalActions">
+              <button onClick={saveProfile}>Save</button>
+              <button onClick={()=>setShowEdit(false)}>Cancel</button>
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
     </div>
   );
 }
