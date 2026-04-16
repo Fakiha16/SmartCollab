@@ -426,3 +426,56 @@
   opacity: .55;
   cursor: not-allowed;
 }
+/* ADD BUTTON UI */
+.wl-add{
+  width:100%;
+  border:none;
+  background:transparent;
+  cursor:pointer;
+  margin-bottom:10px;
+  padding:0;
+}
+
+.wl-addBox{
+  height:42px;
+  border:2px dashed rgba(56,189,248,.6);
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(56,189,248,.08);
+  transition:all 0.2s ease;
+}
+
+.wl-addBox:hover{
+  background:rgba(56,189,248,.15);
+  border-color:rgba(56,189,248,.9);
+}
+
+.wl-plusIcon{
+  font-size:22px;
+  color:rgba(56,189,248,.95);
+  font-weight:900;
+}
+
+/* MODAL IMPROVEMENTS */
+.wl-modalRow{
+  transition:all 0.2s ease;
+}
+
+.wl-modalRow:hover{
+  background:rgba(56,189,248,.08);
+}
+
+.wl-modalCellSelect input{
+  width:16px;
+  height:16px;
+}
+
+.wl-modalRowHead{
+  font-weight:800;
+}
+
+.wl-modalBtnPrimary:hover{
+  background:rgba(16,185,129,.25);
+}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Profile.css";
 
@@ -21,10 +21,10 @@ const projects = [
 export default function Profile() {
 
   const navigate = useNavigate();
+  const fileInputRef = useRef();
 
   const [user,setUser] = useState(null);
 
-  // ✅ modal state
   const [showEdit,setShowEdit] = useState(false);
 
   const [editData,setEditData] = useState({
@@ -32,7 +32,8 @@ export default function Profile() {
     email:"",
     role:"",
     team:"",
-    isMember:true
+    isMember:true,
+    avatar:""
   });
 
   useEffect(()=>{
@@ -47,7 +48,8 @@ export default function Profile() {
         email: parsed.email || "",
         role: parsed.role || "",
         team: parsed.team || "",
-        isMember: parsed.isMember ?? true
+        isMember: parsed.isMember ?? true,
+        avatar: parsed.avatar || ""
       });
     }
   },[]);
@@ -66,6 +68,27 @@ export default function Profile() {
     }));
   };
 
+  // ✅ IMAGE SELECT HANDLER
+  const handleImageChange = (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+
+    reader.onloadend = ()=>{
+      const updated = {
+        ...editData,
+        avatar: reader.result
+      };
+
+      setEditData(updated);
+      setUser(updated);
+      localStorage.setItem("user", JSON.stringify(updated));
+    };
+
+    reader.readAsDataURL(file);
+  };
+
   const saveProfile = ()=>{
     localStorage.setItem("user", JSON.stringify(editData));
     setUser(editData);
@@ -81,13 +104,30 @@ export default function Profile() {
         {/* LEFT PROFILE */}
         <section className="pf-card pf-profile">
 
-          <div className="pf-avatarRing">
+          <div
+            className="pf-avatarRing"
+            onClick={()=>fileInputRef.current.click()}
+            style={{cursor:"pointer"}}
+            title="Click to change picture"
+          >
             <img
               className="pf-avatar"
-              src="https://i.pravatar.cc/220?img=5"
+              src={
+                user?.avatar ||
+                "https://i.pravatar.cc/220?img=5"
+              }
               alt="profile"
             />
           </div>
+
+          {/* hidden input */}
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            style={{display:"none"}}
+            onChange={handleImageChange}
+          />
 
           <div className="pf-name">
             {user?.name || "User Name"}
@@ -145,10 +185,7 @@ export default function Profile() {
 
         {/* CENTER */}
         <section className="pf-card pf-center">
-
-          <div className="pf-breadcrumb">
-            Inicio &gt; Profile
-          </div>
+          <div className="pf-breadcrumb">Inicio &gt; Profile</div>
 
           <div className="pf-title">
             {user?.role || "Member"}
@@ -170,12 +207,10 @@ export default function Profile() {
               </div>
             ))}
           </div>
-
         </section>
 
         {/* RIGHT PROJECTS */}
         <section className="pf-card pf-projects">
-
           <div className="pf-rightHead">
             <div className="pf-rightTitle">Projects</div>
           </div>
@@ -188,12 +223,10 @@ export default function Profile() {
               </div>
             ))}
           </div>
-
         </section>
 
         {/* RIGHT BOTTOM */}
         <section className="pf-card pf-total">
-
           <div className="pf-rightHead">
             <div className="pf-rightTitle">Total work done</div>
           </div>
@@ -205,22 +238,18 @@ export default function Profile() {
               </div>
             </div>
           </div>
-
         </section>
 
       </div>
 
-      {/* ================= EDIT MODAL ================= */}
-
+      {/* EDIT MODAL SAME AS BEFORE */}
       {showEdit && (
         <div className="pf-modalOverlay">
-
           <div className="pf-modal">
-
             <h2>Edit Profile</h2>
 
-            <input name="name" value={editData.name} onChange={handleChange} placeholder="Name" />
-            <input name="email" value={editData.email} onChange={handleChange} placeholder="Email" />
+            <input name="name" value={editData.name} onChange={handleChange} />
+            <input name="email" value={editData.email} onChange={handleChange} />
 
             <select name="role" value={editData.role} onChange={handleChange}>
               <option value="">Select Role</option>
@@ -230,7 +259,7 @@ export default function Profile() {
               <option value="Manager">Manager</option>
             </select>
 
-            <input name="team" value={editData.team} onChange={handleChange} placeholder="Team Name" />
+            <input name="team" value={editData.team} onChange={handleChange} />
 
             <label>
               <input type="checkbox" name="isMember" checked={editData.isMember} onChange={handleChange}/>
@@ -241,9 +270,7 @@ export default function Profile() {
               <button onClick={saveProfile}>Save</button>
               <button onClick={()=>setShowEdit(false)}>Cancel</button>
             </div>
-
           </div>
-
         </div>
       )}
 

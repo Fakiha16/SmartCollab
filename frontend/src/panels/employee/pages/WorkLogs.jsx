@@ -71,7 +71,6 @@ export default function WorkLogs() {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [modalQ, setModalQ] = useState("");
 
-  // ✅ FETCH TASKS FROM BACKEND
   useEffect(() => {
     fetchTasks();
   }, []);
@@ -151,7 +150,6 @@ export default function WorkLogs() {
     );
   }, [data, fromCol, modalQ]);
 
-  // ✅ UPDATE TASK STATUS (IMPORTANT)
   const onDoneMove = async () => {
     if (!selectedTaskId || !toCol) return;
 
@@ -160,7 +158,7 @@ export default function WorkLogs() {
       { status: toCol }
     );
 
-    fetchTasks(); // refresh
+    fetchTasks();
     closeMoveModal();
   };
 
@@ -201,7 +199,9 @@ export default function WorkLogs() {
                 className="wl-add"
                 onClick={() => openMoveModal(col.key)}
               >
-                +
+                <div className="wl-addBox">
+                  <span className="wl-plusIcon">+</span>
+                </div>
               </button>
             )}
 
@@ -217,24 +217,81 @@ export default function WorkLogs() {
       {/* MODAL */}
       {isModalOpen && (
         <div className="wl-modalOverlay">
+
           <div className="wl-modal">
-            <input
-              value={modalQ}
-              onChange={(e) => setModalQ(e.target.value)}
-              placeholder="Search..."
-            />
 
-            {modalTasks.map((t) => (
-              <div
-                key={t._id}
-                onClick={() => setSelectedTaskId(t._id)}
-              >
-                {t.title}
+            <div className="wl-modalHead">
+              <div className="wl-modalTitle">Select Task</div>
+
+              <div className="wl-modalSearch">
+                <span>⌕</span>
+                <input
+                  value={modalQ}
+                  onChange={(e) => setModalQ(e.target.value)}
+                  placeholder="Search tasks..."
+                />
               </div>
-            ))}
 
-            <button onClick={onDoneMove}>Done</button>
+              <button className="wl-modalClose" onClick={closeMoveModal}>
+                ✖
+              </button>
+            </div>
+
+            <div className="wl-modalBody">
+              <div className="wl-modalTable">
+
+                <div className="wl-modalRow wl-modalRowHead">
+                  <div>Backlog Tasks</div>
+                  <div className="wl-modalCellSelect">Select</div>
+                </div>
+
+                {modalTasks.map((t) => (
+                  <div
+                    key={t._id}
+                    className={`wl-modalRow ${
+                      selectedTaskId === t._id ? "is-active" : ""
+                    }`}
+                    onClick={() => setSelectedTaskId(t._id)}
+                  >
+                    <div>
+                      <div className="wl-modalTaskTitle">{t.title}</div>
+                      <div className="wl-modalTaskSub">
+                        Done by {t.assignedTo || "Unknown"}
+                      </div>
+                    </div>
+
+                    <div className="wl-modalCellSelect">
+                      <input
+                        type="checkbox"
+                        checked={selectedTaskId === t._id}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+                ))}
+
+              </div>
+            </div>
+
+            <div className="wl-modalFooter">
+              <button
+                className="wl-modalBtn wl-modalBtnGhost"
+                onClick={closeMoveModal}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="wl-modalBtn wl-modalBtnPrimary"
+                onClick={onDoneMove}
+                disabled={!selectedTaskId}
+              >
+                Done
+              </button>
+            </div>
+
           </div>
+
         </div>
       )}
     </div>

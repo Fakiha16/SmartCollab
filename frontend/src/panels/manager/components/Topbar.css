@@ -129,3 +129,11 @@
   font-weight: bold;
   color: white;
 }
+.sc-userAvatarImg{
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-left: 10px;
+  border: 2px solid rgba(255,255,255,0.2);
+}
