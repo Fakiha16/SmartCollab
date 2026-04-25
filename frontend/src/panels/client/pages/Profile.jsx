@@ -2,20 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Profile.css";
 
-const workedWith = [
-  { name: "Addodle", img: "https://i.pravatar.cc/80?img=12" },
-  { name: "Marketplace.", img: "https://i.pravatar.cc/80?img=21" },
-  { name: "Von Dracula", img: "https://i.pravatar.cc/80?img=32" },
-  { name: "Von Dracula", img: "https://i.pravatar.cc/80?img=35" },
-  { name: "John Joestar", img: "https://i.pravatar.cc/80?img=41" },
-  { name: "Akali Jin", img: "https://i.pravatar.cc/80?img=45" }
-];
-
 const projects = [
-  { title: "Emo stuff", img: "https://picsum.photos/90/90?random=11" },
-  { title: "Tim Burton", img: "https://picsum.photos/90/90?random=12" },
-  { title: "Halloween!", img: "https://picsum.photos/90/90?random=13" },
-  { title: "Spooky Art", img: "https://picsum.photos/90/90?random=14" }
+  { title: "Website Redesign", img: "https://picsum.photos/90/90?random=11", progress: 70 },
+  { title: "Mobile App", img: "https://picsum.photos/90/90?random=12", progress: 45 },
+  { title: "Dashboard UI", img: "https://picsum.photos/90/90?random=13", progress: 90 }
 ];
 
 export default function Profile() {
@@ -42,7 +32,6 @@ export default function Profile() {
       <div className="pf-grid">
 
         {/* LEFT PROFILE CARD */}
-
         <section className="pf-card pf-profile">
 
           <div className="pf-avatarRing">
@@ -54,21 +43,18 @@ export default function Profile() {
           </div>
 
           <div className="pf-name">
-            {user?.name || "User Name"}
+            {user?.name || "Client Name"}
           </div>
 
           <div className="pf-loc">
-            {user?.role || "Role"}
+            Client
           </div>
-
-          {/* ✅ ACTION BUTTONS */}
-          
 
           <div className="pf-info">
 
             <div className="pf-row">
               <span className="pf-ico">👤</span>
-              <span>{user?.role || "Role"}</span>
+              <span>Client</span>
             </div>
 
             <div className="pf-row">
@@ -76,17 +62,15 @@ export default function Profile() {
               <span>{user?.email || "Email"}</span>
             </div>
 
-            <div className="pf-row">
-              <span className="pf-ico">📄</span>
-              <span>SmartCollab Member</span>
-            </div>
+            
 
           </div>
+
           <div className="pf-actions">
 
             <button
               className="pf-editBtn"
-              onClick={() => navigate("/manager/edit-profile")}
+              onClick={() => navigate("/client/edit-profile")}
             >
               ✏️ Edit Profile
             </button>
@@ -104,36 +88,53 @@ export default function Profile() {
 
         {/* CENTER */}
         <section className="pf-card pf-center">
+
           <div className="pf-breadcrumb">
-            Inicio &gt; Profile
+            Client &gt; Profile
           </div>
 
           <div className="pf-title">
-            {user?.role || "Member"}
+            Welcome, {user?.name || "Client"}
           </div>
 
           <div className="pf-quote">
-            Welcome to your SmartCollab workspace
+            You can monitor your project progress and communicate with the team here.
           </div>
 
+          {/* ACTIVITY SUMMARY */}
           <div className="pf-sectionHead">
-            <div className="pf-sectionTitle">Worked with</div>
+            <div className="pf-sectionTitle">Activity Summary</div>
           </div>
 
-          <div className="pf-peopleGrid">
-            {workedWith.map((p,i)=>(
-              <div key={i} className="pf-person">
-                <img className="pf-personImg" src={p.img} alt={p.name}/>
-                <div className="pf-personName">{p.name}</div>
-              </div>
-            ))}
+          <div className="pf-info">
+            <div className="pf-row">
+              <span className="pf-ico">💬</span>
+              <span>Messages Sent: 12</span>
+            </div>
+            <div className="pf-row">
+              <span className="pf-ico">📢</span>
+              <span>Feedback Given: 3</span>
+            </div>
+            <div className="pf-row">
+              <span className="pf-ico">⏱️</span>
+              <span>Last Active: Today</span>
+            </div>
           </div>
+
+          {/* FEEDBACK BUTTON */}
+          <div style={{marginTop:"16px"}}>
+            <button className="pf-editBtn" onClick={()=>navigate("/client/feedback")}>
+              ✍️ Give Feedback
+            </button>
+          </div>
+
         </section>
 
         {/* RIGHT PROJECTS */}
         <section className="pf-card pf-projects">
+
           <div className="pf-rightHead">
-            <div className="pf-rightTitle">Projects</div>
+            <div className="pf-rightTitle">Your Projects</div>
           </div>
 
           <div className="pf-projectGrid">
@@ -141,25 +142,18 @@ export default function Profile() {
               <div key={i} className="pf-projectItem">
                 <img className="pf-projectImg" src={p.img} alt={p.title}/>
                 <div className="pf-projectLabel">{p.title}</div>
+
+                {/* Progress */}
+                <div style={{fontSize:"10px", color:"#aaa"}}>
+                  Progress: {p.progress}%
+                </div>
               </div>
             ))}
           </div>
+
         </section>
 
-        {/* RIGHT BOTTOM */}
-        <section className="pf-card pf-total">
-          <div className="pf-rightHead">
-            <div className="pf-rightTitle">Total work done</div>
-          </div>
 
-          <div className="pf-donutWrap">
-            <div className="pf-donut">
-              <div className="pf-donutInner">
-                <div className="pf-donutText">Active</div>
-              </div>
-            </div>
-          </div>
-        </section>
 
       </div>
     </div>

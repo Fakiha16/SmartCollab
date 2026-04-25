@@ -16,9 +16,9 @@ const messageSchema = new mongoose.Schema({
   },
 
   type: {
-    type: String, // "client" or "team"
-    required: true,
-  },
+  type: String,
+  default: "text"
+},
 
   createdAt: {
     type: Date,

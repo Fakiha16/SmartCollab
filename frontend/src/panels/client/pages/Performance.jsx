@@ -73,52 +73,7 @@ export default function Performance() {
           </div>
 
           {/* Work Logs Card (replaces Leadership panel) */}
-          <Card
-            className="sc-leadership sc-leadershipCompact"
-            role="button"
-            tabIndex={0}
-            style={{ cursor: "pointer" }}
-            onClick={goWorkLogs}
-            onKeyDown={(e) => (e.key === "Enter" ? goWorkLogs() : null)}
-            title="Open Work Logs"
-          >
-            <div className="sc-cardHead sc-cardHeadRow">
-              <div>
-                <div className="sc-cardTitle">Work Logs</div>
-                <div className="sc-muted">Open the board & manage tasks</div>
-              </div>
-
-              <button
-                className="sc-linkBtn"
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goWorkLogs();
-                }}
-              >
-                View all
-              </button>
-            </div>
-
-            {/* simple preview row */}
-            <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-              {["Backlog", "In progress", "Review", "Completed"].map((x) => (
-                <div
-                  key={x}
-                  style={{
-                    padding: "10px 12px",
-                    borderRadius: 14,
-                    border: "1px solid var(--stroke)",
-                    background: "rgba(255,255,255,.02)",
-                    fontWeight: 800,
-                    fontSize: 12,
-                  }}
-                >
-                  {x}
-                </div>
-              ))}
-            </div>
-          </Card>
+         
         </div>
 
         {/* RIGHT SIDE (Tasks card replaces Done & Delivered) */}

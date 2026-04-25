@@ -4,8 +4,6 @@ import { NavLink, Link } from "react-router-dom";
 const menus = [
   { to: "/client/dashboard", label: "Dashboard" },
   { to: "/client/performance", label: "Performance" },
-  { to: "/client/worklogs", label: "Work Logs" },
-  { to: "/client/Tasks", label: "Tasks" }, // agar tasks ka page nahi hai to profile ya remove
 ];
 
 export default function Sidebar() {

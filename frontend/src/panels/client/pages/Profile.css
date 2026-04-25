@@ -171,7 +171,7 @@
 /* RIGHT */
 .pf-projects{
   grid-column: 3;
-  grid-row: 1;
+  grid-row: 1 / -1; /* 🔥 full height le lega */
   padding: 16px;
   display:flex;
   flex-direction: column;
@@ -179,8 +179,7 @@
 }
 
 .pf-total{
-  grid-column: 3;
-  grid-row: 2;
+
   padding: 16px;
 }
 
