@@ -3,13 +3,14 @@ const mongoose = require("mongoose");
 const taskSchema = new mongoose.Schema({
   title: String,
   desc: String,
-  status: {
-    type: String,
-    enum: ["backlog", "inprogress", "review", "completed"],
-    default: "backlog",
-  },
+  status: String,
   projectId: String,
   assignedTo: String,
-}, { timestamps: true });
+
+  // ✅ ADD THESE (IMPORTANT)
+  taskType: String,
+  taskStartDate: String,
+  taskEndDate: String,
+});
 
 module.exports = mongoose.model("Task", taskSchema);

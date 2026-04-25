@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Profile.css";
 
@@ -21,12 +21,36 @@ const projects = [
 export default function Profile() {
 
   const navigate = useNavigate();
+  const fileInputRef = useRef();
+
   const [user,setUser] = useState(null);
+
+  const [showEdit,setShowEdit] = useState(false);
+
+  const [editData,setEditData] = useState({
+    name:"",
+    email:"",
+    role:"",
+    team:"",
+    isMember:true,
+    avatar:""
+  });
 
   useEffect(()=>{
     const storedUser = localStorage.getItem("user");
+
     if(storedUser){
-      setUser(JSON.parse(storedUser));
+      const parsed = JSON.parse(storedUser);
+      setUser(parsed);
+
+      setEditData({
+        name: parsed.name || "",
+        email: parsed.email || "",
+        role: parsed.role || "",
+        team: parsed.team || "",
+        isMember: parsed.isMember ?? true,
+        avatar: parsed.avatar || ""
+      });
     }
   },[]);
 
@@ -35,23 +59,75 @@ export default function Profile() {
     navigate("/login",{replace:true});
   };
 
+  const handleChange = (e)=>{
+    const {name,value,type,checked} = e.target;
+
+    setEditData(prev=>({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value
+    }));
+  };
+
+  // ✅ IMAGE SELECT HANDLER
+  const handleImageChange = (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+
+    reader.onloadend = ()=>{
+      const updated = {
+        ...editData,
+        avatar: reader.result
+      };
+
+      setEditData(updated);
+      setUser(updated);
+      localStorage.setItem("user", JSON.stringify(updated));
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const saveProfile = ()=>{
+    localStorage.setItem("user", JSON.stringify(editData));
+    setUser(editData);
+    setShowEdit(false);
+  };
+
   return (
 
     <div className="pf-wrap">
 
       <div className="pf-grid">
 
-        {/* LEFT PROFILE CARD */}
-
+        {/* LEFT PROFILE */}
         <section className="pf-card pf-profile">
 
-          <div className="pf-avatarRing">
+          <div
+            className="pf-avatarRing"
+            onClick={()=>fileInputRef.current.click()}
+            style={{cursor:"pointer"}}
+            title="Click to change picture"
+          >
             <img
               className="pf-avatar"
-              src="https://i.pravatar.cc/220?img=5"
+              src={
+                user?.avatar ||
+                "https://i.pravatar.cc/220?img=5"
+              }
               alt="profile"
             />
           </div>
+
+          {/* hidden input */}
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            style={{display:"none"}}
+            onChange={handleImageChange}
+          />
 
           <div className="pf-name">
             {user?.name || "User Name"}
@@ -61,32 +137,37 @@ export default function Profile() {
             {user?.role || "Role"}
           </div>
 
-          {/* ✅ ACTION BUTTONS */}
-          
-
           <div className="pf-info">
 
             <div className="pf-row">
               <span className="pf-ico">👤</span>
-              <span>{user?.role || "Role"}</span>
+              <span>{user?.role}</span>
             </div>
 
             <div className="pf-row">
               <span className="pf-ico">✉️</span>
-              <span>{user?.email || "Email"}</span>
+              <span>{user?.email}</span>
+            </div>
+
+            <div className="pf-row">
+              <span className="pf-ico">👥</span>
+              <span>{user?.team || "No Team"}</span>
             </div>
 
             <div className="pf-row">
               <span className="pf-ico">📄</span>
-              <span>SmartCollab Member</span>
+              <span>
+                {user?.isMember ? "SmartCollab Member" : "Not a Member"}
+              </span>
             </div>
 
           </div>
+
           <div className="pf-actions">
 
             <button
               className="pf-editBtn"
-              onClick={() => navigate("/manager/edit-profile")}
+              onClick={()=>setShowEdit(true)}
             >
               ✏️ Edit Profile
             </button>
@@ -104,9 +185,7 @@ export default function Profile() {
 
         {/* CENTER */}
         <section className="pf-card pf-center">
-          <div className="pf-breadcrumb">
-            Inicio &gt; Profile
-          </div>
+          <div className="pf-breadcrumb">Inicio &gt; Profile</div>
 
           <div className="pf-title">
             {user?.role || "Member"}
@@ -162,6 +241,39 @@ export default function Profile() {
         </section>
 
       </div>
+
+      {/* EDIT MODAL SAME AS BEFORE */}
+      {showEdit && (
+        <div className="pf-modalOverlay">
+          <div className="pf-modal">
+            <h2>Edit Profile</h2>
+
+            <input name="name" value={editData.name} onChange={handleChange} />
+            <input name="email" value={editData.email} onChange={handleChange} />
+
+            <select name="role" value={editData.role} onChange={handleChange}>
+              <option value="">Select Role</option>
+              <option value="Developer">Developer</option>
+              <option value="Tester">Tester</option>
+              <option value="Designer">Designer</option>
+              <option value="Manager">Manager</option>
+            </select>
+
+            <input name="team" value={editData.team} onChange={handleChange} />
+
+            <label>
+              <input type="checkbox" name="isMember" checked={editData.isMember} onChange={handleChange}/>
+              SmartCollab Member
+            </label>
+
+            <div className="pf-modalActions">
+              <button onClick={saveProfile}>Save</button>
+              <button onClick={()=>setShowEdit(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

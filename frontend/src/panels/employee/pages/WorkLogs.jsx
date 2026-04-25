@@ -55,6 +55,8 @@ function CardItem({ item }) {
 }
 
 export default function WorkLogs() {
+  const user = JSON.parse(localStorage.getItem("user")); // ✅ logged-in user
+
   const [q, setQ] = useState("");
   const [data, setData] = useState({
     backlog: [],
@@ -76,20 +78,27 @@ export default function WorkLogs() {
   }, []);
 
   const fetchTasks = async () => {
-    const res = await axios.get("http://localhost:5000/api/tasks");
+    try {
+      const res = await axios.get("http://localhost:5000/api/tasks");
 
-    const grouped = {
-      backlog: [],
-      inprogress: [],
-      review: [],
-      completed: [],
-    };
+      const grouped = {
+        backlog: [],
+        inprogress: [],
+        review: [],
+        completed: [],
+      };
 
-    res.data.forEach((task) => {
-      grouped[task.status].push(task);
-    });
+      res.data.forEach((task) => {
+        // ✅ ONLY show tasks assigned to this employee
+        if (task.assignedTo === user?.name) {
+          grouped[task.status].push(task);
+        }
+      });
 
-    setData(grouped);
+      setData(grouped);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const filtered = useMemo(() => {
@@ -186,8 +195,10 @@ export default function WorkLogs() {
               <div className="wl-colTitle">{col.title}</div>
             </div>
 
+            {/* Backlog → search */}
             {col.key === "backlog" ? (
               <div className="wl-colSearch">
+                <span className="wl-colSearchIco">⌕</span>
                 <input
                   value={backlogQ}
                   onChange={(e) => setBacklogQ(e.target.value)}
@@ -195,14 +206,12 @@ export default function WorkLogs() {
                 />
               </div>
             ) : (
-              <button
-                className="wl-add"
+              <div
+                className="wl-addBox"
                 onClick={() => openMoveModal(col.key)}
               >
-                <div className="wl-addBox">
-                  <span className="wl-plusIcon">+</span>
-                </div>
-              </button>
+                <span className="wl-plusIcon">+</span>
+              </div>
             )}
 
             <div className="wl-list">
@@ -214,10 +223,9 @@ export default function WorkLogs() {
         ))}
       </div>
 
-      {/* MODAL */}
+      {/* MOVE MODAL */}
       {isModalOpen && (
         <div className="wl-modalOverlay">
-
           <div className="wl-modal">
 
             <div className="wl-modalHead">
@@ -241,7 +249,7 @@ export default function WorkLogs() {
               <div className="wl-modalTable">
 
                 <div className="wl-modalRow wl-modalRowHead">
-                  <div>Backlog Tasks</div>
+                  <div>Tasks</div>
                   <div className="wl-modalCellSelect">Select</div>
                 </div>
 
@@ -256,7 +264,7 @@ export default function WorkLogs() {
                     <div>
                       <div className="wl-modalTaskTitle">{t.title}</div>
                       <div className="wl-modalTaskSub">
-                        Done by {t.assignedTo || "Unknown"}
+                        Assigned to {t.assignedTo}
                       </div>
                     </div>
 
@@ -291,7 +299,6 @@ export default function WorkLogs() {
             </div>
 
           </div>
-
         </div>
       )}
     </div>

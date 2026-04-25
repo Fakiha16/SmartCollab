@@ -1,132 +1,239 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import "./AccessControl.css";
 
-const members = [
-  { name: "A", role: "Lead" },
-  { name: "B", role: "Dev" },
-  { name: "C", role: "QA" },
-  { name: "D", role: "PM" },
-  { name: "E", role: "Dev" },
-  { name: "F", role: "QA" },
-  { name: "G", role: "Designer" },
-  { name: "H", role: "Dev" },
-  { name: "I", role: "BA" },
-];
-
-const tasksSeed = [
-  { id: "#402235", title: "Make an Automatic Payment System that enable the design", opened: "Opened 10 days ago by Yash Ghori", statusLeft: "Canceled", statusRight: "Completed", time: "00 : 30 : 00" },
-  { id: "#402235-2", title: "Make an Automatic Payment System that enable the design", opened: "Opened 10 days ago by Yash Ghori", statusLeft: "Canceled", statusRight: "Completed", time: "00 : 30 : 00" },
-  { id: "#402235-3", title: "Make an Automatic Payment System that enable the design", opened: "Opened 10 days ago by Yash Ghori", statusLeft: "Canceled", statusRight: "Completed", time: "00 : 30 : 00" },
-];
-
-function MemberAvatar({ label }) {
-  return <div className="ac-avatar">{label}</div>;
-}
-
-function MiniCard({ title, subtitle }) {
-  return (
-    <div className="ac-miniCard">
-      <div className="ac-miniTitle">{title}</div>
-      <div className="ac-miniArt" aria-hidden />
-      <div className="ac-miniSub">{subtitle}</div>
-    </div>
-  );
-}
-
-function StatusPill({ kind, text }) {
-  const cls =
-    kind === "red" ? "ac-pill ac-pillRed" : "ac-pill ac-pillGreen";
-  return <span className={cls}>{text}</span>;
-}
-
-function TaskRow({ t }) {
-  return (
-    <div className="ac-task">
-      <div className="ac-taskLeft">
-        <div className="ac-taskIcon" aria-hidden>☼</div>
-        <div>
-          <div className="ac-taskTitle">{t.title}</div>
-          <div className="ac-taskMeta">
-            <span className="ac-taskId">{t.id}</span>
-            <span className="ac-taskDot">•</span>
-            <span className="ac-taskOpened">{t.opened}</span>
-          </div>
-          <div className="ac-taskPills">
-            <StatusPill kind="red" text={t.statusLeft} />
-            <StatusPill kind="green" text={t.statusRight} />
-          </div>
-        </div>
-      </div>
-
-      <div className="ac-taskRight">
-        <div className="ac-time">
-          <span className="ac-timeDot" />
-          <span>{t.time}</span>
-        </div>
-
-        <div className="ac-taskUser" title="Assigned">
-          <div className="ac-userAvatar" />
-        </div>
-
-        <button className="ac-iconBtn" type="button" title="Message">💬</button>
-        <button className="ac-iconBtn" type="button" title="More">⋯</button>
-      </div>
-    </div>
-  );
-}
-
 export default function AccessControl() {
-  const [q, setQ] = useState("");
 
-  const tasks = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    if (!query) return tasksSeed;
-    return tasksSeed.filter(
-      (t) =>
-        t.title.toLowerCase().includes(query) ||
-        t.id.toLowerCase().includes(query) ||
-        t.opened.toLowerCase().includes(query)
+  const [projects, setProjects] = useState(() => {
+    const saved = localStorage.getItem("projects");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [selectedProject, setSelectedProject] = useState("");
+  const [selectedTeam, setSelectedTeam] = useState("");
+
+  const [showAdd, setShowAdd] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+
+  const [form, setForm] = useState({
+    name: "",
+    role: "",
+    email: ""
+  });
+
+  const selectedProjectData = projects.find(
+    (p) => p.title === selectedProject
+  );
+
+  const teamMembers =
+    selectedProjectData?.team?.[selectedTeam] || [];
+
+  // ================= ADD =================
+  const handleAdd = () => {
+    if (!form.name || !form.role || !form.email)
+      return alert("Fill all fields");
+
+    const updated = projects.map((p) => {
+      if (p.title === selectedProject) {
+
+        // ✅ SAFE TEAM STRUCTURE
+        const safeTeam = p.team || {
+          Frontend: [],
+          Backend: [],
+          QA: [],
+          Designer: []
+        };
+
+        return {
+          ...p,
+          team: {
+            ...safeTeam,
+            [form.role]: [
+              ...(safeTeam[form.role] || []),
+              { name: form.name, email: form.email }
+            ]
+          }
+        };
+      }
+      return p;
+    });
+
+    setProjects(updated);
+    localStorage.setItem("projects", JSON.stringify(updated));
+
+    setShowAdd(false);
+    setForm({ name: "", role: "", email: "" });
+  };
+
+  // ================= DELETE =================
+  const handleDelete = () => {
+    const updated = projects.map((p) => {
+      if (p.title === selectedProject) {
+
+        const safeTeam = p.team || {};
+
+        return {
+          ...p,
+          team: {
+            ...safeTeam,
+            [form.role]: (safeTeam[form.role] || []).filter(
+              (m) => m.name !== form.name
+            )
+          }
+        };
+      }
+      return p;
+    });
+
+    setProjects(updated);
+    localStorage.setItem("projects", JSON.stringify(updated));
+
+    setShowDelete(false);
+    setForm({ name: "", role: "", email: "" });
+  };
+
+  // 🔥 FIXED ROLE FUNCTION
+  const getRolesForMember = () => {
+    if (!selectedProjectData || !selectedProjectData.team) return [];
+
+    return Object.keys(selectedProjectData.team).filter((role) =>
+      (selectedProjectData.team[role] || []).some(
+        (m) => m.name === form.name
+      )
     );
-  }, [q]);
+  };
 
   return (
     <div className="ac-wrap">
-      {/* Top big panel */}
+
       <div className="ac-topPanel">
+
         <div className="ac-team">
-          <div className="ac-teamTitle">Team Management</div>
+
+          <h3>Team Management</h3>
+
+          {/* PROJECT */}
+          <select onChange={(e) => setSelectedProject(e.target.value)}>
+            <option>Select Project</option>
+            {projects.map((p) => (
+              <option key={p.id}>{p.title}</option>
+            ))}
+          </select>
+
+          {/* TEAM */}
+          {selectedProject && (
+            <select onChange={(e) => setSelectedTeam(e.target.value)}>
+              <option>Select Team</option>
+              <option>Frontend</option>
+              <option>Backend</option>
+              <option>QA</option>
+              <option>Designer</option>
+            </select>
+          )}
+
+          {/* MEMBERS */}
           <div className="ac-teamGrid">
-            {members.map((m, i) => (
-              <MemberAvatar key={i} label={m.name} />
+            {teamMembers.map((m, i) => (
+              <div key={i} className="ac-avatar">
+                {m.name}
+              </div>
             ))}
           </div>
+
         </div>
 
-        <MiniCard title="Add Member" subtitle="" />
-        <MiniCard title="Delete Member" subtitle="" />
+        <div className="ac-miniCard" onClick={() => setShowAdd(true)}>
+          Add Member
+        </div>
+
+        <div className="ac-miniCard" onClick={() => setShowDelete(true)}>
+          Delete Member
+        </div>
+
       </div>
 
-      {/* Bottom permissions */}
-      <div className="ac-bottomPanel">
-        <div className="ac-bottomHead">
-          <div className="ac-bottomTitle">Manage Task Permissions</div>
+      {/* ADD MODAL */}
+      {showAdd && (
+        <div className="ac-modalOverlay">
+          <div className="ac-modal">
 
-          <div className="ac-search">
-            <span className="ac-searchIcon">⌕</span>
+            <h2>Add Member</h2>
+
             <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search for anything..."
+              placeholder="Name"
+              value={form.name}
+              onChange={(e) =>
+                setForm({ ...form, name: e.target.value })
+              }
             />
+
+            <select
+              onChange={(e) =>
+                setForm({ ...form, role: e.target.value })
+              }
+            >
+              <option>Select Role</option>
+              <option>Frontend</option>
+              <option>Backend</option>
+              <option>QA</option>
+              <option>Designer</option>
+            </select>
+
+            <input
+              placeholder="Email"
+              value={form.email}
+              onChange={(e) =>
+                setForm({ ...form, email: e.target.value })
+              }
+            />
+
+            <button onClick={handleAdd}>Add</button>
+            <button onClick={() => setShowAdd(false)}>Cancel</button>
+
           </div>
         </div>
+      )}
 
-        <div className="ac-taskList">
-          {tasks.map((t) => (
-            <TaskRow key={t.id} t={t} />
-          ))}
+      {/* DELETE MODAL */}
+      {showDelete && (
+        <div className="ac-modalOverlay">
+          <div className="ac-modal">
+
+            <h2>Delete Member</h2>
+
+            <input
+              placeholder="Enter Name"
+              value={form.name}
+              onChange={(e) =>
+                setForm({ ...form, name: e.target.value })
+              }
+            />
+
+            <select
+              onChange={(e) =>
+                setForm({ ...form, role: e.target.value })
+              }
+            >
+              <option>Select Role</option>
+              {getRolesForMember().map((r) => (
+                <option key={r}>{r}</option>
+              ))}
+            </select>
+
+            <input
+              placeholder="Email"
+              value={form.email}
+              onChange={(e) =>
+                setForm({ ...form, email: e.target.value })
+              }
+            />
+
+            <button onClick={handleDelete}>Delete</button>
+            <button onClick={() => setShowDelete(false)}>Cancel</button>
+
+          </div>
         </div>
-      </div>
+      )}
+
     </div>
   );
 }

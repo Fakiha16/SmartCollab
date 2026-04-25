@@ -249,12 +249,14 @@ export default function WorkLogs() {
             </div>
 
             {/* ✅ FIXED BACKLOG BUTTON */}
-            {col.key === "backlog" ? (
-              <div className="wl-colSearch wl-addLike" onClick={openModal}>
-                <span className="wl-colSearchIco">＋</span>
-                
-              </div>
-            ) : (
+              {col.key === "backlog" ? (
+                <div className="wl-addBox" onClick={openModal}>
+                  <div className="wl-addInner">
+                    <span className="wl-plusIcon">+</span>
+                    <p>Add Task</p>
+                  </div>
+                </div>
+              ) : (
               <div className="wl-colSearch">
                 <span className="wl-colSearchIco">⌕</span>
                 <input
@@ -282,41 +284,67 @@ export default function WorkLogs() {
       {isModalOpen && (
         <div className="wl-modalOverlay" onMouseDown={closeModal}>
           <div className="wl-modal" onMouseDown={(e) => e.stopPropagation()}>
-            <input
-              placeholder="Task Title"
-              value={taskTitle}
-              onChange={(e) => setTaskTitle(e.target.value)}
-            />
+
+            <h2>Create Task</h2>
+
+            <div className="wl-formRow">
+              <input
+                placeholder="Task Title"
+                value={taskTitle}
+                onChange={(e) => setTaskTitle(e.target.value)}
+              />
+
+              <select
+                value={taskType}
+                onChange={(e) => setTaskType(e.target.value)}
+              >
+                <option value="">Task Type</option>
+                <option value="Development">Development</option>
+                <option value="Testing">Testing</option>
+                <option value="Design">Design</option>
+              </select>
+            </div>
+
+            <div className="wl-formRow">
+              <input
+                type="date"
+                value={taskStartDate}
+                onChange={(e) => setTaskStartDate(e.target.value)}
+              />
+              <input
+                type="date"
+                value={taskEndDate}
+                onChange={(e) => setTaskEndDate(e.target.value)}
+              />
+            </div>
 
             <textarea
-              placeholder="Description"
+              placeholder="Task Description"
               value={taskDesc}
               onChange={(e) => setTaskDesc(e.target.value)}
             />
-
-            <select
-              value={taskType}
-              onChange={(e) => setTaskType(e.target.value)}
-            >
-              <option value="">Task Type</option>
-              <option value="Development">Development</option>
-              <option value="Testing">Testing</option>
-              <option value="Design">Design</option>
-            </select>
 
             <select
               value={assignedTo}
               onChange={(e) => setAssignedTo(e.target.value)}
             >
               <option value="">Assign To</option>
-              {assignableMembers.map(m => (
+              {assignableMembers.map((m) => (
                 <option key={m.id} value={m.name}>
                   {m.name}
                 </option>
               ))}
             </select>
 
-            <button onClick={handleTaskSubmit}>Create</button>
+            <div className="wl-btnRow">
+              <button className="wl-createBtn" onClick={handleTaskSubmit}>
+                Create
+              </button>
+              <button className="wl-cancelBtn" onClick={closeModal}>
+                Cancel
+              </button>
+            </div>
+
           </div>
         </div>
       )}

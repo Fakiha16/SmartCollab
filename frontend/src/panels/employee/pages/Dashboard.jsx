@@ -1,151 +1,156 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./Dashboard.css";
+import io from "socket.io-client";
+
+const socket = io("http://localhost:5000");
 
 export default function Dashboard() {
+
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState("");
+  const [files, setFiles] = useState([]);
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const projectId = localStorage.getItem("projectId");
+
+  // ================= CHAT =================
+  useEffect(() => {
+
+    socket.emit("joinProject", projectId);
+
+    socket.on("receiveMessage", (msg) => {
+      setMessages((prev) => [...prev, msg]);
+    });
+
+  }, []);
+
+  const sendMessage = () => {
+    if (!text) return;
+
+    const msg = {
+      text,
+      sender: user.email,
+      projectId,
+      time: new Date().toLocaleTimeString()
+    };
+
+    socket.emit("sendMessage", msg);
+    setText("");
+  };
+
+  // ================= FILES =================
+  useEffect(() => {
+    fetch(`http://localhost:5000/api/upload/${projectId}`)
+      .then(res => res.json())
+      .then(data => setFiles(data));
+  }, []);
+
+  const uploadFile = async (e) => {
+    const file = e.target.files[0];
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("email", user.email);
+    formData.append("projectId", projectId);
+
+    const res = await fetch("http://localhost:5000/api/upload", {
+      method: "POST",
+      body: formData
+    });
+
+    const newFile = await res.json();
+    setFiles((prev) => [...prev, newFile]);
+  };
+
   return (
     <div className="empDash">
       <div className="empDash__wrap">
-        {/* LEFT: Client Messages */}
+
+        {/* LEFT: CHAT */}
         <section className="empCard">
           <div className="empCard__title">Messages</div>
 
           <div className="chatCard__body">
-            {/* messages area */}
+
             <div className="chatMessages">
-              <div className="msgRow msgRow--left">
-                <div className="avatarRound">
-                  <img
-                    src="https://i.pravatar.cc/40?img=32"
-                    alt=""
-                    className="avatarImg"
-                    draggable={false}
-                  />
-                </div>
-                <div>
-                  <div className="bubble bubble--green">
-                    Hey! 📣 Don’t forget our pizza night at your place this Saturday.
-                    I’m bringing my famous veggie pizza…
+
+              {messages.map((m, i) => (
+                <div key={i} className={`msgRow ${m.sender === user.email ? "msgRow--right" : "msgRow--left"}`}>
+                  
+                  {m.sender !== user.email && (
+                    <div className="avatarRound">
+                      <img
+                        src="https://i.pravatar.cc/40"
+                        className="avatarImg"
+                        draggable={false}
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <div className={`bubble ${m.sender === user.email ? "bubble--black" : "bubble--green"}`}>
+                      {m.text}
+                    </div>
+                    <div className={`time ${m.sender === user.email ? "time--right" : ""}`}>
+                      {m.time}
+                    </div>
                   </div>
-                  <div className="time">3:17 PM</div>
-                </div>
-              </div>
 
-              <div className="msgRow msgRow--left">
-                <div className="avatarRound">
-                  <img
-                    src="https://i.pravatar.cc/40?img=32"
-                    alt=""
-                    className="avatarImg"
-                    draggable={false}
-                  />
-                </div>
-                <div>
-                  <div className="bubble bubble--green">
-                    Hey! 📣 Don’t forget our pizza night at your place this Saturday.
-                    I’m bringing my famous veggie pizza…
-                  </div>
-                  <div className="time">3:17 PM</div>
-                </div>
-              </div>
+                  {m.sender === user.email && (
+                    <div className="avatarRound avatarRound--right">
+                      <img
+                        src="https://i.pravatar.cc/40"
+                        className="avatarImg"
+                        draggable={false}
+                      />
+                    </div>
+                  )}
 
-              <div className="msgRow msgRow--right">
-                <div>
-                  <div className="bubble bubble--black">
-                    Sounds delicious, Meera! 😄 Can’t wait for Saturday! By the way,
-                    do you think we should get some ice cream for dessert?
-                  </div>
-                  <div className="time time--right">3:25 PM</div>
                 </div>
+              ))}
 
-                <div className="avatarRound avatarRound--right">
-                  <img
-                    src="https://i.pravatar.cc/40?img=12"
-                    alt=""
-                    className="avatarImg"
-                    draggable={false}
-                  />
-                </div>
-              </div>
-
-              <div className="msgRow msgRow--left">
-                <div className="avatarRound">
-                  <img
-                    src="https://i.pravatar.cc/40?img=32"
-                    alt=""
-                    className="avatarImg"
-                    draggable={false}
-                  />
-                </div>
-                <div>
-                  <div className="bubble bubble--green">
-                    Absolutely! 🍦 I’m all in for ice cream. I’ll bring my favorite
-                    flavors. What’s your preference?
-                  </div>
-                  <div className="time">3:37 PM</div>
-                </div>
-              </div>
-
-              <div className="msgRow msgRow--right">
-                <div>
-                  <div className="bubble bubble--black">
-                    Awesome! 🍨 I love chocolate chip cookie dough. Looking forward
-                    to pizza party on friday!!
-                  </div>
-                  <div className="time time--right">3:28 PM</div>
-                </div>
-
-                <div className="avatarRound avatarRound--right">
-                  <img
-                    src="https://i.pravatar.cc/40?img=12"
-                    alt=""
-                    className="avatarImg"
-                    draggable={false}
-                  />
-                </div>
-              </div>
             </div>
 
             {/* composer */}
             <div className="chatComposer">
-              <button className="chatComposer__iconBtn" type="button">
-                📎
-              </button>
+              <button className="chatComposer__iconBtn">📎</button>
 
               <input
                 className="chatComposer__input"
                 placeholder="Type a message"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
               />
 
-              <button className="chatComposer__iconBtn" type="button">
-                🙂
-              </button>
+              <button className="chatComposer__iconBtn">🙂</button>
 
-              <button className="chatComposer__sendBtn" type="button">
+              <button className="chatComposer__sendBtn" onClick={sendMessage}>
                 ➤
               </button>
             </div>
+
           </div>
         </section>
 
-        {/* RIGHT: Shared Document */}
+        {/* RIGHT: DOCUMENT */}
         <section className="empCard">
           <div className="empCard__title">Shared Document</div>
 
           <div className="docUpload">
-            <button className="docUpload__btn" type="button">
-              +
-            </button>
+            <input type="file" onChange={uploadFile} />
           </div>
 
           <div className="docBody">
-            <img
-              src="https://illustrations.popsy.co/gray/man-working-on-documents.svg"
-              alt=""
-              className="docImg"
-              draggable={false}
-            />
+            {files.map((f, i) => (
+              <div key={i}>
+                <a href={`http://localhost:5000/uploads/${f.name}`} target="_blank">
+                  {f.name}
+                </a>
+              </div>
+            ))}
           </div>
         </section>
+
       </div>
     </div>
   );

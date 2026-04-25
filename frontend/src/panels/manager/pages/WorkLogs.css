@@ -605,4 +605,68 @@
   color: white;
   border-radius: 6px;
   cursor: pointer;
+}/* BACKLOG ADD BOX */
+.wl-addBox {
+  border: 2px dashed rgba(255,255,255,0.3);
+  border-radius: 12px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: 0.2s;
+}
+
+.wl-addBox:hover {
+  border-color: #38bdf8;
+  background: rgba(56,189,248,0.05);
+}
+
+.wl-addInner {
+  text-align: center;
+  color: #94a3b8;
+}
+
+.wl-plusIcon {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 4px;
+}
+.wl-modal {
+  background: #0f172a;
+  padding: 20px;
+  border-radius: 12px;
+  width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wl-formRow {
+  display: flex;
+  gap: 10px;
+}
+
+.wl-btnRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.wl-createBtn {
+  background: #22c55e;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+}
+
+.wl-cancelBtn {
+  background: #475569;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  color: white;
 }

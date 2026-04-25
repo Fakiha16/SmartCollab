@@ -8,6 +8,7 @@ import WorkLogs from "../pages/WorkLogs";
 import ClientPanel from "../pages/ClientPanel";
 import AccessControl from "../pages/AccessControl";
 import Profile from "../pages/Profile";
+import ProjectDetails from "../pages/ProjectDetails";
 
 export default function ManagerRoutes() {
   return (
@@ -16,6 +17,7 @@ export default function ManagerRoutes() {
         <Route path="/" element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="projects" element={<Projects />} />
+        <Route path="project/:id" element={<ProjectDetails />} />
         <Route path="work-logs" element={<WorkLogs />} />
         <Route path="client-panel" element={<ClientPanel />} />
         <Route path="access-control" element={<AccessControl />} />
