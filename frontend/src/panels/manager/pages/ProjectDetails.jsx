@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./Dashboard.css";
+import "./ProjectDetails.css";
 import io from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 
@@ -52,55 +52,48 @@ export default function ProjectDetails() {
       .then(data => setFiles(data));
   }, [projectId]);
 
-  const uploadFile = async (e) => {
-    const file = e.target.files[0];
+const uploadFile = async (e) => {
+  const file = e.target.files[0]; // Get the first file selected
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("email", user.email);
-    formData.append("projectId", projectId);
+  if (!file) return;
 
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("email", user.email); // Pass the user's email
+  formData.append("projectId", projectId); // Pass the project ID
+
+  try {
     const res = await fetch("http://localhost:5000/api/upload", {
       method: "POST",
-      body: formData
+      body: formData,
     });
 
-    const newFile = await res.json();
-    setFiles((prev) => [...prev, newFile]);
-  };
+    if (res.ok) {
+      const newFile = await res.json();
+      // Add the new file to the state to update the file list
+      setFiles((prev) => [...prev, newFile]);
+    } else {
+      alert("Error uploading file");
+    }
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    alert("File upload failed. Please try again.");
+  }
+};
 
   return (
     <div className="empDash">
 
       {/* 🔥 PROFESSIONAL HEADER */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 20px",
-          borderBottom: "1px solid #eee",
-          background: "#fff"
-        }}
-      >
+      <div className="header">
         <button
           onClick={() => navigate("/manager/projects")}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            background: "none",
-            border: "none",
-            fontSize: "15px",
-            cursor: "pointer",
-            color: "#333",
-            fontWeight: "500"
-          }}
+          className="backButton"
         >
           ← <span>Back to Projects</span>
         </button>
 
-        <div style={{ fontWeight: "600", fontSize: "16px" }}>
+        <div className="projectTitle">
           Project Workspace
         </div>
       </div>
@@ -112,7 +105,6 @@ export default function ProjectDetails() {
           <div className="empCard__title">Project Chat</div>
 
           <div className="chatMessages">
-
             {messages.map((m, i) => (
               <div
                 key={i}
@@ -124,7 +116,6 @@ export default function ProjectDetails() {
                 <div className="time">{m.time}</div>
               </div>
             ))}
-
           </div>
 
           <div className="chatComposer">
@@ -146,7 +137,7 @@ export default function ProjectDetails() {
         <section className="empCard">
           <div className="empCard__title">Shared Documents</div>
 
-          <input type="file" onChange={uploadFile} />
+          <input type="file" onChange={uploadFile} className="fileInput" />
 
           <div className="docBody">
             {files.map((f, i) => (
@@ -155,6 +146,7 @@ export default function ProjectDetails() {
                   href={`http://localhost:5000/uploads/${f.name}`}
                   target="_blank"
                   rel="noreferrer"
+                  className="docLink"
                 >
                   {f.name}
                 </a>

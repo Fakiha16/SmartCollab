@@ -234,17 +234,22 @@ body{
 }
 
 .sc-grid2{
-  display:grid;
+  display: flex;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
   align-items: stretch;   /* ✅ important */
+}
+.sc-card-project{
+  width: 480px;
+}
+.sc-card-performance{
+  width: 490px;
 }
 .sc-card-project,
 .sc-card-performance{
   height: 220px;
   min-height: 220px;
-  display:flex;
-  flex-direction:column;
+
 }
 
 .sc-leadershipCompact{
@@ -643,3 +648,8 @@ body{
 .sc-leadership{
   width: auto !important;
 }
+
+
+
+
+

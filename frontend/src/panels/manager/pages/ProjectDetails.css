@@ -1,0 +1,177 @@
+/* MAIN CONTAINER */
+.empDash {
+  padding: 20px;
+  background-color: #111827; /* Dark background for the app */
+  color: #f9fafb; /* White text */
+  height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2d3748;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.backButton {
+  font-size: 16px;
+  color: #38bdf8;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.backButton:hover {
+  text-decoration: underline;
+}
+
+.projectTitle {
+  font-size: 18px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* CHAT SECTION */
+.chatSection {
+  background: #2d3748;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.sectionHeader {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f9fafb;
+  margin-bottom: 16px;
+}
+
+.messages {
+  max-height: 350px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+
+.messageRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.messageLeft {
+  align-items: flex-start;
+}
+
+.messageRight {
+  align-items: flex-end;
+}
+
+.messageBubble {
+  padding: 10px 15px;
+  border-radius: 16px;
+  font-size: 14px;
+  word-wrap: break-word;
+}
+
+.bubbleUser {
+  background-color: #38bdf8;
+  color: white;
+}
+
+.bubbleOther {
+  background-color: #34d399;
+  color: white;
+}
+
+.messageTime {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* CHAT COMPOSER */
+.messageComposer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.messageInput {
+  flex-grow: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  background: #fff;
+}
+
+.sendMessageBtn {
+  background: #38bdf8;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+}
+
+.sendMessageBtn:hover {
+  background: #2b99d7;
+}
+
+/* DOCUMENTS SECTION */
+.documentsSection {
+  background: #2d3748;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.fileInput {
+  width: 100%;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.fileInput:hover {
+  background: #e5e7eb;
+}
+
+.documentList {
+  margin-top: 20px;
+}
+
+.documentItem {
+  margin-bottom: 10px;
+}
+
+.documentLink {
+  color: #38bdf8;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.documentLink:hover {
+  text-decoration: underline;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .backButton {
+    margin-bottom: 10px;
+  }
+}

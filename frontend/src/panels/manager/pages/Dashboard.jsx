@@ -61,7 +61,6 @@ export default function Dashboard({ standalone = false }) {
       </div>
 
       <div className="sc-dashLayout">
-        <div className="sc-dashLeft">
 
           <div className="sc-grid2">
 
@@ -174,7 +173,6 @@ export default function Dashboard({ standalone = false }) {
           </Card>
 
         </div>
-      </div>
     </div>
   );
 
