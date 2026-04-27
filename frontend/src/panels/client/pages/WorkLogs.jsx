@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import "./Worklogs.css";
+import "./WorkLogs.css";
 
 const columns = [
   { key: "backlog", title: "Backlog SubTasks" },
