@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import "./WorkLogs.css";
+import "./EmployeeWorkLogs.css";
 import axios from "axios";
 
 const columns = [
