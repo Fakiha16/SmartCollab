@@ -21,7 +21,6 @@ export default function Projects() {
     title: "", desc: "", frontend: "", backend: "", tester: "", designer: ""
   });
 
-  // ✅ DB se projects load karo
   useEffect(() => {
     fetch("http://localhost:5000/api/projects")
       .then(res => res.json())
@@ -52,7 +51,13 @@ export default function Projects() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ title: form.title, desc: form.desc })
         });
-        const updated = await res.json();
+        // FIX 2: fallback to form values if backend returns different field names
+        const raw = await res.json();
+        const updated = {
+          ...raw,
+          title: raw.title || form.title,
+          desc:  raw.desc || raw.description || form.desc,
+        };
         setProjects(prev => prev.map(p => (p._id || p.id) === editId ? updated : p));
       } catch (err) { alert("Update failed"); }
 
@@ -73,7 +78,13 @@ export default function Projects() {
             }
           })
         });
-        const newProject = await res.json();
+        // FIX 1: fallback to form values if backend returns different field names
+        const data = await res.json();
+        const newProject = {
+          ...data,
+          title: data.title || form.title,
+          desc:  data.desc  || data.description || form.desc,
+        };
         setProjects(prev => [...prev, newProject]);
 
         const pid = newProject._id;
@@ -95,7 +106,7 @@ export default function Projects() {
     setIsEdit(true);
     setEditId(p._id || p.id);
     setShowForm(true);
-    setForm({ title: p.title, desc: p.desc || "", frontend: "", backend: "", tester: "", designer: "" });
+    setForm({ title: p.title, desc: p.desc || p.description || "", frontend: "", backend: "", tester: "", designer: "" });
   };
 
   const handleDelete = async (id) => {
@@ -119,7 +130,6 @@ export default function Projects() {
     setEmailInputs([""]);
   };
 
-  // ✅ Backend nodemailer se email bhejo
   const sendInvites = async () => {
     const validEmails = emailInputs.filter(e => e.trim() !== "");
     if (validEmails.length === 0) return alert("Please enter at least one email.");
@@ -193,7 +203,8 @@ export default function Projects() {
                   </button>
                 </div>
                 <div className="pr-divider" />
-                <p className="pr-desc">{p.desc}</p>
+                {/* FIX 3: fallback to p.description if p.desc is undefined */}
+                <p className="pr-desc">{p.desc || p.description}</p>
                 <div className="pr-bottom">
                   <div className="pr-date">{p.date || new Date().toDateString()}</div>
                 </div>
