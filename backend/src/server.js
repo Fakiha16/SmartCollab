@@ -36,41 +36,118 @@ app.use("/api/invite", inviteRoutes);
 const taskRoutes = require("./routes/taskRoutes");
 app.use("/api/tasks", taskRoutes);
 
-// ❌ remove duplicate line (tumhare code me tha)
-// app.use("/api/tasks", require("./routes/taskRoutes"));
+const projectRoutes = require("./routes/projectRoutes");
+app.use("/api/projects", projectRoutes);
 
 // ================= SOCKET.IO =================
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: {
-    origin: "*"
-  }
+  cors: { origin: "*" }
 });
 
+// In-memory store for online members per project
+// { projectId: [ { email, name, socketId } ] }
+const projectRooms = {};
+
 io.on("connection", (socket) => {
+  console.log("✅ User connected:", socket.id);
 
-  console.log("User connected");
+  // ── Join Project Room ──────────────────────────────────
+  // Frontend sends: { projectId, user: { email, name } }
+  socket.on("joinProject", async (payload) => {
 
-  socket.on("joinProject", (projectId) => {
+    // Handle both old format (string) and new format (object)
+    let projectId, user;
+    if (typeof payload === "string" || payload === null || payload === undefined) {
+      projectId = payload;
+      user = { email: "unknown" };
+    } else {
+      projectId = payload.projectId;
+      user = payload.user || { email: "unknown" };
+    }
+
+    if (!projectId) {
+      console.log("⚠️ joinProject called with no projectId, ignoring.");
+      return;
+    }
+
     socket.join(projectId);
+    socket.projectId = projectId;
+    socket.user = user || { email: "unknown" };
+
+    // ── Update online members list ──
+    if (!projectRooms[projectId]) projectRooms[projectId] = [];
+
+    // Remove old entry for same email (reconnect case)
+    projectRooms[projectId] = projectRooms[projectId].filter(
+      (m) => m.email !== socket.user.email
+    );
+    projectRooms[projectId].push({ ...socket.user, socketId: socket.id });
+
+    // ── Send previous messages from DB ──
+    try {
+      const Message = require("./models/Message");
+      const previousMsgs = await Message.find({ projectId })
+        .sort({ createdAt: 1 })
+        .limit(100);
+      socket.emit("previousMessages", previousMsgs);
+    } catch (err) {
+      console.error("Error loading messages:", err);
+    }
+
+    // ── Broadcast updated members list to everyone in room ──
+    io.to(projectId).emit("projectMembers", projectRooms[projectId]);
+
+    console.log(`📌 ${socket.user.email} joined project ${projectId}`);
   });
 
+  // ── Send Message ───────────────────────────────────────
   socket.on("sendMessage", async (data) => {
+    try {
+      const Message = require("./models/Message");
+      const newMsg = new Message(data);
+      await newMsg.save();
 
-    const Message = require("./models/Message");
-
-    const newMsg = new Message(data);
-    await newMsg.save();
-
-    io.to(data.projectId).emit("receiveMessage", newMsg);
+      // Broadcast to ALL members in the project room
+      io.to(data.projectId).emit("receiveMessage", newMsg);
+    } catch (err) {
+      console.error("Error saving message:", err);
+    }
   });
 
+  // ── Typing Indicators ──────────────────────────────────
+  socket.on("typing", ({ projectId, name, email }) => {
+    // Send to everyone EXCEPT the typer
+    socket.to(projectId).emit("userTyping", { name, email });
+  });
+
+  socket.on("stopTyping", ({ projectId, email }) => {
+    socket.to(projectId).emit("userStoppedTyping", { email });
+  });
+
+  // ── File Broadcast ─────────────────────────────────────
+  // When someone uploads a file, notify all other members
+  socket.on("broadcastFile", ({ projectId, file }) => {
+    socket.to(projectId).emit("fileUploaded", file);
+  });
+
+  // ── Disconnect ─────────────────────────────────────────
   socket.on("disconnect", () => {
-    console.log("User disconnected");
-  });
+    const { projectId, user } = socket;
 
+    if (projectId && projectRooms[projectId]) {
+      // Remove this socket from members list
+      projectRooms[projectId] = projectRooms[projectId].filter(
+        (m) => m.socketId !== socket.id
+      );
+      // Notify remaining members
+      io.to(projectId).emit("projectMembers", projectRooms[projectId]);
+    }
+
+    console.log(`❌ ${user?.email || "User"} disconnected`);
+  });
 });
 
 // =============================================
@@ -87,5 +164,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
