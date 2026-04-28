@@ -8,12 +8,11 @@ import PerProjects from "../pages/PerProjects";
 import Tasks from "../pages/Tasks";
 import WorkLogs from "../pages/WorkLogs";
 
-
 export default function ClientRoutes() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="" element={<Navigate to="dashboard" replace />} />
+        <Route path="" element={<Navigate to="performance" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="performance" element={<Performance />} />
         <Route path="tasks" element={<Tasks />} />
@@ -22,7 +21,7 @@ export default function ClientRoutes() {
         <Route path="profile" element={<Profile />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="dashboard" replace />} />
+      <Route path="*" element={<Navigate to="performance" replace />} />
     </Routes>
   );
 }

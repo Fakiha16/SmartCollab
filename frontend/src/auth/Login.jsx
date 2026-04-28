@@ -33,7 +33,7 @@ export default function Login() {
     if (token && role) {
       if (role === "manager") navigate("/manager/dashboard");
       if (role === "employee") navigate("/employee/dashboard");
-      if (role === "client") navigate("/client/dashboard");
+      if (role === "client") navigate("/client/performance");
     }
   }, [navigate]);
 
@@ -84,7 +84,7 @@ export default function Login() {
       // ✅ Navigate karo role ke hisaab se
       if (role === "manager") navigate("/manager/dashboard");
       else if (role === "employee") navigate("/employee/dashboard");
-      else if (role === "client") navigate("/client/dashboard");
+      else if (role === "client") navigate("/client/performance");
 
     } catch (err) {
       if (err.response?.data?.message) {

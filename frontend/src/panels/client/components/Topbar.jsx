@@ -7,15 +7,17 @@ export default function Topbar() {
 
   return (
     <div className="sc-topbar">
-      <div className="sc-left"></div>
+      <div className="sc-left">
+        <div className="sc-logo">
+          <span className="sc-logoMark">SC</span>
+          <span className="sc-logoText">SmartCollab</span>
+        </div>
+      </div>
 
       <div className="sc-center">
         <div className="sc-search">
           <span className="sc-searchIcon">⌕</span>
-          <input
-            placeholder="Search anything..."
-            className="sc-searchInput"
-          />
+          <input placeholder="Search anything..." className="sc-searchInput" />
         </div>
       </div>
 
@@ -23,8 +25,6 @@ export default function Topbar() {
         <button className="sc-iconBtn" title="Notifications" type="button">
           🔔
         </button>
-
-        {/* ✅ CLICKABLE USER PROFILE */}
         <button
           type="button"
           className="sc-user sc-userBtn"

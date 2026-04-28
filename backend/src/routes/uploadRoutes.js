@@ -56,8 +56,6 @@ router.delete("/:filename", async (req, res) => {
   }
 });
 
-const fs = require("fs");
-const path = require("path");
 
 
 
