@@ -31,7 +31,6 @@ export default function ProjectDetails() {
 
     socket.on("previousMessages", setMessages);
     socket.on("receiveMessage", (msg) => {
-      setMessages((prev) => [...prev, msg]);
     });
 
     socket.on("projectMembers", setMembers);
@@ -100,6 +99,25 @@ export default function ProjectDetails() {
     socket.emit("broadcastFile", { projectId, file: newFile });
   };
 
+
+  const handleDeleteFile = async (fileName) => {
+  try {
+
+    // 🔥 confirmation (optional but recommended)
+    if (!window.confirm("Delete this file?")) return;
+
+    // 🔥 API CALL (yahi line tumne poochi thi)
+    await fetch(`http://localhost:5000/api/upload/${fileName}`, {
+      method: "DELETE",
+    });
+
+    // 🔥 UI update
+    setFiles((prev) => prev.filter((f) => f.name !== fileName));
+
+  } catch (err) {
+    console.error("Delete failed", err);
+  }
+};
   return (
     <div className="layout">
 
@@ -166,17 +184,47 @@ export default function ProjectDetails() {
 
         <div className="panel-body">
 
-          {activeTab === "files" && (
-            files.length === 0 ? (
-              <div className="empty">No files</div>
-            ) : (
-              files.map((f, i) => (
-                <div key={i} className="file">
-                  📄 {f.name}
-                </div>
-              ))
-            )
-          )}
+{activeTab === "files" && (
+  files.length === 0 ? (
+    <div className="empty">No files</div>
+  ) : (
+    files.map((f, i) => (
+  <div key={i} className="file-card">
+
+    <div className="file-left">
+      <span className="file-icon">📄</span>
+      <span className="file-name">{f.name}</span>
+    </div>
+
+    {/* RIGHT SIDE BUTTONS */}
+    <div className="file-actions">
+
+      {/* DELETE (❌) */}
+      
+
+      {/* DOWNLOAD */}
+      <a
+        href={`http://localhost:5000/uploads/${f.name}`}
+        download
+        className="icon-btn"
+        title="Download"
+      >
+        ⬇
+      </a>
+      <button
+        className="delete-btn"
+        onClick={() => handleDeleteFile(f.name)}
+        title="Delete"
+      >
+        ✖
+      </button>
+
+    </div>
+
+  </div>
+))
+  )
+)}
 
           {activeTab === "members" && (
             members.map((m, i) => (

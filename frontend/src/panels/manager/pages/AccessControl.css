@@ -1,26 +1,50 @@
-.ac-wrap{
-  padding: 6px 2px 0;
-
-  /* ✅ page ko height milay aur internal scrolling possible ho */
+.ac-wrap {
+  padding: 20px;
   height: 100%;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* ✅ board/screen scroll off */
+  background: linear-gradient(135deg, #020617, #0f172a);
 }
 
-.ac-topPanel{
-  background: rgba(255,255,255,.94);
-  border-radius: 18px;
-  padding: 18px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.22);
-  border: 1px solid rgba(0,0,0,.06);
-  display:grid;
-  grid-template-columns: 1.3fr 1fr 1fr;
-  gap: 18px;
-  margin-bottom: 18px;
+.ac-topPanel {
+  background: rgba(255,255,255,0.95);
+  border-radius: 22px;
+  padding: 24px;
 
-  flex-shrink: 0; /* ✅ top panel fixed */
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 22px;
+}
+
+.ac-team {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* heading */
+.ac-team h3 {
+  font-size: 22px;
+  font-weight: 900;
+  color: #111827;
+  margin-bottom: 10px;
+}
+
+/* dropdowns */
+.ac-team select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.15);
+  font-size: 14px;
+  background: #f9fafb;
+  transition: 0.2s;
+}
+
+.ac-team select:hover {
+  border-color: #3b82f6;
 }
 
 .ac-teamTitle{
@@ -30,34 +54,80 @@
   margin-bottom: 12px;
 }
 
-.ac-teamGrid{
-  display:grid;
-  grid-template-columns: repeat(3, 60px);
-  gap: 14px;
+/* ===== TEAM MEMBERS ===== */
+.ac-teamGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
 }
 
-.ac-avatar{
-  width: 60px;
+/* avatar */
+.ac-avatar {
+  min-width: 60px;
   height: 60px;
-  border-radius: 999px;
-  display:grid;
-  place-items:center;
-  font-weight: 900;
-  color: #111827;
-  background: radial-gradient(circle at 30% 30%, #e5f7ff, #ffd8e8);
-  border: 6px solid rgba(0,0,0,.03);
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  background: linear-gradient(135deg, #38bdf8, #22c55e);
+  color: white;
+
+  box-shadow: 0 6px 20px rgba(0,0,0,.2);
+  transition: 0.2s;
 }
 
-.ac-miniCard{
-  border: 1px solid rgba(0,0,0,.15);
-  border-radius: 16px;
-  padding: 18px;
-  background: #fff;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-start;
-  gap: 14px;
+.ac-avatar:hover {
+  transform: scale(1.08);
+}
+
+/* ===== MINI CARDS ===== */
+.ac-miniCard {
+  border-radius: 18px;
+  padding: 22px;
+
+  background: linear-gradient(135deg, #f8fafc, #eef2ff);
+  border: 1px solid rgba(0,0,0,.08);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* hover effect */
+.ac-miniCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+}
+
+/* add member special */
+.ac-miniCard:nth-child(2) {
+  background: linear-gradient(135deg, #d1fae5, #bbf7d0);
+}
+
+/* delete member special */
+.ac-miniCard:nth-child(3) {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1000px) {
+  .ac-topPanel {
+    grid-template-columns: 1fr;
+  }
 }
 
 .ac-miniTitle{

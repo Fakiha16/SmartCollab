@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import "./ClientPanel.css";
 
+
 export default function ClientPanel() {
 
   const [files, setFiles] = useState([]);
@@ -17,14 +18,14 @@ export default function ClientPanel() {
   const [updateDescription, setUpdateDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const fileInputRef = useRef();
   const user = JSON.parse(localStorage.getItem("user"));
+  const projectId = localStorage.getItem("projectId");
   const docRef = useRef();
-
+  const fileInputRef = useRef(null);
   // ================= FILES =================
   useEffect(() => {
     const fetchFiles = async () => {
-  const res = await axios.get("http://localhost:5000/api/upload");
+  const res = await axios.get(`http://localhost:5000/api/upload/${projectId}`);
 
   const sorted = res.data.sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -109,19 +110,25 @@ export default function ClientPanel() {
 
   // ================= FILE UPLOAD =================
   const handleUpload = async (e) => {
-    const file = e.target.files[0];
+  const file = e.target.files[0];
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("user", user?.email);
+  if (!file) return; // important
 
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("user", user?.email);
+
+  try {
     const res = await axios.post(
       "http://localhost:5000/api/upload",
       formData
     );
 
     setFiles(prev => [res.data, ...prev]);
-  };
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const deleteFile = async (id, uploadedBy) => {
     if (uploadedBy !== user?.email) {
@@ -158,181 +165,221 @@ export default function ClientPanel() {
     }
   };
 
- return (
-    <div className="empDash">
-      {/* INVITE AND UPDATE BUTTONS */}
-      <div className="inviteBtnWrap">
-        <button
-          className="inviteBtn"
-          onClick={() => setShowInvite(true)}
-        >
-          + Send Invitation
-        </button>
+  const handleDeleteFile = async (fileName) => {
+  try {
+    await axios.delete(`http://localhost:5000/api/upload/${fileName}`);
 
-        <button
-          className="updateBtn"
-          onClick={() => setShowUpdate(true)}
-        >
-          + Update Status
-        </button>
-      </div>
+    setFiles(prev => prev.filter(f => (f.name || f.filename) !== fileName));
+  } catch (err) {
+    console.error(err);
+    alert("Delete failed");
+  }
+};
+// ONLY CLASS NAMES CHANGED (emp → cp)
 
-      <div className="empDash__wrap">
+return (
+  <div className="cpDash">
+    {/* INVITE AND UPDATE BUTTONS */}
+    <div className="cpInviteWrap">
+      <button
+        className="cpInviteBtn"
+        onClick={() => setShowInvite(true)}
+      >
+        + Send Invitation
+      </button>
 
-        {/* CHAT */}
-        <section className="empCard">
-          <div className="empCard__title">
-            Client Messages
-            <button onClick={clearChat}>Clear All</button>
-          </div>
+      <button
+        className="cpUpdateBtn"
+        onClick={() => setShowUpdate(true)}
+      >
+        + Update Status
+      </button>
+    </div>
 
-          <div className="chatBody">
-            {messages.map((msg) => (
-              <div
-                key={msg._id}
-                className={`chatBubble ${
-                  msg.sender === user?.email ? "me" : "other"
-                }`}
-              >
-                <div>{msg.text}</div>
-                <div className="chatTime">{msg.time}</div>
-                <span onClick={() => deleteMessage(msg._id)}>❌</span>
-              </div>
-            ))}
-          </div>
+    <div className="cpDashWrap">
 
-          <div className="chatInput">
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Type a message"
-            />
-            <button onClick={sendMessage}>➤</button>
-          </div>
-        </section>
+      {/* CHAT */}
+      <section className="cpCard">
+        <div className="cpCardTitle">
+          Client Messages
+          <button onClick={clearChat}>Clear All</button>
+        </div>
 
-        {/* FILES */}
-        <section className="empCard">
-          <div className="empCard__title">Shared Document</div>
+        <div className="cpChatBody">
+          {messages.map((msg) => (
+            <div
+              key={msg._id}
+              className={`cpChatBubble ${
+                msg.sender === user?.email ? "cpMe" : "cpOther"
+              }`}
+            >
+              <div>{msg.text}</div>
+              <div className="cpChatTime">{msg.time}</div>
+              <span onClick={() => deleteMessage(msg._id)}>❌</span>
+            </div>
+          ))}
+        </div>
 
+        <div className="cpChatInput">
           <input
-            type="file"
-            ref={fileInputRef}
-            style={{ display: "none" }}
-            onChange={handleUpload}
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type a message"
           />
+          <button onClick={sendMessage}>➤</button>
+        </div>
+      </section>
 
-          <div className="docContainer">
-            <div
-              className="uploadBox"
-              onClick={() => fileInputRef.current.click()}
-            >
-              +
+      {/* FILES */}
+      {/* FILES */}
+<section className="cpCard">
+  <div className="cpCardTitle">Shared Document</div>
+
+  {/* hidden file input */}
+  <input
+    type="file"
+    ref={fileInputRef}
+    style={{ display: "none" }}
+    onChange={handleUpload}
+  />
+
+  <div className="cpDocContainer">
+
+    {/* UPLOAD BOX */}
+    <div
+      className="cpUploadBox"
+      onClick={() => {
+        if (fileInputRef.current) {
+          fileInputRef.current.click();
+        }
+      }}
+    >
+      +
+    </div>
+
+    {/* FILE LIST */}
+    <div className="cpDocBody">
+
+      {files.length === 0 ? (
+        <div className="empty">No files</div>
+      ) : (
+        files.map((f, i) => (
+          <div key={i} className="cpFileCard">
+
+            <div className="cpFileLeft">
+              📄
             </div>
 
-            <div className="docBody" ref={docRef}>
-              {files.map((f) => (
-                <div className="fileCard" key={f._id}>
-                  <div className="fileLeft">📄</div>
-
-                  <div className="fileMiddle">
-                    <div className="fileName">
-                      {f.url.split("/").pop()}
-                    </div>
-                  </div>
-
-                  <div className="fileActions">
-                    <button
-                      className="fileBtn"
-                      onClick={() => window.open(f.url, "_blank")}
-                    >
-                      ⬇
-                    </button>
-
-                    {f.uploadedBy === user?.email && (
-                      <button
-                        className="fileBtn delete"
-                        onClick={() => deleteFile(f._id, f.uploadedBy)}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="cpFileMiddle">
+              <div className="cpFileName">
+                {f.name || f.filename || "file"}
+              </div>
             </div>
-          </div>
-        </section>
 
-      </div>
+            <div className="cpFileActions">
 
-      {/* INVITE MODAL */}
-      {showInvite && (
-        <div
-            className="pf-modalOverlay"
-            onClick={() => setShowInvite(false)}
-          >
-            <div
-              className="pf-modal"
-              onClick={(e) => e.stopPropagation()}
-            >
-            <h3>Send Invitation</h3>
+              {/* DOWNLOAD */}
+              <a
+                href={`http://localhost:5000/uploads/${f.name || f.filename}`}
+                download
+                className="cpFileBtn"
+              >
+                ⬇
+              </a>
 
-            <input
-              type="email"
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              placeholder="Enter email"
-            />
-
-            <div className="pf-modalActions">
-              <button onClick={sendInvite} disabled={loading}>
-                {loading ? "Sending..." : "Send"}
+              {/* DELETE */}
+              <button
+                className="cpFileBtn cpDelete"
+                onClick={() => handleDeleteFile(f.name || f.filename)}
+              >
+                ✖
               </button>
-              <button onClick={() => setShowInvite(false)}>Cancel</button>
+
             </div>
+
           </div>
-        </div>
-      )}
-      {/* UPDATE STATUS MODAL */}
-      {showUpdate && (
-        <div
-          className="pf-modalOverlay"
-          onClick={() => setShowUpdate(false)}
-        >
-          <div className="pf-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Update Status</h3>
-            <input
-              type="text"
-              placeholder="Title"
-              value={updateTitle}
-              onChange={(e) => setUpdateTitle(e.target.value)}
-            />
-            <input
-              type="text"
-              placeholder="Manager's Name"
-              value={managerName}
-              disabled
-            />
-            <input
-              type="date"
-              value={updateDate}
-              onChange={(e) => setUpdateDate(e.target.value)}
-            />
-            <textarea
-              placeholder="Description of the update"
-              value={updateDescription}
-              onChange={(e) => setUpdateDescription(e.target.value)}
-            />
-            <div className="pf-modalActions">
-              <button onClick={handleUpdateStatus}>Update</button>
-              <button onClick={() => setShowUpdate(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
+        ))
       )}
 
     </div>
-  );
+  </div>
+</section>
+
+    </div>
+
+    {/* INVITE MODAL */}
+    {showInvite && (
+      <div
+        className="cpModalOverlay"
+        onClick={() => setShowInvite(false)}
+      >
+        <div
+          className="cpModal"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3>Send Invitation</h3>
+
+          <input
+            type="email"
+            value={inviteEmail}
+            onChange={(e) => setInviteEmail(e.target.value)}
+            placeholder="Enter email"
+          />
+
+          <div className="cpModalActions">
+            <button onClick={sendInvite} disabled={loading}>
+              {loading ? "Sending..." : "Send"}
+            </button>
+            <button onClick={() => setShowInvite(false)}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* UPDATE STATUS MODAL */}
+    {showUpdate && (
+      <div
+        className="cpModalOverlay"
+        onClick={() => setShowUpdate(false)}
+      >
+        <div className="cpModal" onClick={(e) => e.stopPropagation()}>
+          <h3>Update Status</h3>
+
+          <input
+            type="text"
+            placeholder="Title"
+            value={updateTitle}
+            onChange={(e) => setUpdateTitle(e.target.value)}
+          />
+
+          <input
+            type="text"
+            placeholder="Manager's Name"
+            value={managerName}
+            disabled
+          />
+
+          <input
+            type="date"
+            value={updateDate}
+            onChange={(e) => setUpdateDate(e.target.value)}
+          />
+
+          <textarea
+            placeholder="Description of the update"
+            value={updateDescription}
+            onChange={(e) => setUpdateDescription(e.target.value)}
+          />
+
+          <div className="cpModalActions">
+            <button onClick={handleUpdateStatus}>Update</button>
+            <button onClick={() => setShowUpdate(false)}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    )}
+
+  </div>
+);
 }
