@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./auth.css";
 import illus from "../assets/login.png";
+import logo from "../assets/Logo.png";
+
 
 export default function Login() {
 
@@ -102,7 +104,9 @@ export default function Login() {
         <div className="authLeft">
           <div className="authHeader">
             <div className="authBrand">
-              <div className="authLogo">SC</div>
+              <div className="authLogo">
+                <img src={logo} alt="Logo" />
+                </div>
               <div className="authBrandText">
                 <div className="authBrandName">SmartCollab</div>
                 <div className="authBrandSub">A Real-Time Project Coordination Platform</div>

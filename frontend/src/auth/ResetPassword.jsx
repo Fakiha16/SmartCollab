@@ -26,8 +26,9 @@ export default function ResetPassword() {
         <div className="authLeft">
           <div className="authHeader">
             <div className="authBrand">
-              <div className="authLogo">SC</div>
-              <div className="authBrandText">
+<div className="authLogo">
+                <img src={logo} alt="Logo" />
+                </div>              <div className="authBrandText">
                 <div className="authBrandName">SmartCollab</div>
                 <div className="authBrandSub">Reset your password</div>
               </div>
