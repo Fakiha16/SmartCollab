@@ -121,7 +121,7 @@ export default function Login() {
         <div className="authRight">
           <div className="authRightInner">
 
-            <h1 className="authTitle">Welcome Back</h1>
+            <h1 className="authTitle">Welcome Back!</h1>
 
             {/* ✅ Invite banner */}
             {urlProjectId && (
