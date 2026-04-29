@@ -622,3 +622,273 @@ body{
   .sc-leadGrid{ grid-template-columns: repeat(4, 1fr); }
 }
 
+/* ===== PASTE AT END OF Performance.css ===== */
+
+/* Root wrapper with screen padding */
+.sc-perfRoot {
+  padding: 24px 32px;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* Main 2-col layout */
+.sc-dashLayout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 2.2fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* Left col stacks vertically */
+.sc-dashLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Top row: Projects + Chart - SAME HEIGHT */
+.sc-grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* Force Projects card and PerformanceCard same height */
+.sc-card-project {
+  display: flex;
+  flex-direction: column;
+  height: 260px;
+}
+
+.sc-card-project .sc-projectThumb {
+  flex: 1;
+  height: auto;
+}
+
+/* PerformanceCard same height as Projects */
+.pc-card {
+  height: 260px !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.pc-chartWrap {
+  flex: 1;
+  min-height: 0;
+}
+
+.pc-svg {
+  width: 100%;
+  height: 100% !important;
+  display: block;
+}
+
+/* Team card full width */
+.sc-teamCard {
+  width: 100%;
+}
+
+/* Search bar in team card */
+.sc-searchSmall {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--stroke);
+  background: rgba(255,255,255,.03);
+  border-radius: 999px;
+  padding: 7px 14px;
+  min-width: 200px;
+}
+.sc-searchSmall input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  width: 100%;
+  font-size: 13px;
+}
+
+/* Avatar grid */
+.sc-leadGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.sc-leadAvatarWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sc-leadAvatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 3px solid rgba(255,255,255,.12);
+  box-shadow: 0 6px 16px rgba(0,0,0,.22);
+}
+
+/* Tasks / Done & Delivered - right col full height */
+.sc-doneDelivered {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sc-doneDelivered .sc-cardHead {
+  flex-shrink: 0;
+}
+
+.sc-deliveredScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.sc-deliveredScroll::-webkit-scrollbar { width: 6px; }
+.sc-deliveredScroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.14);
+  border-radius: 999px;
+}
+.sc-deliveredScroll::-webkit-scrollbar-track { background: transparent; }
+
+/* Remove old sc-dashboardRoot title spacing if exists */
+.sc-pageHead { display: none; }
+
+@media (max-width: 1100px) {
+  .sc-perfRoot { padding: 16px; }
+  .sc-dashLayout { grid-template-columns: 1fr; }
+  .sc-grid2 { grid-template-columns: 1fr; }
+  .sc-leadGrid { grid-template-columns: repeat(5, 1fr); }
+  .sc-card-project { height: auto; }
+  .pc-card { height: auto !important; }
+  .sc-doneDelivered { height: auto; }
+  .sc-deliveredScroll { max-height: 260px; }
+}
+/* ===== PASTE AT END OF Performance.css ===== */
+
+/* Outer wrapper - full height, centered content */
+.sc-perfRoot {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 32px;
+  box-sizing: border-box;
+}
+
+/* Inner centered container - max width so it doesn't stretch too wide */
+.sc-perfCenter {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Top row: Projects + PerformanceCard side by side, same height */
+.sc-perfTopRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* Projects card fixed height */
+.sc-card-project {
+  display: flex;
+  flex-direction: column;
+  height: 260px;
+}
+
+.sc-card-project .sc-projectThumb {
+  flex: 1;
+  height: auto;
+}
+
+/* PerformanceCard same height */
+.pc-card {
+  height: 260px !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.pc-chartWrap {
+  flex: 1;
+  min-height: 0;
+}
+
+.pc-svg {
+  width: 100%;
+  height: 100% !important;
+  display: block;
+}
+
+/* Team card full width */
+.sc-teamCard {
+  width: 100%;
+}
+
+/* Search bar inside team card */
+.sc-searchSmall {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--stroke);
+  background: rgba(255,255,255,.03);
+  border-radius: 999px;
+  padding: 7px 14px;
+  min-width: 200px;
+}
+.sc-searchSmall input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  width: 100%;
+  font-size: 13px;
+}
+
+/* Avatar grid */
+.sc-leadGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.sc-leadAvatarWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sc-leadAvatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 3px solid rgba(255,255,255,.12);
+  box-shadow: 0 6px 16px rgba(0,0,0,.22);
+}
+
+/* Hide old title */
+.sc-pageHead { display: none; }
+
+@media (max-width: 1100px) {
+  .sc-perfRoot { padding: 16px; align-items: flex-start; }
+  .sc-perfTopRow { grid-template-columns: 1fr; }
+  .sc-card-project { height: auto; }
+  .pc-card { height: auto !important; }
+  .sc-leadGrid { grid-template-columns: repeat(5, 1fr); }
+}

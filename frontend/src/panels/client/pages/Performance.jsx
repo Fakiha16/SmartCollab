@@ -5,16 +5,6 @@ import "./Performance.css";
 import Card from "../components/Card";
 import PerformanceCard from "../components/PerformanceCard";
 
-const tasksMock = [
-  { title: "Make an Automatic Payment System...", tag: "Completed" },
-  { title: "Design UI Animation Pack", tag: "On Progress" },
-  { title: "Fix Auth Flow Edge Cases", tag: "Pending" },
-  { title: "Client Panel Review", tag: "Completed" },
-  { title: "Reports Module", tag: "On Hold" },
-  { title: "Dashboard UI Polish", tag: "Completed" },
-  { title: "WorkLogs Board Improvements", tag: "On Progress" },
-];
-
 const teamMembers = [
   { id: 1, img: "https://i.pravatar.cc/60?img=1" },
   { id: 2, img: "https://i.pravatar.cc/60?img=2" },
@@ -35,104 +25,84 @@ const teamMembers = [
 export default function Performance() {
   const navigate = useNavigate();
 
-  const goPerProject = () => {
-    navigate("/performance/project/smartcollab", {
-      state: { projectName: "SmartCollab" },
-    });
-  };
+  // Projects card → PerProjects screen
+  const goPerProject = () => navigate("/client/perprojects");
 
-  const goTasks = () => navigate("/tasks");
+  // Performance chart card → PerformanceReport screen
+  // projectId localStorage mein saved hai (login pe aata hai)
+  const goPerformanceReport = () => {
+    const projectId = localStorage.getItem("projectId");
+    if (projectId) {
+      navigate(`/client/performance-report/${projectId}`);
+    } else {
+      // agar projectId nahi hai to PerProjects pe bhejo project select karne ke liye
+      navigate("/client/perprojects");
+    }
+  };
 
   return (
     <div className="sc-perfRoot">
-      <div className="sc-dashLayout">
+      <div className="sc-perfCenter">
 
-        {/* LEFT SIDE */}
-        <div className="sc-dashLeft">
+        {/* TOP ROW: Projects + Chart same height */}
+        <div className="sc-perfTopRow">
 
-          {/* TOP ROW: Projects + Chart - same height */}
-          <div className="sc-grid2">
-            <Card
-              className="sc-card-project"
-              role="button"
-              tabIndex={0}
-              style={{ cursor: "pointer" }}
-              onClick={goPerProject}
-              onKeyDown={(e) => e.key === "Enter" && goPerProject()}
-            >
-              <div className="sc-cardHead">
-                <div>
-                  <div className="sc-cardTitle">Projects</div>
-                  <div className="sc-muted">Files &amp; assets overview</div>
-                </div>
-                <span className="sc-badge">52 files</span>
+          {/* Projects card */}
+          <Card
+            className="sc-card-project"
+            role="button"
+            tabIndex={0}
+            style={{ cursor: "pointer" }}
+            onClick={goPerProject}
+            onKeyDown={(e) => e.key === "Enter" && goPerProject()}
+          >
+            <div className="sc-cardHead">
+              <div>
+                <div className="sc-cardTitle">Projects</div>
+                <div className="sc-muted">Files &amp; assets overview</div>
               </div>
-              <div className="sc-projectThumb">
-                <div className="sc-thumbOverlay">
-                  <div className="sc-thumbTitle">SmartCollab</div>
-                  <div className="sc-thumbMeta">UI • Components • Pages</div>
-                </div>
+              <span className="sc-badge">52 files</span>
+            </div>
+            <div className="sc-projectThumb">
+              <div className="sc-thumbOverlay">
+                <div className="sc-thumbTitle">SmartCollab</div>
+                <div className="sc-thumbMeta">UI • Components • Pages</div>
               </div>
-            </Card>
+            </div>
+          </Card>
 
+          {/* Performance chart card — clickable */}
+          <div
+            role="button"
+            tabIndex={0}
+            style={{ cursor: "pointer" }}
+            onClick={goPerformanceReport}
+            onKeyDown={(e) => e.key === "Enter" && goPerformanceReport()}
+          >
             <PerformanceCard />
           </div>
 
-          {/* BOTTOM ROW: Team Connections */}
-          <Card className="sc-teamCard">
-            <div className="sc-cardHead sc-cardHeadRow">
-              <div className="sc-cardTitle">Previous Team Connections</div>
-              <div className="sc-searchSmall">
-                <span style={{ opacity: 0.5 }}>⌕</span>
-                <input placeholder="Search for anything..." />
-              </div>
-              <button className="sc-linkBtn" type="button">View all</button>
-            </div>
-            <div className="sc-leadGrid">
-              {teamMembers.map((m) => (
-                <div className="sc-leadAvatarWrap" key={m.id}>
-                  <img
-                    className="sc-leadAvatar"
-                    src={m.img}
-                    alt={`member-${m.id}`}
-                    draggable={false}
-                  />
-                </div>
-              ))}
-            </div>
-          </Card>
         </div>
 
-        {/* RIGHT SIDE: Tasks */}
-        <Card
-          className="sc-doneDelivered"
-          role="button"
-          tabIndex={0}
-          style={{ cursor: "pointer" }}
-          onClick={goTasks}
-          onKeyDown={(e) => e.key === "Enter" && goTasks()}
-        >
-          <div className="sc-cardHead">
-            <div>
-              <div className="sc-cardTitle">Tasks</div>
-              <div className="sc-muted">Recent tasks overview</div>
+        {/* BOTTOM ROW: Team Connections full width */}
+        <Card className="sc-teamCard">
+          <div className="sc-cardHead sc-cardHeadRow">
+            <div className="sc-cardTitle">Previous Team Connections</div>
+            <div className="sc-searchSmall">
+              <span style={{ opacity: 0.5 }}>⌕</span>
+              <input placeholder="Search for anything..." />
             </div>
-            <button
-              className="sc-linkBtn"
-              type="button"
-              onClick={(e) => { e.stopPropagation(); goTasks(); }}
-            >
-              View all
-            </button>
+            <button className="sc-linkBtn" type="button">View all</button>
           </div>
-          <div className="sc-deliveredList sc-deliveredScroll">
-            {tasksMock.map((it, i) => (
-              <div key={`${it.title}-${i}`} className="sc-deliveredItem">
-                <div className="sc-deliveredThumb" />
-                <div className="sc-deliveredInfo">
-                  <div className="sc-deliveredTitle">{it.title}</div>
-                  <div className="sc-tag">{it.tag}</div>
-                </div>
+          <div className="sc-leadGrid">
+            {teamMembers.map((m) => (
+              <div className="sc-leadAvatarWrap" key={m.id}>
+                <img
+                  className="sc-leadAvatar"
+                  src={m.img}
+                  alt={`member-${m.id}`}
+                  draggable={false}
+                />
               </div>
             ))}
           </div>

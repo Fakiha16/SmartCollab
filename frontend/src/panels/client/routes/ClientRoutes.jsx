@@ -5,8 +5,7 @@ import Dashboard from "../pages/Dashboard";
 import Performance from "../pages/Performance";
 import Profile from "../pages/Profile";
 import PerProjects from "../pages/PerProjects";
-import Tasks from "../pages/Tasks";
-import WorkLogs from "../pages/WorkLogs";
+import PerformanceReport from "../pages/PerformanceReport";
 
 export default function ClientRoutes() {
   return (
@@ -15,9 +14,8 @@ export default function ClientRoutes() {
         <Route path="" element={<Navigate to="performance" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="performance" element={<Performance />} />
-        <Route path="tasks" element={<Tasks />} />
         <Route path="perprojects" element={<PerProjects />} />
-        <Route path="worklogs" element={<WorkLogs />} />
+        <Route path="performance-report/:id" element={<PerformanceReport />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 
