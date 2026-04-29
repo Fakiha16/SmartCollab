@@ -7,7 +7,6 @@
   padding: 10px 30px;
   background-color: #859c9c;
   color: white;
-  height: 80px;
   position: fixed;
   top: 0;
   left: 0;
@@ -25,17 +24,12 @@
 .sc-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
-.sc-logoIcon {
-  font-size: 30px;
-  color: white;
-}
-
-.sc-title {
-  font-size: 24px;
-  font-weight: 600;
+.sc-logoImg {
+  height: 45px;
+  width: auto;
+  object-fit: contain;
 }
 
 .sc-center {
@@ -50,25 +44,25 @@
   background-color: #3c5c5c;
   padding: 8px 15px;
   border-radius: 50px;
-  width: 600px; /* Full width for search */
+  width: 600px;
 }
 
 .sc-searchIcon {
   font-size: 20px;
   margin-right: 10px;
 }
+
 .sc-userBtn {
   cursor: pointer;
   background: transparent;
-  border: 1px solid rgba(255,255,255,.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   transition: 0.15s ease;
 }
 
 .sc-userBtn:hover {
   transform: translateY(-2px);
-  background: rgba(255,255,255,.05);
+  background: rgba(255, 255, 255, 0.05);
 }
-
 
 .sc-searchInput {
   background: transparent;
@@ -129,19 +123,8 @@
   font-weight: bold;
   color: white;
 }
-.sc-topbar {
-  width: 100%;
-  left: 0;
-}
 
 .sc-main--full {
   width: 100%;
   margin-left: 0;
-}
-
-.sc-logo {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #fff;          /* apne brand color se match karo */
-  letter-spacing: 1px;
 }

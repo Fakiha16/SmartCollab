@@ -1,5 +1,6 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import logo from "../../../assets/Logo.png";
 import "./Topbar.css";
 
 export default function Topbar() {
@@ -9,8 +10,15 @@ export default function Topbar() {
     <div className="sc-topbar">
       <div className="sc-left">
         <div className="sc-logo">
-          <span className="sc-logoMark">SC</span>
-          <span className="sc-logoText">SmartCollab</span>
+          <Link to="" className="sc-brandLink">
+            <div className="sc-brand">
+              <img src={logo} alt="SmartCollab Logo" className="sc-brandLogoImg" />
+              <div>
+                <div className="sc-brandName">SmartCollab</div>
+                <div className="sc-brandTag">Manager Panel</div>
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
 

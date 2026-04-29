@@ -1,22 +1,26 @@
 import React from "react";
 import { NavLink, Link } from "react-router-dom";
+import logo from "../../../assets/Logo.png";
+import "./Sidebar.css";
 
 const menus = [
-  { to: "/employee/dashboard", label: "Dashboard" },
-  { to: "/employee/performance", label: "Performance" },
-  { to: "/employee/work-logs", label: "Work Logs" },
-  { to: "/employee/Tasks", label: "Tasks" }, // agar tasks ka page nahi hai to profile ya remove
+  { to: "/manager/dashboard",      label: "Dashboard" },
+  { to: "/manager/projects",       label: "Project" },
+  { to: "/manager/work-logs",      label: "Work Logs" },
+  { to: "/manager/client-panel",   label: "Client Panel" },
+  { to: "/manager/access-control", label: "Access Control" },
 ];
 
 export default function Sidebar() {
   return (
     <aside className="sc-sidebar">
-      <Link to="/dashboard" className="sc-brandLink">
+      <Link to="" className="sc-brandLink">
         <div className="sc-brand">
-          <div className="sc-brandLogo">SC</div>
+          {/* ✅ Logo image instead of text */}
+          <img src={logo} alt="SmartCollab Logo" className="sc-brandLogoImg" />
           <div>
             <div className="sc-brandName">SmartCollab</div>
-            <div className="sc-brandTag">Employee Panel</div>
+            <div className="sc-brandTag">Manager Panel</div>
           </div>
         </div>
       </Link>
