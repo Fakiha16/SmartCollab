@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Profile.css";
+import "./ClientProfile.css";
 
 const projects = [
   { title: "Website Redesign", img: "https://picsum.photos/90/90?random=11", progress: 70 },

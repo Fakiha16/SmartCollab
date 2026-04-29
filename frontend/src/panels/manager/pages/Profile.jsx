@@ -14,8 +14,7 @@ const workedWith = [
 const projects = [
   { title: "Emo stuff", img: "https://picsum.photos/90/90?random=11" },
   { title: "Tim Burton", img: "https://picsum.photos/90/90?random=12" },
-  { title: "Halloween!", img: "https://picsum.photos/90/90?random=13" },
-  { title: "Spooky Art", img: "https://picsum.photos/90/90?random=14" }
+  { title: "Halloween!", img: "https://picsum.photos/90/90?random=13" }
 ];
 
 export default function Profile() {
