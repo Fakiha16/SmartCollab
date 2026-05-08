@@ -15,7 +15,7 @@ export default function Topbar() {
               <img src={logo} alt="SmartCollab Logo" className="sc-brandLogoImg" />
               <div>
                 <div className="sc-brandName">SmartCollab</div>
-                <div className="sc-brandTag">Manager Panel</div>
+                <div className="sc-brandTag">Client Panel</div>
               </div>
             </div>
           </Link>

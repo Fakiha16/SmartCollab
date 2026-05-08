@@ -4,11 +4,10 @@ import logo from "../../../assets/Logo.png";
 import "./Sidebar.css";
 
 const menus = [
-  { to: "/manager/dashboard",      label: "Dashboard" },
-  { to: "/manager/projects",       label: "Project" },
-  { to: "/manager/work-logs",      label: "Work Logs" },
-  { to: "/manager/client-panel",   label: "Client Panel" },
-  { to: "/manager/access-control", label: "Access Control" },
+  { to: "/employee/dashboard",      label: "Dashboard" },
+  { to: "/employee/performance",       label: "Performance" },
+  { to: "/emeployee/work-logs",      label: "WorkLogs" },
+  { to: "/employee/tasks", label: "Task" }
 ];
 
 export default function Sidebar() {
@@ -20,7 +19,7 @@ export default function Sidebar() {
           <img src={logo} alt="SmartCollab Logo" className="sc-brandLogoImg" />
           <div>
             <div className="sc-brandName">SmartCollab</div>
-            <div className="sc-brandTag">Manager Panel</div>
+            <div className="sc-brandTag">Employee Panel</div>
           </div>
         </div>
       </Link>

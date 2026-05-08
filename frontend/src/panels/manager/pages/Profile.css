@@ -4,13 +4,11 @@
 }
 
 /* GRID */
-.pf-grid{
-  height: 100%;
+.pf-grid {
+  height: 100vh;
   display: grid;
-
   grid-template-columns: 340px 1fr 360px;
-  grid-template-rows: 1fr 240px;
-
+  grid-template-rows: 1fr auto;
   gap: 18px;
 }
 
@@ -20,16 +18,19 @@
   background: rgba(255,255,255,.03);
   border-radius: 16px;
   box-shadow: 0 12px 30px rgba(0,0,0,.22);
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* PROFILE */
-.pf-profile{
-  grid-row: 1 / -1;
+.pf-profile {
+  grid-row: 1 / -1;       /* dono rows span karo */
   padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  overflow-y: auto;
+  height: 100%;
 }
 
 /* AVATAR */
@@ -64,10 +65,11 @@
 /* ACTION BUTTONS */
 .pf-actions{
   width:100%;
-  margin-top:12px;
   display:flex;
   flex-direction:column;
   gap:10px;
+  margin-top: auto;
+  padding-top: 12px;
 }
 
 .pf-editBtn,
@@ -128,10 +130,12 @@
 }
 
 /* CENTER */
-.pf-center{
-  padding:16px;
+.pf-center {
+  grid-column: 2;
+  grid-row: 1 / -1;       /* full height */
+  padding: 16px;
+  overflow-y: auto;
 }
-
 .pf-title{
   font-size:20px;
   font-weight:800;
@@ -147,12 +151,16 @@
 }
 
 /* RIGHT */
-.pf-projects{
-  padding:14px;
+.pf-projects {
+  grid-column: 3;
+  grid-row: 1;             /* sirf upar */
+  padding: 14px;
 }
 
-.pf-total{
-  padding:14px;
+.pf-total {
+  grid-column: 3;
+  grid-row: 2;             /* neeche right corner */
+  padding: 14px;
 }
 
 /* DONUT */
@@ -182,6 +190,6 @@
 /* RESPONSIVE */
 @media(max-width:900px){
   .pf-grid{
-    grid-template-columns:1fr;
+    grid-template-rows: auto 240px;
   }
 }
