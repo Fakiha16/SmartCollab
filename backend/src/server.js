@@ -38,7 +38,9 @@ app.use("/api/tasks", taskRoutes);
 
 const projectRoutes = require("./routes/projectRoutes");
 app.use("/api/projects", projectRoutes);
-
+// Access Control routes included
+const accessControlRoutes = require("./routes/accessControl");
+app.use("/api/access-control", accessControlRoutes);
 // ================= SOCKET.IO =================
 
 const server = http.createServer(app);
