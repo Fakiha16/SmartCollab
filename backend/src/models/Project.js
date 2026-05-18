@@ -4,13 +4,20 @@ const projectSchema = new mongoose.Schema({
   title: { type: String, required: true },
   desc:  { type: String, default: "" },
   status: { type: String, default: "Active" },
-  managerId: { type: String, default: "" },
+  managerId: { type: String, required: true },
   team: {
     Frontend: [String],
     Backend:  [String],
     QA:       [String],
     Designer: [String],
   },
+  invitedMembers: [
+  {
+    email: { type: String, required: true },
+    status: { type: String, default: "Pending" },
+    invitedAt: { type: Date, default: Date.now },
+  },
+],
   date: { type: String, default: () => new Date().toDateString() },
 
   // ✅ Performance fields (manager updates these)

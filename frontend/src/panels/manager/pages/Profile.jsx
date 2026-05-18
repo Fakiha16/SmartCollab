@@ -259,8 +259,12 @@ export default function Profile() {
               <option value="Manager">Manager</option>
             </select>
 
-            <input name="team" value={editData.team} onChange={handleChange} />
-
+<input
+  name="team"
+  value={editData.team}
+  onChange={handleChange}
+  placeholder="Enter Team Name"
+/>
             <label>
               <input type="checkbox" name="isMember" checked={editData.isMember} onChange={handleChange}/>
               SmartCollab Member

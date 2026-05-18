@@ -6,6 +6,7 @@ export default function Projects() {
 
   const navigate = useNavigate();
   const manager = JSON.parse(localStorage.getItem("user"));
+  const managerId = manager?.email || "";
 
   const [projects, setProjects] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -21,17 +22,26 @@ export default function Projects() {
     title: "", desc: "", frontend: "", backend: "", tester: "", designer: ""
   });
 
-  useEffect(() => {
-    fetch("http://localhost:5000/api/projects")
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setProjects(data);
-      })
-      .catch(() => {
-        const saved = localStorage.getItem("projects");
-        if (saved) setProjects(JSON.parse(saved));
-      });
-  }, []);
+useEffect(() => {
+  if (!managerId) {
+    setProjects([]);
+    return;
+  }
+
+  fetch(`http://localhost:5000/api/projects/manager/${managerId}`)
+    .then((res) => res.json())
+    .then((data) => {
+      if (Array.isArray(data)) {
+        setProjects(data);
+      } else {
+        setProjects([]);
+      }
+    })
+    .catch((err) => {
+      console.error("Fetch manager projects error:", err);
+      setProjects([]);
+    });
+}, [managerId]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -69,7 +79,7 @@ export default function Projects() {
           body: JSON.stringify({
             title: form.title,
             desc: form.desc,
-            managerId: manager?._id || manager?.id || "",
+            managerId: managerId,
             team: {
               Frontend: form.frontend ? [form.frontend] : [],
               Backend:  form.backend  ? [form.backend]  : [],
@@ -142,7 +152,11 @@ export default function Projects() {
         const res = await fetch("http://localhost:5000/api/invite", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email.trim(), projectId: currentProjectId })
+          body: JSON.stringify({
+  email: email.trim(),
+  projectId: currentProjectId,
+  managerName: manager?.name || manager?.fullName || manager?.email || "Project Manager",
+})
         });
         if (res.ok) successCount++;
         else {
