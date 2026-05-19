@@ -7,11 +7,17 @@ const userSchema = new mongoose.Schema(
     password: String,
     role: String,
     team: String,
-    empType: String,
+    empType: {
+  type: String,
+  default: "",
+},
 
     // ✅ YE ADD KIYA — employee ka assigned projectId
-    projectId: { type: String, default: null },
-  },
+    projectIds: {
+      type: [String],
+      default: [],
+    },  
+},
   { timestamps: true }
 );
 

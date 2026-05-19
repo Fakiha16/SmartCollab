@@ -1,195 +1,678 @@
-.pf-wrap{
-  height: 100%;
-  padding: 8px;
+* {
+  box-sizing: border-box;
 }
 
-/* GRID */
+/* ── PAGE WRAPPER ── */
+.pf-wrap {
+  width: 100%;
+  min-height: calc(100vh - 95px);
+  padding: 22px;
+  background: #07111f;
+  color: #ffffff;
+}
+
+/* ── MAIN GRID ── */
 .pf-grid {
-  height: 100vh;
   display: grid;
-  grid-template-columns: 340px 1fr 360px;
-  grid-template-rows: 1fr auto;
-  gap: 18px;
+  grid-template-columns: 300px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-/* CARD */
-.pf-card{
-  border: 1px solid rgba(255,255,255,.08);
-  background: rgba(255,255,255,.03);
-  border-radius: 16px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.22);
-  overflow: visible;
+/* ── BASE CARD ── */
+.pf-card {
+  background: #111827;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
 }
 
-/* PROFILE */
+/* ══════════════════════════════
+   LEFT — PROFILE CARD
+══════════════════════════════ */
 .pf-profile {
-  grid-row: 1 / -1;       /* dono rows span karo */
-  padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  overflow-y: auto;
-  height: 100%;
 }
 
-/* AVATAR */
-.pf-avatarRing{
-  width: 150px;
-  height: 150px;
-  border-radius: 999px;
-  padding: 5px;
-  background: radial-gradient(circle, rgba(56,189,248,.3), rgba(239,68,68,.2));
+.pf-profile .pf-avatarRing {
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  padding: 1px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #38bdf8, #7c3aed, #ec4899);
+  cursor: pointer;
+  transition: transform 0.2s;
 }
 
-.pf-avatar{
+.pf-avatarRing:hover {
+  transform: scale(1.04);
+}
+
+.pf-avatar {
   width: 100%;
   height: 100%;
-  border-radius: 999px;
+  border-radius: 50%;
   object-fit: cover;
-  border: 3px solid rgba(255,255,255,.12);
+  border: 4px solid #111827;
 }
 
-/* NAME */
-.pf-name{
-  margin-top: 12px;
-  font-weight: 800;
-  color: #fff;
+.pf-name {
+  font-size: 20px;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 2px;
 }
 
-.pf-loc{
-  font-size: 12px;
-  color: rgba(255,255,255,.6);
+.pf-loc {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+  margin-bottom: 2px;
+  text-transform: capitalize;
 }
 
-/* ACTION BUTTONS */
-.pf-actions{
-  width:100%;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  margin-top: auto;
-  padding-top: 12px;
+.pf-info {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.pf-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #e2e8f0;
+}
+
+.pf-row span:last-child {
+  min-width: 0;
+  word-break: break-word;
+  font-size: 13px;
+}
+
+.pf-ico {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.pf-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
 }
 
 .pf-editBtn,
-.pf-logoutBtn{
-  height:40px;
-  border-radius:10px;
-  font-size:13px;
-  font-weight:600;
-  cursor:pointer;
-  transition:0.2s;
+.pf-logoutBtn {
+  flex: 1;
+  height: 44px;
+  border-radius: 14px;
+  border: none;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
 }
 
-/* EDIT */
-.pf-editBtn{
-  border:1px solid rgba(255,255,255,.15);
-  background:rgba(255,255,255,.05);
-  color:#ecfcfa;
+.pf-editBtn:hover,
+.pf-logoutBtn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
 }
 
-.pf-editBtn:hover{
-  background:rgba(46,204,170,0.15);
+.pf-editBtn {
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  color: #ffffff;
 }
 
-/* LOGOUT */
-.pf-logoutBtn{
-  border:1px solid rgba(255,70,70,.3);
-  background:rgba(255,70,70,.08);
-  color:#ff6b6b;
+.pf-logoutBtn {
+  background: rgba(239, 68, 68, 0.13);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
 }
 
-.pf-logoutBtn:hover{
-  background:rgba(255,70,70,.18);
+/* ══════════════════════════════
+   CENTER CARD
+══════════════════════════════ */
+.pf-wrap .pf-center {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 250px;
 }
 
-/* INFO */
-.pf-info{
-  margin-top:16px;
-  width:100%;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
+.pf-breadcrumb {
+  color: #93c5fd;
+  font-size: 13px;
+  margin-bottom: 10px;
 }
 
-.pf-row{
-  display:flex;
-  gap:10px;
-  font-size:13px;
-  color:rgba(255,255,255,.8);
+.pf-card .pf-title {
+  font-weight: 900;
+  text-transform: capitalize;
 }
 
-.pf-ico{
-  width:22px;
-  height:22px;
-  display:grid;
-  place-items:center;
-  border-radius:8px;
-  background:rgba(255,255,255,.06);
+.pf-quote {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-/* CENTER */
-.pf-center {
-  grid-column: 2;
-  grid-row: 1 / -1;       /* full height */
-  padding: 16px;
+.pf-sectionHead {
+  margin-bottom: 12px;
+}
+
+.pf-sectionTitle {
+  font-size: 16px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.pf-mt {
+  margin-top: 20px;
+}
+
+/* Scrollable member list — fixed height */
+.pf-realList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 320px;
   overflow-y: auto;
-}
-.pf-title{
-  font-size:20px;
-  font-weight:800;
-  color:#fff;
+  padding-right: 6px;
 }
 
-.pf-quote{
-  margin-top:8px;
-  padding:8px;
-  border-radius:10px;
-  background:rgba(255,255,255,.05);
-  font-size:12px;
+.pf-realList::-webkit-scrollbar {
+  width: 4px;
 }
 
-/* RIGHT */
-.pf-projects {
-  grid-column: 3;
-  grid-row: 1;             /* sirf upar */
-  padding: 14px;
+.pf-realList::-webkit-scrollbar-track {
+  background: transparent;
 }
 
+.pf-realList::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 999px;
+}
+
+.pf-realItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 0;
+}
+
+.pf-realAvatar {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #14b8a6, #0ea5e9);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.pf-pendingAvatar {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+}
+
+.pf-realText {
+  flex: 1;
+  min-width: 0;
+}
+
+.pf-realText strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pf-realText span {
+  display: block;
+  font-size: 12px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pf-realText small {
+  display: inline-block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: #38bdf8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.pf-pendingTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pf-memberProjectTag {
+  display: none;
+}
+
+.pf-empty {
+  font-size: 13px;
+  color: #64748b;
+  padding: 10px 0;
+}
+
+/* ══════════════════════════════
+   RIGHT COLUMN
+══════════════════════════════ */
+
+.pf-rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+
+/* My Projects: show only 2 projects, then scroll */
+.pf-rightColumn .pf-projects {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pf-rightColumn .pf-projectRealList {
+  max-height: 270px;   /* approx 2 project cards */
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+/* Clean scrollbar */
+.pf-projectRealList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pf-projectRealList::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 999px;
+}
+
+.pf-projectRealList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pf-projects,
 .pf-total {
-  grid-column: 3;
-  grid-row: 2;             /* neeche right corner */
-  padding: 14px;
+  width: 100%;
+  min-width: 0;
 }
 
-/* DONUT */
-.pf-donut{
-  width:140px;
-  height:140px;
-  border-radius:999px;
-  background: conic-gradient(#38bdf8 0 70%, rgba(255,255,255,.2) 70%);
-  display:grid;
-  place-items:center;
+.pf-rightHead {
+  margin-bottom: 16px;
 }
 
-.pf-donutInner{
-  width:100px;
-  height:100px;
-  border-radius:999px;
-  background:#0b1220;
-  display:grid;
-  place-items:center;
+.pf-rightTitle {
+  font-size: 20px;
+  font-weight: 900;
+  color: #ffffff;
 }
 
-.pf-donutText{
-  color:#fff;
-  font-weight:700;
+/* Scrollable project list — fixed height */
+.pf-projectRealList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
-/* RESPONSIVE */
-@media(max-width:900px){
-  .pf-grid{
-    grid-template-rows: auto 240px;
+.pf-projectRealList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.pf-projectRealList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pf-projectRealList::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 999px;
+}
+
+.pf-projectRealCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 0;
+}
+
+.pf-projectCardText {
+  flex: 1;
+  min-width: 0;
+}
+
+.pf-projectRealCard strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pf-projectRealCard p {
+  margin: 0;
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pf-statusBadge {
+  flex-shrink: 0;
+  height: fit-content;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.pf-statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.pf-statBox {
+  padding: 14px 10px;
+  border-radius: 14px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf-statBox strong {
+  font-size: 30px;
+  font-weight: 950;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.pf-statBox span {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* ══════════════════════════════
+   EDIT MODAL
+══════════════════════════════ */
+.pf-modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 8, 18, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.pf-modal {
+  width: 100%;
+  max-width: 420px;
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55);
+  color: #ffffff;
+}
+
+.pf-modal h2 {
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0 0 20px;
+}
+
+.pf-modal input {
+  width: 100%;
+  height: 44px;
+  margin-bottom: 12px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0b1220;
+  color: #ffffff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.pf-modal input:not([type="checkbox"]):focus {
+  border-color: #38bdf8;
+}
+
+.pf-readOnlyInput {
+  opacity: 0.55;
+  cursor: not-allowed !important;
+}
+
+.pf-modal label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #cbd5e1;
+  margin: 4px 0 20px;
+  cursor: pointer;
+}
+
+.pf-modal label input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.pf-modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pf-modalActions button {
+  height: 42px;
+  min-width: 96px;
+  border-radius: 12px;
+  border: none;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.pf-modalActions button:first-child {
+  background: #38bdf8;
+  color: #07111f;
+}
+
+.pf-modalActions button:last-child {
+  background: transparent;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #f87171;
+}
+
+.pf-modalActions button:hover {
+  opacity: 0.85;
+}
+
+/* FINAL FIX: My Projects scroll after 2 cards */
+.pf-rightColumn .pf-projects {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  padding: 16px;
+}
+
+.pf-rightColumn .pf-projectRealList {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px;
+  max-height: 150px !important;
+  overflow-y: auto !important;
+  padding-right: 6px;
+}
+
+.pf-rightColumn .pf-projectRealCard {
+  min-height: 30px;
+  flex-shrink: 0;
+}
+
+.pf-rightColumn .pf-projectRealList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pf-rightColumn .pf-projectRealList::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 999px;
+}
+
+.pf-rightColumn .pf-projectRealList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+/* TEAM MEMBERS CARD SCROLL FIX */
+.pf-center {
+  display: flex;
+  flex-direction: column;
+  max-height: 620px;
+  overflow: hidden;
+}
+
+.pf-center .pf-realList {
+  max-height: 330px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+/* Team member card shrink fix */
+.pf-center .pf-realItem {
+  flex-shrink: 0;
+}
+
+/* Clean scrollbar */
+.pf-center .pf-realList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pf-center .pf-realList::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 999px;
+}
+
+.pf-center .pf-realList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+@media (max-width: 1200px) {
+  .pf-grid {
+    grid-template-columns: 280px 1fr;
+  }
+
+  .pf-rightColumn {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 860px) {
+  .pf-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pf-rightColumn {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .pf-wrap {
+    padding: 14px;
+  }
+
+  .pf-card {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .pf-actions {
+    flex-direction: column;
   }
 }

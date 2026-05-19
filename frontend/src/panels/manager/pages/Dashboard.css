@@ -38,11 +38,10 @@ body{
   flex: 1;
   min-width: 0;
 }
-.sc-content {
+.sc-main .sc-content {
   flex: 1;
   min-height: 0;
-  overflow: auto;      /* ✅ page ko scroll allow */
-  padding: 18px 20px 26px;
+  padding: 18px 30px 26px;
 }
 
 /* Sidebar */

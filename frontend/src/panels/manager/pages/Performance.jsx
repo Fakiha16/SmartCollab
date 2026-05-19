@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -6,40 +6,80 @@ import {
   Legend,
 } from "chart.js";
 import { Pie } from "react-chartjs-2";
+import axios from "axios";
 import "./Performance.css";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const mockProjects = [
-  {
-    name: "SmartCollab",
-    stats: {
-      daily: { done: 12, pending: 5, errors: 2 },
-      weekly: { done: 70, pending: 20, errors: 5 },
-      monthly: { done: 280, pending: 60, errors: 15 },
-    },
-  },
-  {
-    name: "Auth System",
-    stats: {
-      daily: { done: 5, pending: 3, errors: 1 },
-      weekly: { done: 30, pending: 10, errors: 2 },
-      monthly: { done: 120, pending: 25, errors: 6 },
-    },
-  },
-];
-
 export default function Performance() {
-  const [selectedProject, setSelectedProject] = useState(mockProjects[0]);
+  const user = JSON.parse(localStorage.getItem("user"));
+  const managerEmail = user?.email || "";
+
+  const [projects, setProjects] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState("");
   const [view, setView] = useState("daily");
 
-  const data = selectedProject.stats[view];
+  const [stats, setStats] = useState({
+    completed: 0,
+    pending: 0,
+    errors: 0,
+  });
+
+  useEffect(() => {
+    const fetchManagerProjects = async () => {
+      try {
+        if (!managerEmail) return;
+
+        const res = await axios.get(
+          `http://localhost:5000/api/projects/manager/${managerEmail}`
+        );
+
+        const managerProjects = Array.isArray(res.data) ? res.data : [];
+        setProjects(managerProjects);
+
+        if (managerProjects.length > 0) {
+          setSelectedProjectId(managerProjects[0]._id);
+        }
+      } catch (err) {
+        console.error("Fetch manager projects error:", err);
+      }
+    };
+
+    fetchManagerProjects();
+  }, [managerEmail]);
+
+  useEffect(() => {
+    const fetchPerformance = async () => {
+      try {
+        if (!selectedProjectId) return;
+
+        const res = await axios.get(
+          `http://localhost:5000/api/tasks/performance/${selectedProjectId}`
+        );
+
+        setStats({
+          completed: res.data.completed || 0,
+          pending: res.data.pending || 0,
+          errors: res.data.errors || 0,
+        });
+      } catch (err) {
+        console.error("Fetch performance error:", err);
+        setStats({
+          completed: 0,
+          pending: 0,
+          errors: 0,
+        });
+      }
+    };
+
+    fetchPerformance();
+  }, [selectedProjectId, view]);
 
   const chartData = {
     labels: ["Completed", "Pending", "Errors"],
     datasets: [
       {
-        data: [data.done, data.pending, data.errors],
+        data: [stats.completed, stats.pending, stats.errors],
         backgroundColor: ["#00c853", "#ffab00", "#ff1744"],
         borderWidth: 1,
       },
@@ -50,39 +90,56 @@ export default function Performance() {
     <div className="perf-page">
       <div className="perf-proj">
         <h1 className="perf-title">Project Performance</h1>
-        {/* 🔽 PROJECT SELECT */}
+
         <select
           className="perf-select"
-          onChange={(e) =>
-            setSelectedProject(
-              mockProjects.find((p) => p.name === e.target.value)
-            )
-          }
+          value={selectedProjectId}
+          onChange={(e) => setSelectedProjectId(e.target.value)}
         >
-          {mockProjects.map((p) => (
-            <option key={p.name}>{p.name}</option>
-          ))}
+          {projects.length === 0 ? (
+            <option value="">No projects found</option>
+          ) : (
+            projects.map((project) => (
+              <option key={project._id} value={project._id}>
+                {project.title}
+              </option>
+            ))
+          )}
         </select>
       </div>
 
-      {/* 🥧 PIE CHART */}
       <div className="perf-chart">
-        {/* 🔘 TABS */}
         <div className="perf-tabs">
-          <button onClick={() => setView("daily")}>Daily</button>
-          <button onClick={() => setView("weekly")}>Weekly</button>
-          <button onClick={() => setView("monthly")}>Monthly</button>
-        </div>
-        <Pie data={chartData} />
-        {/* 📊 DETAILS */}
-      <div className="perf-grid">
-        <div className="perf-card">✅ Completed: {data.done}</div>
-        <div className="perf-card">⏳ Pending: {data.pending}</div>
-        <div className="perf-card">❌ Errors: {data.errors}</div>
-      </div>
-      </div>
+          <button
+            className={view === "daily" ? "active" : ""}
+            onClick={() => setView("daily")}
+          >
+            Daily
+          </button>
 
-      
+          <button
+            className={view === "weekly" ? "active" : ""}
+            onClick={() => setView("weekly")}
+          >
+            Weekly
+          </button>
+
+          <button
+            className={view === "monthly" ? "active" : ""}
+            onClick={() => setView("monthly")}
+          >
+            Monthly
+          </button>
+        </div>
+
+        <Pie data={chartData} />
+
+        <div className="perf-grid">
+          <div className="perf-card">✅ Completed: {stats.completed}</div>
+          <div className="perf-card">⏳ Pending: {stats.pending}</div>
+          <div className="perf-card">❌ Errors: {stats.errors}</div>
+        </div>
+      </div>
     </div>
   );
 }
