@@ -1,9 +1,8 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import "./Topbar.css";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Topbar() {
-  const navigate = useNavigate();
 
   // ✅ Get logged-in user data
   const user = JSON.parse(localStorage.getItem("user"));
@@ -11,6 +10,21 @@ export default function Topbar() {
   // ✅ Safe values (fallback bhi rakho)
   const userName = user?.name || "User";
   const userRole = user?.role || "Member";
+
+const navigate = useNavigate();
+
+const location = useLocation();
+
+const handleProfileToggle = () => {
+  if (location.pathname === "/manager/profile") {
+    const previousPath = location.state?.from || "/manager/dashboard";
+    navigate(previousPath);
+  } else {
+    navigate("/manager/profile", {
+      state: { from: location.pathname },
+    });
+  }
+};
 
   return (
     <div className="sc-topbar">
@@ -35,7 +49,7 @@ export default function Topbar() {
         <button
           type="button"
           className="sc-user sc-userBtn"
-          onClick={() => navigate("/manager/profile")}
+          onClick={handleProfileToggle}
           title="Open Profile"
         >
           <div className="sc-userMeta">

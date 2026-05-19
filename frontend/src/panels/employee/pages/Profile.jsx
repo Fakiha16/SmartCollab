@@ -2,146 +2,274 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./EmpProfile.css";
 
-const workedWith = [
-  { name: "Addodle", img: "https://i.pravatar.cc/80?img=12" },
-  { name: "Marketplace.", img: "https://i.pravatar.cc/80?img=21" },
-  { name: "Von Dracula", img: "https://i.pravatar.cc/80?img=32" },
-  { name: "Von Dracula", img: "https://i.pravatar.cc/80?img=35" },
-  { name: "John Joestar", img: "https://i.pravatar.cc/80?img=41" },
-  { name: "Akali Jin", img: "https://i.pravatar.cc/80?img=45" }
-];
-
-const projects = [
-  { title: "Emo stuff", img: "https://picsum.photos/90/90?random=11" },
-  { title: "Tim Burton", img: "https://picsum.photos/90/90?random=12" },
-  { title: "Halloween!", img: "https://picsum.photos/90/90?random=13" },
-  { title: "Spooky Art", img: "https://picsum.photos/90/90?random=14" }
-];
-
 export default function Profile() {
-
   const navigate = useNavigate();
   const fileInputRef = useRef();
 
-  const [user,setUser] = useState(null);
+  const [user, setUser] = useState(null);
+  const [showEdit, setShowEdit] = useState(false);
+  const [assignedTasks, setAssignedTasks] = useState([]);
+  const [workedWithUsers, setWorkedWithUsers] = useState([]);
 
-  const [showEdit,setShowEdit] = useState(false);
-
-  const [editData,setEditData] = useState({
-    name:"",
-    email:"",
-    role:"",
-    team:"",
-    isMember:true,
-    avatar:""
+  const [editData, setEditData] = useState({
+    name: "",
+    email: "",
+    empType: "",
+    team: "",
+    isMember: true,
+    avatar: "",
   });
 
-  useEffect(()=>{
-    const storedUser = localStorage.getItem("user");
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (!storedUser) return;
 
-    if(storedUser){
-      const parsed = JSON.parse(storedUser);
-      setUser(parsed);
+        const parsed = JSON.parse(storedUser);
+        const email = parsed.email;
 
-      setEditData({
-        name: parsed.name || "",
-        email: parsed.email || "",
-        role: parsed.role || "",
-        team: parsed.team || "",
-        isMember: parsed.isMember ?? true,
-        avatar: parsed.avatar || ""
-      });
+        const res = await fetch(
+          `http://localhost:5000/api/users/profile/${encodeURIComponent(email)}`
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error("Profile fetch failed:", data.message);
+
+          setUser(parsed);
+          setEditData({
+            name: parsed.name || "",
+            email: parsed.email || "",
+            empType: parsed.empType || parsed.role || "",
+            team: parsed.team || "",
+            isMember: parsed.isMember ?? true,
+            avatar: parsed.avatar || "",
+          });
+
+          await loadAssignedTasks(email);
+          return;
+        }
+
+        setUser(data);
+        localStorage.setItem("user", JSON.stringify(data));
+
+        setEditData({
+          name: data.name || "",
+          email: data.email || "",
+          empType: data.empType || data.role || "",
+          team: data.team || "",
+          isMember: data.isMember ?? true,
+          avatar: data.avatar || "",
+        });
+
+        await loadAssignedTasks(data.email);
+      } catch (err) {
+        console.error("Profile load error:", err);
+
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+
+          setUser(parsed);
+          setEditData({
+            name: parsed.name || "",
+            email: parsed.email || "",
+            empType: parsed.empType || parsed.role || "",
+            team: parsed.team || "",
+            isMember: parsed.isMember ?? true,
+            avatar: parsed.avatar || "",
+          });
+
+          await loadAssignedTasks(parsed.email);
+        }
+      }
+    };
+
+    loadProfile();
+  }, []);
+
+  const loadAssignedTasks = async (email) => {
+    try {
+      if (!email) return;
+
+      const res = await fetch(
+        `http://localhost:5000/api/tasks/assigned/${encodeURIComponent(email)}`
+      );
+
+      const data = await res.json();
+
+      if (res.ok && Array.isArray(data)) {
+        setAssignedTasks(data);
+      } else {
+        setAssignedTasks([]);
+      }
+    } catch (err) {
+      console.error("Assigned tasks load error:", err);
+      setAssignedTasks([]);
     }
-  },[]);
+  };
+
+  useEffect(() => {
+  const loadWorkedWithManagers = async () => {
+    try {
+      if (!user?.email) {
+        setWorkedWithUsers([]);
+        return;
+      }
+
+      const res = await fetch(
+        `http://localhost:5000/api/users/worked-with-managers/${encodeURIComponent(user.email)}`
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !Array.isArray(data)) {
+        console.error("Worked with managers fetch failed:", data.message);
+        setWorkedWithUsers([]);
+        return;
+      }
+
+      const filteredManagers = data.filter(
+        (manager) => manager.email !== user.email
+      );
+
+      setWorkedWithUsers(filteredManagers);
+    } catch (err) {
+      console.error("Worked with managers load error:", err);
+      setWorkedWithUsers([]);
+    }
+  };
+
+  loadWorkedWithManagers();
+}, [user?.email]);
 
   const logout = () => {
     localStorage.clear();
-    navigate("/login",{replace:true});
+    navigate("/login", { replace: true });
   };
 
-  const handleChange = (e)=>{
-    const {name,value,type,checked} = e.target;
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
 
-    setEditData(prev=>({
+    setEditData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  // ✅ IMAGE SELECT HANDLER
-  const handleImageChange = (e)=>{
+  const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if(!file) return;
+    if (!file) return;
 
     const reader = new FileReader();
 
-    reader.onloadend = ()=>{
+    reader.onloadend = () => {
       const updated = {
         ...editData,
-        avatar: reader.result
+        avatar: reader.result,
       };
 
       setEditData(updated);
-      setUser(updated);
-      localStorage.setItem("user", JSON.stringify(updated));
+      setUser((prev) => ({
+        ...prev,
+        avatar: reader.result,
+      }));
     };
 
     reader.readAsDataURL(file);
   };
 
-  const saveProfile = ()=>{
-    localStorage.setItem("user", JSON.stringify(editData));
-    setUser(editData);
-    setShowEdit(false);
+  const saveProfile = async () => {
+    try {
+      const payload = {
+        name: editData.name,
+        empType: editData.empType,
+        team: editData.team,
+        isMember: editData.isMember,
+        avatar: editData.avatar,
+      };
+
+      const res = await fetch(
+        `http://localhost:5000/api/users/profile/${encodeURIComponent(editData.email)}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Profile update failed");
+        return;
+      }
+
+      setUser(data);
+      localStorage.setItem("user", JSON.stringify(data));
+      setShowEdit(false);
+
+      await loadAssignedTasks(data.email);
+    } catch (err) {
+      console.error("Profile save error:", err);
+      alert("Something went wrong while updating profile");
+    }
   };
 
+  const getInitial = (name = "", email = "") => {
+    if (name) return name.charAt(0).toUpperCase();
+    if (email) return email.charAt(0).toUpperCase();
+    return "U";
+  };
+
+  const getTaskTitle = (task) => {
+    return task.title || task.taskTitle || task.name || "Untitled Task";
+  };
+
+  const getTaskDesc = (task) => {
+    return task.description || task.desc || task.details || "No description";
+  };
+
+  const displayRole = user?.empType || user?.role || "Employee";
+
   return (
-
     <div className="pf-wrap">
-
       <div className="pf-grid">
-
         {/* LEFT PROFILE */}
         <section className="pf-card pf-profile">
-
           <div
             className="pf-avatarRing"
-            onClick={()=>fileInputRef.current.click()}
-            style={{cursor:"pointer"}}
+            onClick={() => fileInputRef.current.click()}
+            style={{ cursor: "pointer" }}
             title="Click to change picture"
           >
             <img
               className="pf-avatar"
-              src={
-                user?.avatar ||
-                "https://i.pravatar.cc/220?img=5"
-              }
+              src={user?.avatar || "https://i.pravatar.cc/220?img=5"}
               alt="profile"
             />
           </div>
 
-          {/* hidden input */}
           <input
             type="file"
             accept="image/*"
             ref={fileInputRef}
-            style={{display:"none"}}
+            style={{ display: "none" }}
             onChange={handleImageChange}
           />
 
-          <div className="pf-name">
-            {user?.name || "User Name"}
-          </div>
+          <div className="pf-name">{user?.name || "User Name"}</div>
 
-          <div className="pf-loc">
-            {user?.role || "Role"}
-          </div>
+          <div className="pf-loc">{displayRole}</div>
 
           <div className="pf-info">
-
             <div className="pf-row">
               <span className="pf-ico">👤</span>
-              <span>{user?.role}</span>
+              <span>{displayRole}</span>
             </div>
 
             <div className="pf-row">
@@ -156,124 +284,151 @@ export default function Profile() {
 
             <div className="pf-row">
               <span className="pf-ico">📄</span>
-              <span>
-                {user?.isMember ? "SmartCollab Member" : "Not a Member"}
-              </span>
+              <span>{user?.isMember ? "SmartCollab Member" : "Not a Member"}</span>
             </div>
-
           </div>
 
           <div className="pf-actions">
-
-            <button
-              className="pf-editBtn"
-              onClick={()=>setShowEdit(true)}
-            >
+            <button className="pf-editBtn" onClick={() => setShowEdit(true)}>
               ✏️ Edit Profile
             </button>
 
-            <button
-              className="pf-logoutBtn"
-              onClick={logout}
-            >
+            <button className="pf-logoutBtn" onClick={logout}>
               Logout
             </button>
-
           </div>
-
         </section>
 
-        {/* CENTER */}
+        {/* CENTER - WORKED WITH */}
         <section className="pf-card pf-center">
-          <div className="pf-breadcrumb">Inicio &gt; Profile</div>
+          <div className="pf-breadcrumb">SmartCollab &gt; Profile</div>
 
-          <div className="pf-title">
-            {user?.role || "Member"}
-          </div>
+          <div className="pf-title">{displayRole}</div>
 
-          <div className="pf-quote">
-            Welcome to your SmartCollab workspace
-          </div>
+          <div className="pf-quote">Welcome to your SmartCollab workspace</div>
 
           <div className="pf-sectionHead">
             <div className="pf-sectionTitle">Worked with</div>
           </div>
 
           <div className="pf-peopleGrid">
-            {workedWith.map((p,i)=>(
-              <div key={i} className="pf-person">
-                <img className="pf-personImg" src={p.img} alt={p.name}/>
-                <div className="pf-personName">{p.name}</div>
+            {workedWithUsers.length === 0 ? (
+              <div className="pf-emptyText">
+                {user?.team ? "No manager found yet" : "No team assigned yet"}
               </div>
-            ))}
+            ) : (
+              workedWithUsers.map((member, i) => (
+                <div key={member._id || i} className="pf-person">
+                  {member.avatar ? (
+                    <img
+                      className="pf-personImg"
+                      src={member.avatar}
+                      alt={member.name || "team member"}
+                    />
+                  ) : (
+                    <div className="pf-personImg pf-personAvatar">
+                      {getInitial(member.name, member.email)}
+                    </div>
+                  )}
+
+                  <div className="pf-personName">{member.name || member.email}</div>
+
+                  <div className="pf-personRole">
+                    {member.empType || member.role || "Employee"}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
 
-        {/* RIGHT PROJECTS */}
+        {/* RIGHT - ASSIGNED TASKS */}
         <section className="pf-card pf-projects">
           <div className="pf-rightHead">
-            <div className="pf-rightTitle">Projects</div>
+            <div className="pf-rightTitle">Assigned Tasks</div>
           </div>
 
-          <div className="pf-projectGrid">
-            {projects.map((p,i)=>(
-              <div key={i} className="pf-projectItem">
-                <img className="pf-projectImg" src={p.img} alt={p.title}/>
-                <div className="pf-projectLabel">{p.title}</div>
-              </div>
-            ))}
+          <div className="pf-taskList">
+            {assignedTasks.length === 0 ? (
+              <div className="pf-emptyText">No assigned tasks yet</div>
+            ) : (
+              assignedTasks.map((task, i) => (
+                <div key={task._id || i} className="pf-taskItem">
+                  <div className="pf-taskTop">
+                    <span className="pf-taskTitle">{getTaskTitle(task)}</span>
+                    <span className="pf-taskStatus">
+                      {task.status || task.column || "Backlog"}
+                    </span>
+                  </div>
+
+                  <div className="pf-taskDesc">{getTaskDesc(task)}</div>
+
+                  {task.priority && (
+                    <div className="pf-taskMeta">Priority: {task.priority}</div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </section>
-
-        {/* RIGHT BOTTOM */}
-        {/* <section className="pf-card pf-total">
-          <div className="pf-rightHead">
-            <div className="pf-rightTitle">Total work done</div>
-          </div> 
-
-          <div className="pf-donutWrap">
-            <div className="pf-donut">
-              <div className="pf-donutInner">
-                <div className="pf-donutText">Active</div>
-              </div>
-            </div>
-          </div>
-        </section> */}
-
       </div>
 
-      {/* EDIT MODAL SAME AS BEFORE */}
+      {/* EDIT MODAL */}
       {showEdit && (
         <div className="pf-modalOverlay">
           <div className="pf-modal">
             <h2>Edit Profile</h2>
 
-            <input name="name" value={editData.name} onChange={handleChange} />
-            <input name="email" value={editData.email} onChange={handleChange} />
+            <input
+              name="name"
+              value={editData.name}
+              onChange={handleChange}
+              placeholder="Enter Name"
+            />
 
-            <select name="role" value={editData.role} onChange={handleChange}>
-              <option value="">Select Role</option>
+            <input
+              name="email"
+              value={editData.email}
+              readOnly
+              placeholder="Email"
+            />
+
+            <select
+              name="empType"
+              value={editData.empType}
+              onChange={handleChange}
+            >
+              <option value="">Select Employee Type</option>
               <option value="Developer">Developer</option>
               <option value="Tester">Tester</option>
               <option value="Designer">Designer</option>
-              <option value="Manager">Manager</option>
+              <option value="QA">QA</option>
             </select>
 
-            <input name="team" value={editData.team} onChange={handleChange} />
+            <input
+              name="team"
+              value={editData.team}
+              onChange={handleChange}
+              placeholder="Enter Team Name"
+            />
 
             <label>
-              <input type="checkbox" name="isMember" checked={editData.isMember} onChange={handleChange}/>
+              <input
+                type="checkbox"
+                name="isMember"
+                checked={editData.isMember}
+                onChange={handleChange}
+              />
               SmartCollab Member
             </label>
 
             <div className="pf-modalActions">
               <button onClick={saveProfile}>Save</button>
-              <button onClick={()=>setShowEdit(false)}>Cancel</button>
+              <button onClick={() => setShowEdit(false)}>Cancel</button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }

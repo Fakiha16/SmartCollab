@@ -401,7 +401,7 @@ const projectId =
           <div className="empCard__title">📁 Shared Documents</div>
 
           <div className="docUpload">
-            <label style={{ cursor: "pointer", background: "#25D366", color: "#fff", padding: "8px 16px", borderRadius: "20px", fontSize: "13px", fontWeight: "700" }}>
+            <label className={`docUpload__btn ${uploading ? "docUpload__btn--loading" : ""}`}>
               {uploading ? "Uploading..." : "+ Upload File"}
               <input type="file" onChange={uploadFile} style={{ display: "none" }} />
             </label>
@@ -409,23 +409,27 @@ const projectId =
 
           <div className="docBody">
             {files.length === 0 && (
-              <div style={{ color: "#999", fontSize: "14px", textAlign: "center", padding: "20px" }}>
+              <div className="docEmpty">
                 📂 No files shared yet
               </div>
             )}
-            {files.map((f, i) => (
-              <div key={i} style={{ marginBottom: "8px" }}>
-                <a
-                  href={`http://localhost:5000/uploads/${f.name}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="docLink"
-                  style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px", borderRadius: "8px", background: "#f5f5f5", textDecoration: "none", color: "#111" }}
-                >
-                  📎 {f.name}
-                </a>
+
+            {files.length > 0 && (
+              <div className="docList">
+                {files.map((f, i) => (
+                  <a
+                    key={i}
+                    href={`http://localhost:5000/uploads/${f.name}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="docLink"
+                  >
+                    <span className="docLink__icon">📎</span>
+                    <span className="docLink__name">{f.name}</span>
+                  </a>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         </section>
 

@@ -166,38 +166,111 @@
 
 /* Shared Document */
 .docUpload {
-  padding: 16px 18px 0;
+  padding: 18px 22px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: #ffffff;
 }
 
 .docUpload__btn {
   width: 100%;
-  height: 44px;
-  border-radius: 12px;
-  border: 2px dashed #7cc6ff;
-  background: transparent;
-  color: #2d82c5;
-  font-size: 18px;
-  font-weight: 700;
+  height: 70px;
+  border-radius: 14px;
+  border: 3px dashed #3b82f6;
+  background: #ffffff;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 400;
   cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  transition: all 0.25s ease;
 }
 
 .docUpload__btn:hover {
-  background: rgba(124, 198, 255, 0.12);
+  background: #eff6ff;
+  border-color: #2563eb;
+  transform: translateY(-2px);
+}
+
+.docUpload__btn--loading {
+  opacity: 0.75;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .docBody {
   flex: 1;
   min-height: 0;
+  padding: 18px 22px 22px;
+  background: #ffffff;
+  overflow-y: auto;
+  display: block;
+}
+
+.docEmpty {
+  height: 100%;
+  min-height: 360px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 18px;
-  background: #ffffff;
+  color: #9ca3af;
+  font-size: 15px;
+  text-align: center;
 }
 
-.docImg {
-  width: 100%;
-  max-height: 320px;
-  object-fit: contain;
-  opacity: 0.85;
+.docList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
+
+.docLink {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #056248;
+  border: 1px solid #e5e7eb;
+  text-decoration: none;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.25s ease;
+}
+
+.docLink:hover {
+
+  transform: translateY(-1px);
+}
+
+.docLink__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.docLink__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  word-break: break-word;
+}
+
+
+
+
+
+

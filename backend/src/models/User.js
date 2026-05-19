@@ -16,7 +16,12 @@ const userSchema = new mongoose.Schema(
     projectIds: {
       type: [String],
       default: [],
-    },  
+    }, 
+    
+    isMember: {
+  type: Boolean,
+  default: true,
+}, 
 },
   { timestamps: true }
 );
