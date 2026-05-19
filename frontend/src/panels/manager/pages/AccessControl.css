@@ -469,3 +469,121 @@
 .ac-avatar:hover {
   transform: scale(1.05);
 }
+.ac-selectedInfo {
+  margin-top: 10px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.ac-membersSection {
+  margin-top: 22px;
+}
+
+.ac-membersSection h4 {
+  margin: 16px 0 10px;
+  font-size: 16px;
+  color: #111827;
+}
+
+.ac-memberList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.ac-memberCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.ac-memberAvatar {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 50%;
+  background: #0f766e;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+}
+
+.ac-pendingAvatar {
+  background: #f59e0b;
+}
+
+.ac-memberInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.ac-memberInfo strong {
+  display: block;
+  color: #111827;
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+
+.ac-memberInfo span {
+  display: block;
+  color: #64748b;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.ac-memberInfo small {
+  display: block;
+  color: #2563eb;
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.ac-joinedBadge,
+.ac-pendingBadge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ac-joinedBadge {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.ac-pendingBadge {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.ac-emptyText {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.ac-modalHint {
+  color: #64748b;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.ac-modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ac-modalActions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
