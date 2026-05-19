@@ -7,17 +7,12 @@ const userSchema = new mongoose.Schema(
     password: String,
     role: String,
     team: String,
-    empType: {
-  type: String,
-  default: "",
-},
+    empType: String,
+    phone: String, // added phone field
 
     // ✅ YE ADD KIYA — employee ka assigned projectId
-    projectIds: {
-      type: [String],
-      default: [],
-    },  
-},
+    projectId: { type: String, default: null },
+  },
   { timestamps: true }
 );
 
