@@ -64,6 +64,8 @@ export default function WorkLogs() {
     fetchTasks();
   }, []);
 
+ 
+
   const fetchTasks = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/tasks");

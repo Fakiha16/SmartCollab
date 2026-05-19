@@ -225,8 +225,10 @@ export default function WorkLogs() {
         status: "backlog",
         projectId: selectedProject,
         assignedTo,
-        startDate: taskStartDate,
-        endDate: taskEndDate,
+        taskStartDate: taskStartDate,
+        taskEndDate: taskEndDate,
+       // startDate: taskStartDate,
+       // endDate: taskEndDate,
         taskType,
       });
 

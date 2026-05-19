@@ -6,7 +6,7 @@ import "./Sidebar.css";
 const menus = [
   { to: "/employee/dashboard",      label: "Dashboard" },
   { to: "/employee/performance",       label: "Performance" },
-  { to: "/emeployee/work-logs",      label: "WorkLogs" },
+  { to: "/employee/work-logs",      label: "WorkLogs" },
   { to: "/employee/tasks", label: "Task" }
 ];
 
