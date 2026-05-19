@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Task = require("../models/Task");
 
+
 // ✅ GET ALL TASKS (FIX ADDED)
 router.get("/", async (req, res) => {
   try {
@@ -12,7 +13,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ✅ CREATE TASK
+// ✅ CREATE TASK MANAGER ONLY
 router.post("/", async (req, res) => {
   try {
     const task = new Task(req.body);
@@ -60,5 +61,6 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ message: "Error deleting task" });
   }
 });
+
 
 module.exports = router;

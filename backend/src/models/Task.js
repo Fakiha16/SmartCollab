@@ -6,7 +6,6 @@ const taskSchema = new mongoose.Schema({
   status: String,
   projectId: String,
   assignedTo: String,
-
   // ✅ ADD THESE (IMPORTANT)
   taskType: String,
   taskStartDate: String,
