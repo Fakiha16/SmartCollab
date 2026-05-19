@@ -234,13 +234,14 @@ export default function ClientPanel() {
     setInviteLoading(true);
 
     try {
-      await axios.post(`${API}/invite`, {
-        email,
-        projectId: inviteProjectId,
-        invitedBy: user?.email,
-        inviterName: managerName,
-        managerName,
-      });
+     await axios.post(`${API}/invite`, {
+      email,
+      projectId: inviteProjectId,
+      invitedBy: user?.email,
+      inviterName: managerName,
+      managerName,
+      inviteRole: "client",
+    });
 
       alert(`✅ Invitation sent to ${email}!`);
       setInviteEmail("");

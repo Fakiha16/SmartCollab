@@ -10,16 +10,23 @@ export default function Login() {
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
-  const [urlProjectId, setUrlProjectId] = useState(null);
+  const [urlProjectId, setUrlProjectId] = useState("");
+  const [urlRole, setUrlRole] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const pid = params.get("projectId");
+    const pid = params.get("projectId") || "";
+    const roleFromUrl = params.get("role") || "";
 
     if (pid) {
       setUrlProjectId(pid);
       localStorage.setItem("projectId", pid);
       console.log("✅ projectId from URL saved immediately:", pid);
+    }
+
+    if (roleFromUrl) {
+      setUrlRole(roleFromUrl);
+      console.log("✅ role from URL:", roleFromUrl);
     }
   }, []);
 
@@ -50,24 +57,28 @@ export default function Login() {
 
     try {
       const params = new URLSearchParams(window.location.search);
+
       const projectId =
         params.get("projectId") ||
         urlProjectId ||
         localStorage.getItem("projectId") ||
         "";
 
+      const roleFromUrl = params.get("role") || urlRole || "";
+
       const res = await axios.post("http://localhost:5000/api/auth/login", {
         email: form.email.trim().toLowerCase(),
         password: form.password,
-        projectId: projectId,
+        projectId,
       });
 
       const token = res.data.token;
       const user = res.data.user;
-      const role = user.role;
+      const actualRole = user.role;
+      const navigateRole = roleFromUrl || actualRole;
 
       localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
+      localStorage.setItem("role", actualRole);
       localStorage.setItem("user", JSON.stringify(user));
 
       if (user.projectId) {
@@ -78,10 +89,15 @@ export default function Login() {
         console.log("✅ projectId saved from URL/localStorage:", projectId);
       }
 
-      if (role === "manager") navigate("/manager/dashboard");
-      else if (role === "employee") navigate("/employee/dashboard");
-      else if (role === "client") navigate("/client/performance");
-      else navigate("/login");
+      if (navigateRole === "manager") {
+        navigate("/manager/dashboard");
+      } else if (navigateRole === "employee") {
+        navigate(`/employee/dashboard${projectId ? `?projectId=${projectId}` : ""}`);
+      } else if (navigateRole === "client") {
+        navigate(`/client/performance${projectId ? `?projectId=${projectId}` : ""}`);
+      } else {
+        navigate("/login");
+      }
     } catch (err) {
       console.error("Login error:", err);
 
@@ -92,6 +108,10 @@ export default function Login() {
       }
     }
   };
+
+  const signupLink = urlProjectId
+    ? `/signup?projectId=${urlProjectId}${urlRole ? `&role=${urlRole}` : ""}`
+    : "/signup";
 
   return (
     <div className="authPage">
@@ -181,10 +201,7 @@ export default function Login() {
 
               <div className="authBottomLine">
                 Don't have an account?
-                <Link to={urlProjectId ? `/signup?projectId=${urlProjectId}` : "/signup"}>
-                  {" "}
-                  Signup
-                </Link>
+                <Link to={signupLink}> Signup</Link>
               </div>
             </form>
           </div>

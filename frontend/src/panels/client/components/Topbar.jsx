@@ -9,6 +9,7 @@ export default function Topbar() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
+
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
@@ -25,9 +26,14 @@ export default function Topbar() {
     <div className="sc-topbar">
       <div className="sc-left">
         <div className="sc-logo">
-          <Link to="" className="sc-brandLink">
+          <Link to="/client/performance" className="sc-brandLink">
             <div className="sc-brand">
-              <img src={logo} alt="SmartCollab Logo" className="sc-brandLogoImg" />
+              <img
+                src={logo}
+                alt="SmartCollab Logo"
+                className="sc-brandLogoImg"
+              />
+
               <div>
                 <div className="sc-brandName">SmartCollab</div>
                 <div className="sc-brandTag">Client Panel</div>
@@ -40,7 +46,10 @@ export default function Topbar() {
       <div className="sc-center">
         <div className="sc-search">
           <span className="sc-searchIcon">⌕</span>
-          <input placeholder="Search anything..." className="sc-searchInput" />
+          <input
+            placeholder="Search anything..."
+            className="sc-searchInput"
+          />
         </div>
       </div>
 
@@ -48,6 +57,7 @@ export default function Topbar() {
         <button className="sc-iconBtn" title="Notifications" type="button">
           🔔
         </button>
+
         <button
           type="button"
           className="sc-user sc-userBtn"
@@ -58,6 +68,7 @@ export default function Topbar() {
             <div className="sc-userName">{userName}</div>
             <div className="sc-muted">Pakistan</div>
           </div>
+
           <div className="sc-userAvatar">{userInitial}</div>
         </button>
       </div>

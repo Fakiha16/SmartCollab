@@ -1,0 +1,364 @@
+.pc-wrap {
+  min-height: 100vh;
+  padding: 28px;
+  background: #f5f7fb;
+}
+
+.pc-loading {
+  padding: 40px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.pc-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.pc-backBtn {
+  border: none;
+  background: #111827;
+  color: #ffffff;
+  padding: 12px 18px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.pc-header h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.pc-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 15px;
+}
+
+.pc-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.9fr;
+  gap: 24px;
+}
+
+.pc-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 22px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+}
+
+.pc-cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.pc-cardHead h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.pc-chatCard,
+.pc-docCard {
+  height: 680px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pc-chatBody {
+  flex: 1;
+  overflow-y: auto;
+  background: #f8fafc;
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+}
+
+.pc-bubble {
+  max-width: 72%;
+  padding: 12px 14px;
+  border-radius: 18px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.pc-me {
+  margin-left: auto;
+  background: #dcfce7;
+  color: #14532d;
+  border-bottom-right-radius: 6px;
+}
+
+.pc-other {
+  margin-right: auto;
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-bottom-left-radius: 6px;
+}
+
+.pc-senderName {
+  font-size: 12px;
+  font-weight: 900;
+  color: #2563eb;
+  margin-bottom: 4px;
+}
+
+.pc-bubbleText {
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.pc-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.pc-deleteMsg {
+  border: none;
+  background: transparent;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.pc-chatInput {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.pc-chatInput input {
+  flex: 1;
+  height: 48px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 0 16px;
+  outline: none;
+  font-size: 14px;
+}
+
+.pc-chatInput input:focus {
+  border-color: #22c55e;
+}
+
+.pc-chatInput button {
+  width: 56px;
+  border: none;
+  border-radius: 16px;
+  background: #22c55e;
+  color: #ffffff;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.pc-chatInput button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pc-uploadBox {
+  height: 130px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 20px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  cursor: pointer;
+  color: #64748b;
+  font-weight: 800;
+  transition: all 0.2s ease;
+}
+
+.pc-uploadBox:hover {
+  border-color: #22c55e;
+  color: #16a34a;
+  background: #f0fdf4;
+}
+
+.pc-uploadIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.pc-fileList {
+  margin-top: 18px;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 4px;
+}
+
+.pc-fileCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 10px;
+}
+
+.pc-fileIcon {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border-radius: 14px;
+  background: #111827;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.pc-fileInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.pc-fileInfo strong {
+  display: block;
+  color: #111827;
+  font-size: 14px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pc-fileInfo span {
+  color: #64748b;
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.pc-fileActions {
+  display: flex;
+  gap: 8px;
+}
+
+.pc-fileBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pc-download {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.pc-delete {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.pc-empty {
+  color: #64748b;
+  font-size: 14px;
+  text-align: center;
+  padding: 28px 10px;
+}
+
+.pc-chatBody::-webkit-scrollbar,
+.pc-fileList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pc-chatBody::-webkit-scrollbar-thumb,
+.pc-fileList::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+@media (max-width: 1100px) {
+  .pc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pc-chatCard,
+  .pc-docCard {
+    height: 620px;
+  }
+}
+
+@media (max-width: 650px) {
+  .pc-wrap {
+    padding: 16px;
+  }
+
+  .pc-header {
+    flex-direction: column;
+  }
+
+  .pc-bubble {
+    max-width: 88%;
+  }
+}
+/* ProjChat top bar left alignment */
+.pcTopLeft {
+  justify-content: flex-start !important;
+  align-items: center;
+  gap: 14px;
+}
+
+.pcBackBtn {
+  width: auto;
+  min-width: 95px;
+  padding: 0 18px;
+}
+
+.pcProjectNameBox {
+  width: auto;
+  max-width: 420px;
+}
+
+.cpProjectTitleText {
+  display: flex;
+  align-items: center;
+  height: 46px;
+  min-width: 260px;
+  max-width: 360px;
+  padding: 0 16px;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #111827;
+  font-weight: 800;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

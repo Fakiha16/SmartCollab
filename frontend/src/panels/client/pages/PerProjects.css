@@ -304,3 +304,33 @@
 @media (max-width: 700px) {
   .pr-grid { grid-template-columns: 1fr; }
 }
+/* View Details button fix */
+.pr-viewHintWrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.pr-viewHint {
+  border: none;
+  outline: none;
+  background: #2563eb;
+  color: #ffffff;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+}
+
+.pr-viewHint:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.32);
+}
+
+.pr-viewHint:active {
+  transform: translateY(0);
+}

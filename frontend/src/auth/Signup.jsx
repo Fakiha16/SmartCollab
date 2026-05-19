@@ -10,6 +10,7 @@ export default function Signup() {
 
   const [error, setError] = useState("");
   const [urlProjectId, setUrlProjectId] = useState("");
+  const [urlRole, setUrlRole] = useState("");
 
   const [form, setForm] = useState({
     firstName: "",
@@ -23,12 +24,19 @@ export default function Signup() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const pid = params.get("projectId");
+    const pid = params.get("projectId") || "";
+    const roleFromUrl = params.get("role") || "";
 
     if (pid) {
       setUrlProjectId(pid);
       localStorage.setItem("projectId", pid);
       console.log("✅ projectId from invite URL:", pid);
+    }
+
+    if (roleFromUrl) {
+      setUrlRole(roleFromUrl);
+      setRole(roleFromUrl);
+      console.log("✅ role from invite URL:", roleFromUrl);
     }
   }, []);
 
@@ -46,7 +54,22 @@ export default function Signup() {
     setError("");
 
     const fullName = `${form.firstName} ${form.lastName}`.trim();
-    const finalRole = urlProjectId ? "employee" : role;
+    const finalRole = urlRole || role || "employee";
+
+    if (!fullName) {
+      setError("Name is required.");
+      return;
+    }
+
+    if (!form.email || !form.password) {
+      setError("Email and password are required.");
+      return;
+    }
+
+    if (finalRole === "employee" && !form.empType) {
+      setError("Department is required for employee.");
+      return;
+    }
 
     try {
       const res = await axios.post("http://localhost:5000/api/auth/signup", {
@@ -67,27 +90,44 @@ export default function Signup() {
       alert("Account created successfully");
 
       if (urlProjectId) {
-        navigate(`/login?projectId=${urlProjectId}`);
+        navigate(`/login?projectId=${urlProjectId}&role=${finalRole}`);
       } else {
         navigate("/login");
       }
     } catch (err) {
       console.error("Signup error:", err);
 
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else if (err.response?.data?.error) {
-        setError(err.response.data.error);
-      } else {
-        setError("Signup failed. Please try again.");
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Signup failed. Please try again.";
+
+      if (message.toLowerCase().includes("already registered")) {
+        alert("This email is already registered. Please login to join the project.");
+
+        if (urlProjectId) {
+          navigate(`/login?projectId=${urlProjectId}&role=${finalRole}`);
+        } else {
+          navigate("/login");
+        }
+
+        return;
       }
+
+      setError(message);
     }
   };
+
+  const loginLink = urlProjectId
+    ? `/login?projectId=${urlProjectId}&role=${urlRole || role}`
+    : "/login";
+
+  const showRoleSelect = !urlProjectId;
+  const showDepartment = (urlRole || role) === "employee";
 
   return (
     <div className="authPage">
       <div className="authCard">
-        {/* LEFT */}
         <div className="authLeft">
           <div className="authHeader">
             <div className="authBrand">
@@ -109,7 +149,6 @@ export default function Signup() {
           </div>
         </div>
 
-        {/* RIGHT */}
         <div className="authRight">
           <div className="authRightInner">
             <h1 className="authTitle">Create Account</h1>
@@ -127,7 +166,8 @@ export default function Signup() {
                   fontWeight: "600",
                 }}
               >
-                🎉 You have been invited to a project! Sign up to join.
+                🎉 You have been invited to a project as{" "}
+                <b>{urlRole || role}</b>. Sign up to join.
               </div>
             )}
 
@@ -186,7 +226,7 @@ export default function Signup() {
                 />
               </div>
 
-              {!urlProjectId && (
+              {showRoleSelect && (
                 <div className="authField">
                   <label className="authLabel">Role</label>
                   <select
@@ -201,7 +241,7 @@ export default function Signup() {
                 </div>
               )}
 
-              {(role === "employee" || urlProjectId) && (
+              {showDepartment && (
                 <div className="authField">
                   <label className="authLabel">Department</label>
                   <select
@@ -225,10 +265,7 @@ export default function Signup() {
 
               <div className="authBottomLine">
                 Already have an account?
-                <Link to={urlProjectId ? `/login?projectId=${urlProjectId}` : "/login"}>
-                  {" "}
-                  Login
-                </Link>
+                <Link to={loginLink}> Login</Link>
               </div>
             </form>
           </div>
