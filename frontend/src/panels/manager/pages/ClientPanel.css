@@ -563,3 +563,38 @@
     min-width: 0;
   }
 }
+.cpFormGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.cpModalLarge {
+  max-width: 680px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.cpModal textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 90px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0f172a;
+  color: #ffffff;
+  outline: none;
+  font-size: 15px;
+  margin-bottom: 14px;
+}
+
+.cpModal textarea:focus {
+  border-color: #22c55e;
+}
+
+@media (max-width: 700px) {
+  .cpFormGrid {
+    grid-template-columns: 1fr;
+  }
+}
