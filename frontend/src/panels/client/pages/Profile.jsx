@@ -1,215 +1,181 @@
-// import React, { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import "./ClientProfile.css";
-
-// const projects = [
-//   { title: "Website Redesign", img: "https://picsum.photos/90/90?random=11", progress: 70 },
-//   { title: "Mobile App", img: "https://picsum.photos/90/90?random=12", progress: 45 },
-//   { title: "Dashboard UI", img: "https://picsum.photos/90/90?random=13", progress: 90 }
-// ];
-
-// export default function Profile() {
-
-//   const navigate = useNavigate();
-//   const [user,setUser] = useState(null);
-
-//   useEffect(()=>{
-//     const storedUser = localStorage.getItem("user");
-//     if(storedUser){
-//       setUser(JSON.parse(storedUser));
-//     }
-//   },[]);
-
-//   const logout = () => {
-//     localStorage.clear();
-//     navigate("/login",{replace:true});
-//   };
-
-//   return (
-
-//     <div className="pf-wrap">
-
-//       <div className="pf-grid">
-
-//         {/* LEFT PROFILE CARD */}
-//         <section className="pf-card pf-profile">
-
-//           <div className="pf-avatarRing">
-//             <img
-//               className="pf-avatar"
-//               src="https://i.pravatar.cc/220?img=5"
-//               alt="profile"
-//             />
-//           </div>
-
-//           <div className="pf-name">
-//             {user?.name || "Client Name"}
-//           </div>
-
-//           <div className="pf-loc">
-//             Client
-//           </div>
-
-//           <div className="pf-info">
-
-//             <div className="pf-row">
-//               <span className="pf-ico">👤</span>
-//               <span>Client</span>
-//             </div>
-
-//             <div className="pf-row">
-//               <span className="pf-ico">✉️</span>
-//               <span>{user?.email || "Email"}</span>
-//             </div>
-
-
-
-//           </div>
-
-//           <div className="pf-actions">
-
-//             <button
-//               className="pf-editBtn"
-//               onClick={() => navigate("/client/edit-profile")}
-//             >
-//               ✏️ Edit Profile
-//             </button>
-
-//             <button
-//               className="pf-logoutBtn"
-//               onClick={logout}
-//             >
-//               Logout
-//             </button>
-
-//           </div>
-
-//         </section>
-
-//         {/* CENTER */}
-//         <section className="pf-card pf-center">
-
-//           <div className="pf-breadcrumb">
-//             Client &gt; Profile
-//           </div>
-
-//           <div className="pf-title">
-//             Welcome, {user?.name || "Client"}
-//           </div>
-
-//           <div className="pf-quote">
-//             You can monitor your project progress and communicate with the team here.
-//           </div>
-
-//           {/* ACTIVITY SUMMARY */}
-//           <div className="pf-sectionHead">
-//             <div className="pf-sectionTitle">Activity Summary</div>
-//           </div>
-
-//           <div className="pf-info">
-//             <div className="pf-row">
-//               <span className="pf-ico">💬</span>
-//               <span>Messages Sent: 12</span>
-//             </div>
-//             <div className="pf-row">
-//               <span className="pf-ico">📢</span>
-//               <span>Feedback Given: 3</span>
-//             </div>
-//             <div className="pf-row">
-//               <span className="pf-ico">⏱️</span>
-//               <span>Last Active: Today</span>
-//             </div>
-//           </div>
-
-//           {/* FEEDBACK BUTTON */}
-//           <div style={{marginTop:"16px"}}>
-//             <button className="pf-editBtn" onClick={()=>navigate("/client/feedback")}>
-//               ✍️ Give Feedback
-//             </button>
-//           </div>
-
-//         </section>
-
-//         {/* RIGHT PROJECTS */}
-//         <section className="pf-card pf-projects">
-
-//           <div className="pf-rightHead">
-//             <div className="pf-rightTitle">Your Projects</div>
-//           </div>
-
-//           <div className="pf-projectGrid">
-//             {projects.map((p,i)=>(
-//               <div key={i} className="pf-projectItem">
-//                 <img className="pf-projectImg" src={p.img} alt={p.title}/>
-//                 <div className="pf-projectLabel">{p.title}</div>
-
-//                 {/* Progress */}
-//                 <div style={{fontSize:"10px", color:"#aaa"}}>
-//                   Progress: {p.progress}%
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-
-//         </section>
-
-
-
-//       </div>
-//     </div>
-//   );
-// }
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ClientProfile.css";
 
-const projects = [
-  { title: "Website Redesign", img: "https://picsum.photos/90/90?random=11", progress: 70 },
-  { title: "Mobile App", img: "https://picsum.photos/90/90?random=12", progress: 45 },
-  { title: "Dashboard UI", img: "https://picsum.photos/90/90?random=13", progress: 90 }
+const API = "http://localhost:5000/api";
+
+const fallbackImages = [
+  "https://picsum.photos/300/220?random=21",
+  "https://picsum.photos/300/220?random=22",
+  "https://picsum.photos/300/220?random=23",
+  "https://picsum.photos/300/220?random=24",
+  "https://picsum.photos/300/220?random=25",
 ];
 
 export default function Profile() {
   const navigate = useNavigate();
+
   const [user, setUser] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [messagesCount, setMessagesCount] = useState(0);
+  const [loadingProjects, setLoadingProjects] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Form input states (Nationality and Designation eliminated)
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
+  const activeProjectId = localStorage.getItem("projectId");
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
+
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
 
-      // Split full name into first and last name inputs
-      const nameParts = (parsedUser.name || "Client Name").split(" ");
+      const nameParts = (parsedUser.name || "").split(" ");
       setFirstName(nameParts[0] || "");
       setLastName(nameParts.slice(1).join(" ") || "");
-
       setEmail(parsedUser.email || "");
-      setPhone(parsedUser.phone || "8023456789");
+      setPhone(parsedUser.phone || "");
     }
   }, []);
 
+  useEffect(() => {
+    const fetchClientProjects = async () => {
+      try {
+        setLoadingProjects(true);
+
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+        const projectIds = storedUser?.projectIds || [];
+        const userProjectId = storedUser?.projectId || "";
+        const localProjectId = localStorage.getItem("projectId") || "";
+
+        const ids = Array.from(
+          new Set([localProjectId, userProjectId, ...projectIds].filter(Boolean))
+        );
+
+        let fetchedProjects = [];
+
+        try {
+          const res = await fetch(`${API}/projects/client`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+
+          const data = await res.json();
+
+          fetchedProjects = Array.isArray(data.projects)
+            ? data.projects
+            : Array.isArray(data)
+            ? data
+            : [];
+        } catch (err) {
+          console.warn("Client projects API failed, fallback by IDs:", err);
+        }
+
+        for (const id of ids) {
+          const alreadyExists = fetchedProjects.some(
+            (project) => String(project._id) === String(id)
+          );
+
+          if (!alreadyExists) {
+            try {
+              const singleRes = await fetch(`${API}/projects/${id}`);
+              const singleProject = await singleRes.json();
+
+              if (singleProject && singleProject._id) {
+                fetchedProjects.push(singleProject);
+              }
+            } catch (err) {
+              console.error("Single project fetch failed:", err);
+            }
+          }
+        }
+
+        const uniqueProjects = Array.from(
+          new Map(fetchedProjects.map((project) => [project._id, project])).values()
+        );
+
+        const sortedProjects = uniqueProjects.sort((a, b) => {
+          if (String(a._id) === String(activeProjectId)) return -1;
+          if (String(b._id) === String(activeProjectId)) return 1;
+          return 0;
+        });
+
+        setProjects(sortedProjects);
+      } catch (error) {
+        console.error("Fetch client projects failed:", error);
+        setProjects([]);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+
+    fetchClientProjects();
+  }, [activeProjectId]);
+
+  useEffect(() => {
+    const fetchMessagesCount = async () => {
+      try {
+        if (!activeProjectId) {
+          setMessagesCount(0);
+          return;
+        }
+
+        const res = await fetch(`${API}/messages?projectId=${activeProjectId}`);
+        const data = await res.json();
+
+        const clientMessages = Array.isArray(data)
+          ? data.filter((msg) => msg.sender === user?.email)
+          : [];
+
+        setMessagesCount(clientMessages.length);
+      } catch (error) {
+        console.error("Messages count fetch failed:", error);
+        setMessagesCount(0);
+      }
+    };
+
+    if (user?.email) {
+      fetchMessagesCount();
+    }
+  }, [activeProjectId, user?.email]);
+
+  const totalProjects = projects.length;
+
+  const activeProjects = useMemo(() => {
+    return projects.filter(
+      (project) => (project.status || "Active").toLowerCase() === "active"
+    ).length;
+  }, [projects]);
+
   const saveProfileChanges = async () => {
+    if (!user?._id) {
+      alert("User not found. Please login again.");
+      return;
+    }
+
     const fullName = `${firstName} ${lastName}`.trim();
 
+    if (!fullName) {
+      alert("Name is required.");
+      return;
+    }
+
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${user._id}`, {
+      const response = await fetch(`${API}/users/${user._id}`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: fullName,
-          email: email,
-          phone: phone
-        })
+          email,
+          phone,
+        }),
       });
 
       if (!response.ok) {
@@ -218,15 +184,19 @@ export default function Profile() {
 
       const updatedUserDB = await response.json();
 
-      // Maintain existing fields in the object, updating only the edited items
       const updatedUser = {
         ...user,
-        ...updatedUserDB
+        ...updatedUserDB,
+        name: updatedUserDB.name || fullName,
+        email: updatedUserDB.email || email,
+        phone: updatedUserDB.phone || phone,
       };
 
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setIsEditing(false);
+
+      alert("✅ Profile updated successfully");
     } catch (error) {
       console.error("Profile update failed:", error);
       alert("Error updating profile. Please try again.");
@@ -238,11 +208,14 @@ export default function Profile() {
     navigate("/login", { replace: true });
   };
 
-  return (
-    <div className="pf-wrap">
-      <div className="pf-grid">
+  const openProject = (projectId) => {
+    localStorage.setItem("projectId", projectId);
+    navigate(`/client/project/${projectId}`);
+  };
 
-        {/* LEFT PROFILE CARD */}
+  return (
+    <div className="client-profile-page pf-wrap">
+      <div className="pf-grid">
         <section className="pf-card pf-profile">
           <div className="pf-avatarRing">
             <img
@@ -252,13 +225,8 @@ export default function Profile() {
             />
           </div>
 
-          <div className="pf-name">
-            {user?.name || "Client Name"}
-          </div>
-
-          <div className="pf-loc">
-            Client
-          </div>
+          <h2 className="pf-name">{user?.name || "Client Name"}</h2>
+          <p className="pf-loc">Client</p>
 
           <div className="pf-info">
             <div className="pf-row">
@@ -268,7 +236,17 @@ export default function Profile() {
 
             <div className="pf-row">
               <span className="pf-ico">✉️</span>
-              <span>{user?.email || "Email"}</span>
+              <span>{user?.email || "client@email.com"}</span>
+            </div>
+
+            <div className="pf-row">
+              <span className="pf-ico">📞</span>
+              <span>{user?.phone || "Not added"}</span>
+            </div>
+
+            <div className="pf-row">
+              <span className="pf-ico">📁</span>
+              <span>{totalProjects} Projects</span>
             </div>
           </div>
 
@@ -283,103 +261,179 @@ export default function Profile() {
           </div>
         </section>
 
-        {/* CENTER COLUMN */}
-        <div className="pf-center-col">
+        <section className="pf-card pf-center-card">
+          <div className="pf-breadcrumb">Client &gt; Profile</div>
 
-          {/* --- EDIT FORM MODE (CLEANED) --- */}
-          {isEditing && (
-            <section className="pf-card pf-center-card">
-              <div className="pf-breadcrumb" style={{ marginBottom: "16px" }}>Client &gt; Profile</div>
-              <div style={{ fontSize: "20px", fontWeight: "bold", marginBottom: "20px", color: "#fff" }}>Edit Profile</div>
+          <h1 className="pf-title">Welcome, {user?.name || "Client"}</h1>
 
-              {/* Form Grid Matrix (Only safe fields remaining) */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                <div>
-                  <label style={{ fontSize: "11px", color: "#aaa", display: "block", marginBottom: "4px" }}>First Name</label>
-                  <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={inputStyle} />
-                </div>
-                <div>
-                  <label style={{ fontSize: "11px", color: "#aaa", display: "block", marginBottom: "4px" }}>Last Name</label>
-                  <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} style={inputStyle} />
-                </div>
-                <div>
-                  <label style={{ fontSize: "11px", color: "#aaa", display: "block", marginBottom: "4px" }}>Email</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
-                </div>
-                <div>
-                  <label style={{ fontSize: "11px", color: "#aaa", display: "block", marginBottom: "4px" }}>Phone Number</label>
-                  <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} style={inputStyle} />
-                </div>
-              </div>
-
-              {/* Save Button */}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" }}>
-                <button onClick={() => setIsEditing(false)} style={{ padding: "10px 20px", background: "transparent", color: "#aaa", border: "1px solid #334155", borderRadius: "6px", cursor: "pointer" }}>
-                  Cancel
-                </button>
-                <button onClick={saveProfileChanges} style={{ padding: "10px 40px", background: "#115e59", color: "#fff", border: "none", borderRadius: "6px", fontWeight: "600", cursor: "pointer" }}>
-                  Save
-                </button>
-              </div>
-            </section>
-          )}
-
-          {/* --- NORMAL VIEW MODE --- */}
-          <section className="pf-card pf-center-card">
-            {!isEditing && <div className="pf-breadcrumb">Client &gt; Profile</div>}
-            <div className="pf-title">Welcome, {user?.name || "Client"}</div>
-            <div className="pf-quote">
-              You can monitor your project progress and communicate with the team here.
-            </div>
-
-            <div className="pf-sectionHead">
-              <div className="pf-sectionTitle">Activity Summary</div>
-            </div>
-            <div className="pf-info">
-              <div className="pf-row"><span className="pf-ico">💬</span><span>Messages Sent: 12</span></div>
-              <div className="pf-row"><span className="pf-ico">📢</span><span>Feedback Given: 3</span></div>
-              <div className="pf-row"><span className="pf-ico">⏱️</span><span>Last Active: Today</span></div>
-            </div>
-
-            <div style={{ marginTop: "16px" }}>
-              <button className="pf-editBtn" onClick={() => navigate("/client/feedback")}>
-                ✍️ Give Feedback
-              </button>
-            </div>
-          </section>
-        </div>
-
-        {/* RIGHT PROJECTS */}
-        <section className="pf-card pf-projects">
-          <div className="pf-rightHead">
-            <div className="pf-rightTitle">Your Projects</div>
+          <div className="pf-quote">
+            You can monitor your project progress, share feedback, and communicate
+            with the project team from one place.
           </div>
 
-          <div className="pf-projectGrid">
-            {projects.map((p, i) => (
-              <div key={i} className="pf-projectItem">
-                <img className="pf-projectImg" src={p.img} alt={p.title} />
-                <div className="pf-projectLabel">{p.title}</div>
-                <div style={{ fontSize: "10px", color: "#aaa" }}>
-                  Progress: {p.progress}%
-                </div>
-              </div>
-            ))}
+          <div className="pf-sectionHead">
+            <h3 className="pf-sectionTitle">Activity Summary</h3>
+          </div>
+
+          <div className="pf-summaryGrid">
+            <div className="pf-summaryCard">
+              <span className="pf-summaryIcon">📁</span>
+              <strong>{totalProjects}</strong>
+              <p>Total Projects</p>
+            </div>
+
+            <div className="pf-summaryCard">
+              <span className="pf-summaryIcon">✅</span>
+              <strong>{activeProjects}</strong>
+              <p>Active Projects</p>
+            </div>
+
+            <div className="pf-summaryCard">
+              <span className="pf-summaryIcon">💬</span>
+              <strong>{messagesCount}</strong>
+              <p>Messages Sent</p>
+            </div>
+
+            <div className="pf-summaryCard">
+              <span className="pf-summaryIcon">⏱️</span>
+              <strong>Today</strong>
+              <p>Last Active</p>
+            </div>
           </div>
         </section>
 
+        <section className="pf-card pf-projects">
+          <div className="pf-rightHead">
+            <h2 className="pf-rightTitle">Your Projects</h2>
+
+            <button
+              className="pf-viewAllBtn"
+              onClick={() => navigate("/client/perprojects")}
+            >
+              View All
+            </button>
+          </div>
+
+          {loadingProjects ? (
+            <div className="pf-emptyText">Loading projects...</div>
+          ) : projects.length === 0 ? (
+            <div className="pf-emptyText">No projects found.</div>
+          ) : (
+            <div className="pf-projectList">
+              {projects.slice(0, 5).map((project, index) => {
+                const progress =
+                  project?.performance?.frontend?.progress ||
+                  project?.progress ||
+                  0;
+
+                return (
+                  <div
+                    key={project._id}
+                    className="pf-projectCard"
+                    onClick={() => openProject(project._id)}
+                  >
+                    <img
+                      className="pf-projectThumb"
+                      src={fallbackImages[index % fallbackImages.length]}
+                      alt={project.title || "Project"}
+                    />
+
+                    <div className="pf-projectContent">
+                      <div className="pf-projectTop">
+                        <h4>{project.title || project.name || "Untitled Project"}</h4>
+                        <span>{project.status || "Active"}</span>
+                      </div>
+
+                      <p>{project.desc || "No description added."}</p>
+
+                      <div className="pf-progressTop">
+                        <span>Progress</span>
+                        <strong>{progress}%</strong>
+                      </div>
+
+                      <div className="pf-progressTrack">
+                        <div
+                          className="pf-progressFill"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
       </div>
+
+      {isEditing && (
+        <div className="pf-modalOverlay">
+          <div className="pf-editModal">
+            <div className="pf-modalHead">
+              <div>
+                <p className="pf-breadcrumb">Client &gt; Edit Profile</p>
+                <h2>Edit Profile</h2>
+              </div>
+
+              <button className="pf-closeBtn" onClick={() => setIsEditing(false)}>
+                ✕
+              </button>
+            </div>
+
+            <div className="pf-formGrid">
+              <div className="pf-field">
+                <label>First Name</label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Enter first name"
+                />
+              </div>
+
+              <div className="pf-field">
+                <label>Last Name</label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Enter last name"
+                />
+              </div>
+
+              <div className="pf-field">
+                <label>Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter email"
+                />
+              </div>
+
+              <div className="pf-field">
+                <label>Phone Number</label>
+                <input
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Enter phone number"
+                />
+              </div>
+            </div>
+
+            <div className="pf-modalActions">
+              <button className="pf-cancelBtn" onClick={() => setIsEditing(false)}>
+                Cancel
+              </button>
+
+              <button className="pf-saveBtn" onClick={saveProfileChanges}>
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  padding: "10px 12px",
-  background: "#1e293b",
-  color: "#fff",
-  border: "1px solid #334155",
-  borderRadius: "6px",
-  fontSize: "13px",
-  boxSizing: "border-box"
-};

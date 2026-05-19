@@ -6,7 +6,7 @@
 .pf-wrap {
   width: 100%;
   min-height: calc(100vh - 95px);
-  padding: 22px;
+  padding: 10px;
   background: #07111f;
   color: #ffffff;
 }
@@ -610,7 +610,7 @@ display: grid;
 }
 
 .pf-center .pf-realList {
-  max-height: 140px;
+  max-height: 110px;
   overflow-y: auto;
   padding-right: 6px;
 }
