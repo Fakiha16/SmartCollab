@@ -3,10 +3,7 @@ const router = express.Router();
 const Project = require("../models/Project");
 const User = require("../models/User");
 
-
-
-// ── TEMP FIX: Update old managerId to manager email ─────────────────
-// ── TEMP FIX: Mark pending invite as joined ─────────────────
+// ── Mark pending invite as joined ─────────────────
 router.put("/mark-invite-joined", async (req, res) => {
   try {
     const { projectId, email } = req.body;
@@ -33,28 +30,28 @@ router.put("/mark-invite-joined", async (req, res) => {
       (member) => member.email?.trim().toLowerCase() === cleanEmail
     );
 
-    if (inviteIndex === -1) {
+    if (inviteIndex !== -1) {
+      project.invitedMembers[inviteIndex].status = "Joined";
+      await project.save();
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { email: cleanEmail },
+      {
+        $set: { projectId },
+        $addToSet: { projectIds: projectId },
+      },
+      { new: true }
+    ).select("-password");
+
+    if (!updatedUser) {
       return res.status(404).json({
-        message: "Invite not found for this email",
-        email: cleanEmail,
-        invitedMembers,
+        message: "User not found",
       });
     }
 
-    project.invitedMembers[inviteIndex].status = "Joined";
-    await project.save();
-
-const updatedUser = await User.findOneAndUpdate(
-  { email: cleanEmail },
-  {
-    $set: { projectId },
-    $addToSet: { projectIds: projectId },
-  },
-  { new: true }
-);
-
     res.json({
-      message: "Invite marked as joined and user projectId updated",
+      message: "Invite marked as joined and user projectIds updated",
       updatedUser,
       invitedMembers: project.invitedMembers,
     });
@@ -66,56 +63,6 @@ const updatedUser = await User.findOneAndUpdate(
     });
   }
 });
-
-
-// ── DELETE member from project ─────────────────────
-router.delete("/:projectId/member", async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    const { email } = req.body;
-
-    if (!projectId || !email) {
-      return res.status(400).json({
-        message: "projectId and email are required",
-      });
-    }
-
-    const cleanEmail = email.trim().toLowerCase();
-
-    await Project.findByIdAndUpdate(projectId, {
-      $pull: {
-        invitedMembers: {
-          email: cleanEmail,
-        },
-      },
-    });
-
-const user = await User.findOne({ email: cleanEmail });
-
-if (user) {
-  user.projectIds = (user.projectIds || []).filter((id) => id !== projectId);
-
-  if (user.projectId === projectId) {
-    user.projectId = user.projectIds[0] || "";
-  }
-
-  await user.save();
-}
-
-    res.json({
-      message: "Member removed successfully",
-      email: cleanEmail,
-    });
-  } catch (err) {
-    console.error("Delete member error:", err);
-    res.status(500).json({
-      message: "Server error",
-      error: err.message,
-    });
-  }
-});
-
-
 
 // ── JOIN project / mark invite as joined ─────────────────────
 router.post("/join-project", async (req, res) => {
@@ -154,7 +101,7 @@ router.post("/join-project", async (req, res) => {
         $addToSet: { projectIds: projectId },
       },
       { new: true }
-    );
+    ).select("-password");
 
     if (!updatedUser) {
       return res.status(404).json({
@@ -176,6 +123,121 @@ router.post("/join-project", async (req, res) => {
   }
 });
 
+// ── GET client projects ──────────────────────────────
+// IMPORTANT: ye route "/:id" se pehle hona chahiye
+router.get("/client", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const emailFromQuery = req.query.email;
+    const emailFromHeader = req.headers.email;
+
+    let cleanEmail = "";
+
+    if (emailFromQuery) {
+      cleanEmail = emailFromQuery.trim().toLowerCase();
+    } else if (emailFromHeader) {
+      cleanEmail = emailFromHeader.trim().toLowerCase();
+    }
+
+    /*
+      Agar JWT middleware nahi hai to frontend email query/header bhej sakta hai.
+      Agar aapke auth middleware me req.user set hota hai, to ye bhi support karega.
+    */
+    if (!cleanEmail && req.user?.email) {
+      cleanEmail = req.user.email.trim().toLowerCase();
+    }
+
+    if (!cleanEmail) {
+      return res.status(400).json({
+        message:
+          "Client email is required. Send it as query ?email=client@email.com or auth user.",
+        projects: [],
+      });
+    }
+
+    const user = await User.findOne({ email: cleanEmail }).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Client user not found",
+        projects: [],
+      });
+    }
+
+    const projectIds = Array.from(
+      new Set([user.projectId, ...(user.projectIds || [])].filter(Boolean))
+    );
+
+    if (projectIds.length === 0) {
+      return res.json({ projects: [] });
+    }
+
+    const projects = await Project.find({
+      _id: { $in: projectIds },
+    }).sort({ createdAt: -1 });
+
+    res.json({
+      projects,
+      projectIds,
+    });
+  } catch (err) {
+    console.error("Fetch client projects error:", err);
+    res.status(500).json({
+      message: "Server error",
+      error: err.message,
+      projects: [],
+    });
+  }
+});
+
+// ── DELETE member from project ─────────────────────
+router.delete("/:projectId/member", async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { email } = req.body;
+
+    if (!projectId || !email) {
+      return res.status(400).json({
+        message: "projectId and email are required",
+      });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    await Project.findByIdAndUpdate(projectId, {
+      $pull: {
+        invitedMembers: {
+          email: cleanEmail,
+        },
+      },
+    });
+
+    const user = await User.findOne({ email: cleanEmail });
+
+    if (user) {
+      user.projectIds = (user.projectIds || []).filter(
+        (id) => String(id) !== String(projectId)
+      );
+
+      if (String(user.projectId) === String(projectId)) {
+        user.projectId = user.projectIds[0] || "";
+      }
+
+      await user.save();
+    }
+
+    res.json({
+      message: "Member removed successfully",
+      email: cleanEmail,
+    });
+  } catch (err) {
+    console.error("Delete member error:", err);
+    res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
+  }
+});
 
 // ── TEMP FIX: Migrate old user projectId into projectIds ─────────────────
 router.put("/migrate-user-projects", async (req, res) => {
@@ -245,14 +307,8 @@ router.put("/:projectId/performance", async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    const {
-      frontend,
-      backend,
-      testing,
-      deadline,
-      demoLink,
-      chartData,
-    } = req.body;
+    const { frontend, backend, testing, deadline, demoLink, chartData } =
+      req.body;
 
     const updateData = {};
 
@@ -289,7 +345,6 @@ router.put("/:projectId/performance", async (req, res) => {
   }
 });
 
-
 // ── GET projects by manager ──────────────────────────────
 // IMPORTANT: ye route "/:id" se pehle hona chahiye
 router.get("/manager/:managerId", async (req, res) => {
@@ -306,7 +361,6 @@ router.get("/manager/:managerId", async (req, res) => {
 });
 
 // ── GET all projects ──────────────────────────────
-// Is route ko manager panel mein use na karo
 router.get("/", async (req, res) => {
   try {
     const projects = await Project.find().sort({ createdAt: -1 });
@@ -326,12 +380,10 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-const members = await User.find({
-  $or: [
-    { projectId: req.params.id },
-    { projectIds: req.params.id },
-  ],
-});
+    const members = await User.find({
+      $or: [{ projectId: req.params.id }, { projectIds: req.params.id }],
+    }).select("-password");
+
     const joinedMembers = members.map((user) => ({
       _id: user._id,
       name: user.name || user.fullName || "Team Member",
@@ -357,16 +409,17 @@ const members = await User.find({
       })
       .map((member) => ({
         email: member.email,
+        name: member.name || "",
+        role: member.role || "",
+        inviteRole: member.inviteRole || "",
         status: member.status || "Pending",
         invitedAt: member.invitedAt,
       }));
 
     const projectData = {
       ...project.toObject(),
-
       joinedMembers,
       pendingInvites,
-
       team: {
         ...project.team,
         allMembers: joinedMembers.map((member) => member.email),

@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PerProjects.css";
 
-
 const STATUS_COLORS = {
   Completed: { bg: "#e6f9f0", color: "#16a34a" },
   Offtrack: { bg: "#fbeaea", color: "#d45858" },
@@ -32,6 +31,8 @@ export default function PerProjects() {
   const [page, setPage] = useState(1);
   const [dropOpen, setDropOpen] = useState(false);
 
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+
   const getProjectIdFromUrl = () => {
     const params = new URLSearchParams(window.location.search);
     const queryProjectId = params.get("projectId");
@@ -46,18 +47,114 @@ export default function PerProjects() {
     return "";
   };
 
+  const getStoredProjectIds = () => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("clientProjectIds")) || [];
+      return Array.isArray(saved) ? saved.filter(Boolean).map(String) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const saveProjectIdsToStorage = (ids = []) => {
+    const oldIds = getStoredProjectIds();
+    const nextIds = Array.from(
+      new Set([...ids, ...oldIds].filter(Boolean).map(String))
+    );
+
+    localStorage.setItem("clientProjectIds", JSON.stringify(nextIds));
+
+    const currentUser = JSON.parse(localStorage.getItem("user")) || {};
+    const existingUserProjectIds = Array.isArray(currentUser.projectIds)
+      ? currentUser.projectIds.map(String)
+      : [];
+
+    const updatedUser = {
+      ...currentUser,
+      projectIds: Array.from(
+        new Set([...nextIds, ...existingUserProjectIds].filter(Boolean))
+      ),
+    };
+
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  };
+
+  const saveProjectIdToStorage = (projectId) => {
+    if (!projectId) return;
+
+    const cleanProjectId = String(projectId);
+
+    localStorage.setItem("projectId", cleanProjectId);
+    saveProjectIdsToStorage([cleanProjectId]);
+
+    const currentUser = JSON.parse(localStorage.getItem("user")) || {};
+    const existingUserProjectIds = Array.isArray(currentUser.projectIds)
+      ? currentUser.projectIds.map(String)
+      : [];
+
+    const updatedUser = {
+      ...currentUser,
+      projectId: cleanProjectId,
+      projectIds: Array.from(
+        new Set([cleanProjectId, ...existingUserProjectIds].filter(Boolean))
+      ),
+    };
+
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  };
+
   const urlProjectId = getProjectIdFromUrl();
   const storedProjectId = localStorage.getItem("projectId");
+
+  const userProjectIds = Array.isArray(user?.projectIds)
+    ? user.projectIds.filter(Boolean).map(String)
+    : [];
+
+  const localProjectIds = Array.from(
+    new Set(
+      [
+        urlProjectId,
+        storedProjectId,
+        user?.projectId,
+        ...userProjectIds,
+        ...getStoredProjectIds(),
+      ]
+        .filter(Boolean)
+        .map(String)
+    )
+  );
+
   const priorityId = urlProjectId || storedProjectId || "";
 
   useEffect(() => {
     if (urlProjectId) {
-      localStorage.setItem("projectId", urlProjectId);
+      saveProjectIdToStorage(urlProjectId);
     }
   }, [urlProjectId]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const freshUser = JSON.parse(localStorage.getItem("user")) || {};
+    const clientEmail = freshUser?.email || user?.email || "";
+
+    const fetchSingleProject = async (projectId) => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/projects/${projectId}`);
+
+        if (!res.ok) return null;
+
+        const project = await res.json();
+
+        if (project && project._id) {
+          return project;
+        }
+
+        return null;
+      } catch (err) {
+        console.error("Failed to fetch project:", projectId, err);
+        return null;
+      }
+    };
 
     const fetchProjects = async () => {
       try {
@@ -66,49 +163,69 @@ export default function PerProjects() {
         let clientProjects = [];
 
         try {
-          const res = await fetch("http://localhost:5000/api/projects/client", {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          });
+          const res = await fetch(
+            `http://localhost:5000/api/projects/client?email=${encodeURIComponent(
+              clientEmail
+            )}`,
+            {
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+            }
+          );
 
           const data = await res.json();
+
           clientProjects = Array.isArray(data.projects)
             ? data.projects
             : Array.isArray(data)
             ? data
             : [];
+
+          const apiProjectIds = clientProjects
+            .map((project) => project?._id)
+            .filter(Boolean)
+            .map(String);
+
+          if (apiProjectIds.length > 0) {
+            saveProjectIdsToStorage(apiProjectIds);
+          }
         } catch (err) {
-          console.warn("Client projects API failed, fallback will run:", err);
+          console.warn("Client projects API failed, local fallback will run:", err);
         }
 
-        if (priorityId) {
-          const alreadyExists = clientProjects.some(
-            (project) => String(project._id) === String(priorityId)
+        const latestLocalIds = Array.from(
+          new Set([...localProjectIds, ...getStoredProjectIds()].filter(Boolean))
+        );
+
+        const existingIds = new Set(
+          clientProjects.map((project) => String(project._id))
+        );
+
+        const missingLocalIds = latestLocalIds.filter(
+          (id) => !existingIds.has(String(id))
+        );
+
+        if (missingLocalIds.length > 0) {
+          const fetchedProjects = await Promise.all(
+            missingLocalIds.map((id) => fetchSingleProject(id))
           );
 
-          if (!alreadyExists) {
-            try {
-              const singleRes = await fetch(
-                `http://localhost:5000/api/projects/${priorityId}`
-              );
-
-              const singleProject = await singleRes.json();
-
-              if (singleProject && singleProject._id) {
-                clientProjects = [singleProject, ...clientProjects];
-              }
-            } catch (err) {
-              console.error("Failed to fetch invited project:", err);
-            }
-          }
+          const validFetchedProjects = fetchedProjects.filter(Boolean);
+          clientProjects = [...validFetchedProjects, ...clientProjects];
         }
 
         const uniqueProjects = Array.from(
-          new Map(clientProjects.map((project) => [project._id, project])).values()
+          new Map(
+            clientProjects
+              .filter((project) => project && project._id)
+              .map((project) => [String(project._id), project])
+          ).values()
         );
 
+        saveProjectIdsToStorage(uniqueProjects.map((project) => project._id));
+
         const sorted = uniqueProjects.sort((a, b) => {
-          if (String(a._id) === String(priorityId)) return -1;
-          if (String(b._id) === String(priorityId)) return 1;
+          if (priorityId && String(a._id) === String(priorityId)) return -1;
+          if (priorityId && String(b._id) === String(priorityId)) return 1;
           return 0;
         });
 
@@ -122,7 +239,7 @@ export default function PerProjects() {
     };
 
     fetchProjects();
-  }, [priorityId]);
+  }, [urlProjectId]);
 
   const filtered = useMemo(() => {
     if (filter === "All") return projects;
@@ -149,7 +266,7 @@ export default function PerProjects() {
     STATUS_COLORS[status] || { bg: "#f3f4f6", color: "#6b7280" };
 
   const handleCardClick = (projectId) => {
-    localStorage.setItem("projectId", projectId);
+    saveProjectIdToStorage(projectId);
     navigate(`/client/project/${projectId}`);
   };
 
@@ -203,9 +320,10 @@ export default function PerProjects() {
       ) : (
         <div className="pr-grid">
           {pageData.map((project) => {
-            const isPriority = String(project._id) === String(priorityId);
+            const isPriority = priorityId && String(project._id) === String(priorityId);
             const projectStatus = project.status || "Pending";
             const st = statusStyle(projectStatus);
+
             const members =
               project.members ||
               project.teamMembers ||

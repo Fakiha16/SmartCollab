@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import "./ProjChat.css";
@@ -9,7 +9,8 @@ export default function ProjChat() {
   const navigate = useNavigate();
   const { projectId } = useParams();
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+  const activeProjectId = projectId || localStorage.getItem("projectId");
 
   const [project, setProject] = useState(null);
   const [files, setFiles] = useState([]);
@@ -20,18 +21,37 @@ export default function ProjChat() {
   const fileInputRef = useRef(null);
   const chatBodyRef = useRef(null);
 
-  useEffect(() => {
-    if (projectId) {
-      localStorage.setItem("projectId", projectId);
+  const fetchMessages = useCallback(async () => {
+    if (!activeProjectId) {
+      setMessages([]);
+      return;
     }
-  }, [projectId]);
+
+    try {
+      const res = await axios.get(
+        `${API}/messages?projectId=${String(activeProjectId)}`
+      );
+
+      const freshMessages = Array.isArray(res.data) ? res.data : [];
+      setMessages(freshMessages);
+    } catch (err) {
+      console.error("Messages fetch error:", err);
+      setMessages([]);
+    }
+  }, [activeProjectId]);
+
+  useEffect(() => {
+    if (activeProjectId) {
+      localStorage.setItem("projectId", activeProjectId);
+    }
+  }, [activeProjectId]);
 
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        if (!projectId) return;
+        if (!activeProjectId) return;
 
-        const res = await axios.get(`${API}/projects/${projectId}`);
+        const res = await axios.get(`${API}/projects/${activeProjectId}`);
         setProject(res.data);
       } catch (err) {
         console.error("Project fetch error:", err);
@@ -41,7 +61,7 @@ export default function ProjChat() {
     };
 
     fetchProject();
-  }, [projectId]);
+  }, [activeProjectId]);
 
   useEffect(() => {
     if (chatBodyRef.current) {
@@ -50,14 +70,15 @@ export default function ProjChat() {
   }, [messages]);
 
   useEffect(() => {
-    if (!projectId) {
+    if (!activeProjectId) {
       setFiles([]);
       return;
     }
 
     const fetchFiles = async () => {
       try {
-        const res = await axios.get(`${API}/upload/${projectId}`);
+        const res = await axios.get(`${API}/upload/${activeProjectId}`);
+
         const sorted = Array.isArray(res.data)
           ? res.data.sort(
               (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -72,31 +93,22 @@ export default function ProjChat() {
     };
 
     fetchFiles();
-  }, [projectId]);
+  }, [activeProjectId]);
 
   useEffect(() => {
-    if (!projectId) {
-      setMessages([]);
-      return;
-    }
-
-    const fetchMessages = async () => {
-      try {
-        const res = await axios.get(`${API}/messages?projectId=${projectId}`);
-        setMessages(Array.isArray(res.data) ? res.data : []);
-      } catch (err) {
-        console.error("Messages fetch error:", err);
-        setMessages([]);
-      }
-    };
-
     fetchMessages();
-  }, [projectId]);
+
+    const interval = setInterval(fetchMessages, 3000);
+
+    return () => clearInterval(interval);
+  }, [fetchMessages]);
 
   const sendMessage = async () => {
-    if (!message.trim()) return;
+    const cleanMessage = message.trim();
 
-    if (!projectId) {
+    if (!cleanMessage) return;
+
+    if (!activeProjectId) {
       alert("Project not found.");
       return;
     }
@@ -109,19 +121,33 @@ export default function ProjChat() {
 
     try {
       const res = await axios.post(`${API}/messages`, {
-        text: message.trim(),
-        sender: user?.email,
+        text: cleanMessage,
+        sender: user?.email || "client",
         senderName: user?.name || user?.email || "Client",
-        role: "client",
+        senderRole: "client",
+        receiverRole: "manager",
+        type: "client-manager",
         time,
-        projectId,
+        projectId: String(activeProjectId),
       });
 
-      setMessages((prev) => [...prev, res.data]);
+      setMessages((prev) => {
+        const exists = prev.some((msg) => msg._id === res.data._id);
+        return exists ? prev : [...prev, res.data];
+      });
+
       setMessage("");
+      setTimeout(fetchMessages, 300);
     } catch (err) {
       console.error("Send message error:", err);
-      alert("❌ Message send failed");
+
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.response?.data?.details ||
+        "Message send failed. Please check backend terminal.";
+
+      alert(`❌ ${msg}`);
     }
   };
 
@@ -136,6 +162,7 @@ export default function ProjChat() {
     try {
       await axios.delete(`${API}/messages/${id}`);
       setMessages((prev) => prev.filter((m) => m._id !== id));
+      setTimeout(fetchMessages, 300);
     } catch (err) {
       console.error("Delete message error:", err);
       alert("❌ Message delete failed");
@@ -147,7 +174,7 @@ export default function ProjChat() {
 
     if (!file) return;
 
-    if (!projectId) {
+    if (!activeProjectId) {
       alert("Project not found.");
       return;
     }
@@ -157,7 +184,7 @@ export default function ProjChat() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("user", user?.email || "client");
-    formData.append("projectId", projectId);
+    formData.append("projectId", String(activeProjectId));
 
     try {
       const res = await axios.post(`${API}/upload`, formData, {
@@ -201,17 +228,22 @@ export default function ProjChat() {
   return (
     <div className="cpDash">
       <div className="cpInviteWrap pcTopLeft">
-        <button className="cpInviteBtn" type="button" onClick={() => navigate(-1)}>
-            ← Back
+        <button
+          className="cpInviteBtn"
+          type="button"
+          onClick={() => navigate(-1)}
+        >
+          ← Back
         </button>
 
         <div className="cpProjectSelectBox">
-            <span className="cpProjectSelectIcon">📌</span>
-            <div className="cpTopProjectSelect cpProjectTitleText">
+          <span className="cpProjectSelectIcon">📌</span>
+
+          <div className="cpTopProjectSelect cpProjectTitleText">
             {project?.title || project?.name || "Project Discussion"}
-            </div>
+          </div>
         </div>
-        </div>
+      </div>
 
       <div className="cpDashWrap">
         <section className="cpCard">
@@ -221,7 +253,9 @@ export default function ProjChat() {
 
           <div className="cpChatBody" ref={chatBodyRef}>
             {messages.length === 0 && (
-              <div className="cpEmpty">No messages yet. Start the conversation!</div>
+              <div className="cpEmpty">
+                No messages yet. Start the conversation!
+              </div>
             )}
 
             {messages.map((msg) => (
@@ -263,9 +297,13 @@ export default function ProjChat() {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleMessageKeyDown}
               placeholder="Type a message... (Enter to send)"
+              disabled={!activeProjectId}
             />
 
-            <button onClick={sendMessage} disabled={!message.trim()}>
+            <button
+              onClick={sendMessage}
+              disabled={!message.trim() || !activeProjectId}
+            >
               ➤
             </button>
           </div>

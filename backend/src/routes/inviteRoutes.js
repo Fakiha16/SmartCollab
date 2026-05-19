@@ -37,13 +37,25 @@ router.post("/", async (req, res) => {
     }
 
     /*
-      inviteRole:
-      - client panel se inviteRole: "client" aayega
-      - access control/team member invite se role: "Frontend/Backend/QA/Designer" aa sakta hai
-      - signupRole decides actual account role
+      Client Panel invite:
+      - agar inviteRole explicitly "client" aaye to client
+      - agar role Frontend/Backend/QA/Designer aaye to employee
+      - agar dono na aayein, to default client rakha hai because this route is used from ClientPanel too
     */
-    const signupRole = inviteRole === "client" ? "client" : "employee";
-    const displayRole = inviteRole === "client" ? "client" : role || "employee";
+    const normalizedInviteRole = (inviteRole || "").trim().toLowerCase();
+    const normalizedRole = (role || "").trim();
+
+    const teamRoles = ["Frontend", "Backend", "QA", "Designer", "Testing", "Development"];
+    const isTeamInvite = teamRoles.includes(normalizedRole);
+
+    const signupRole =
+      normalizedInviteRole === "client"
+        ? "client"
+        : isTeamInvite
+        ? "employee"
+        : "client";
+
+    const displayRole = signupRole === "client" ? "client" : normalizedRole || "employee";
 
     const senderName =
       managerName || inviterName || invitedBy || "Project Manager";
@@ -72,6 +84,8 @@ router.post("/", async (req, res) => {
             <b>${senderName}</b> invited you to join a project on SmartCollab as 
             <b>${signupRole}</b>.
           </p>
+
+          <p>Project: <b>${project.title || project.name || "SmartCollab Project"}</b></p>
 
           <p>Click below to join the project:</p>
 

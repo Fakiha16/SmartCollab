@@ -8,7 +8,9 @@ const socket = io("http://localhost:5000");
 export default function ProjectDetails() {
   const navigate = useNavigate();
   const projectId = window.location.pathname.split("/").pop();
-  const user = JSON.parse(localStorage.getItem("user"));
+  const teamChatRoomId = `team-${projectId}`;
+
+  const user = JSON.parse(localStorage.getItem("user")) || {};
 
   const [project, setProject] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -36,20 +38,50 @@ export default function ProjectDetails() {
   }, [projectId]);
 
   useEffect(() => {
+    if (!projectId || !user?.email) return;
+
     socket.emit("joinProject", {
-      projectId,
-      user: { email: user.email, name: user.name || user.email },
+      projectId: teamChatRoomId,
+      realProjectId: projectId,
+      chatType: "team",
+      user: {
+        email: user.email,
+        name: user.name || user.email,
+        role: user.role || "manager",
+      },
     });
 
-    socket.on("previousMessages", setMessages);
+    socket.on("previousMessages", (oldMessages) => {
+      const teamMessages = Array.isArray(oldMessages)
+        ? oldMessages.filter((msg) => {
+            return (
+              msg.chatType === "team" ||
+              msg.projectId === teamChatRoomId ||
+              String(msg.projectId).startsWith("team-")
+            );
+          })
+        : [];
+
+      setMessages(teamMessages);
+    });
 
     socket.on("receiveMessage", (msg) => {
+      if (
+        msg.chatType !== "team" &&
+        msg.projectId !== teamChatRoomId &&
+        !String(msg.projectId || "").startsWith("team-")
+      ) {
+        return;
+      }
+
       setMessages((prev) => {
         const alreadyExists = prev.some(
           (m) =>
-            m.text === msg.text &&
-            m.sender === msg.sender &&
-            m.time === msg.time
+            (m._id && msg._id && m._id === msg._id) ||
+            (m.text === msg.text &&
+              m.sender === msg.sender &&
+              m.time === msg.time &&
+              m.projectId === msg.projectId)
         );
 
         if (alreadyExists) return prev;
@@ -69,12 +101,14 @@ export default function ProjectDetails() {
       socket.off("projectMembers");
       socket.off("fileUploaded");
     };
-  }, [projectId, user.email, user.name]);
+  }, [projectId, teamChatRoomId, user.email, user.name, user.role]);
 
   useEffect(() => {
     fetch(`http://localhost:5000/api/upload/${projectId}`)
       .then((res) => res.json())
-      .then(setFiles)
+      .then((data) => {
+        setFiles(Array.isArray(data) ? data : []);
+      })
       .catch((err) => console.error("Fetch files failed:", err));
   }, [projectId]);
 
@@ -90,12 +124,20 @@ export default function ProjectDetails() {
   };
 
   const sendMessage = () => {
-    if (!text.trim()) return;
+    const cleanText = text.trim();
+
+    if (!cleanText) return;
 
     const msg = {
-      text,
+      text: cleanText,
       sender: user.email,
-      projectId,
+      senderName: user.name || user.email,
+      senderRole: user.role || "manager",
+      receiverRole: "employee",
+      projectId: teamChatRoomId,
+      realProjectId: projectId,
+      chatType: "team",
+      type: "manager-employee",
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -108,7 +150,7 @@ export default function ProjectDetails() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
@@ -116,11 +158,13 @@ export default function ProjectDetails() {
 
   const uploadFile = async (e) => {
     const file = e.target.files[0];
+
     if (!file) return;
 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("projectId", projectId);
+    formData.append("user", user?.email || "manager");
 
     try {
       const res = await fetch("http://localhost:5000/api/upload", {
@@ -154,10 +198,8 @@ export default function ProjectDetails() {
   const joinedMembers = project?.joinedMembers || [];
   const pendingInvites = project?.pendingInvites || [];
 
-  
   return (
     <div className="layout">
-      {/* LEFT CHAT */}
       <div className="chat-section">
         <div className="chat-header">
           <button onClick={() => navigate("/manager/projects")}>←</button>
@@ -173,9 +215,16 @@ export default function ProjectDetails() {
             const isMe = msg.sender === user.email;
 
             return (
-              <div key={i} className={`msg-row ${isMe ? "me" : ""}`}>
+              <div key={msg._id || i} className={`msg-row ${isMe ? "me" : ""}`}>
                 <div className={`msg ${isMe ? "me" : ""}`}>
+                  {msg.sender !== user.email && (
+                    <strong className="sender-name">
+                      {msg.senderName || msg.sender}
+                    </strong>
+                  )}
+
                   {msg.text}
+
                   <span className="time">{msg.time}</span>
                 </div>
               </div>
@@ -199,7 +248,7 @@ export default function ProjectDetails() {
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
+            placeholder="Type a team message..."
           />
 
           <button className="send" onClick={sendMessage}>
@@ -208,7 +257,6 @@ export default function ProjectDetails() {
         </div>
       </div>
 
-      {/* RIGHT PANEL */}
       <div className="right-section">
         <div className="tabs">
           <button
@@ -235,33 +283,37 @@ export default function ProjectDetails() {
               {files.length === 0 ? (
                 <div className="empty">No files</div>
               ) : (
-                files.map((f, i) => (
-                  <div key={i} className="file-card">
-                    <div className="file-left">
-                      <span className="file-icon">📄</span>
-                      <span className="file-name">{f.name}</span>
-                    </div>
+                files.map((f, i) => {
+                  const fileName = f.name || f.filename || "file";
 
-                    <div className="file-actions">
-                      <a
-                        href={`http://localhost:5000/uploads/${f.name}`}
-                        download
-                        className="icon-btn"
-                        title="Download"
-                      >
-                        ⬇
-                      </a>
+                  return (
+                    <div key={f._id || i} className="file-card">
+                      <div className="file-left">
+                        <span className="file-icon">📄</span>
+                        <span className="file-name">{fileName}</span>
+                      </div>
 
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleDeleteFile(f.name)}
-                        title="Delete"
-                      >
-                        ✖
-                      </button>
+                      <div className="file-actions">
+                        <a
+                          href={`http://localhost:5000/uploads/${fileName}`}
+                          download
+                          className="icon-btn"
+                          title="Download"
+                        >
+                          ⬇
+                        </a>
+
+                        <button
+                          className="delete-btn"
+                          onClick={() => handleDeleteFile(fileName)}
+                          title="Delete"
+                        >
+                          ✖
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </>
           )}
@@ -282,9 +334,8 @@ export default function ProjectDetails() {
                         <div>
                           <strong>{member.name || "Team Member"}</strong>
                           <p>{member.email}</p>
-                          {member.empType && (
-                            <small>{member.empType}</small>
-                          )}
+
+                          {member.empType && <small>{member.empType}</small>}
                         </div>
                       </div>
 

@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import "./ClientPanel.css";
 
 const API = "http://localhost:5000/api";
 
 export default function ClientPanel() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user")) || {};
   const storedProjectId = localStorage.getItem("projectId");
 
   const getProjectIdFromUrl = () => {
@@ -31,12 +31,15 @@ export default function ClientPanel() {
   const [files, setFiles] = useState([]);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [unreadProjectIds, setUnreadProjectIds] = useState([]);
 
   const [showInvite, setShowInvite] = useState(false);
   const [showUpdate, setShowUpdate] = useState(false);
 
   const [projects, setProjects] = useState([]);
-  const [selectedProjectId, setSelectedProjectId] = useState(defaultProjectId || "");
+  const [selectedProjectId, setSelectedProjectId] = useState(
+    defaultProjectId || ""
+  );
   const [inviteProjectId, setInviteProjectId] = useState(defaultProjectId || "");
 
   const [inviteEmail, setInviteEmail] = useState("");
@@ -56,6 +59,71 @@ export default function ClientPanel() {
   const chatBodyRef = useRef(null);
 
   const managerName = user?.name || user?.email || "Manager";
+
+  const getUnreadStorageKey = () => {
+    return `managerReadMessages_${user?.email || "manager"}`;
+  };
+
+  const getReadMap = () => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(getUnreadStorageKey())) || {};
+      return saved && typeof saved === "object" ? saved : {};
+    } catch {
+      return {};
+    }
+  };
+
+  const saveReadMap = (nextMap) => {
+    localStorage.setItem(getUnreadStorageKey(), JSON.stringify(nextMap));
+  };
+
+  const markProjectMessagesAsRead = useCallback(
+    (projectId, projectMessages = []) => {
+      if (!projectId) return;
+
+      const clientMessages = projectMessages.filter(
+        (msg) =>
+          msg.sender !== user?.email &&
+          (msg.senderRole === "client" ||
+            msg.receiverRole === "manager" ||
+            msg.type === "client-manager")
+      );
+
+      const latestClientMessage = clientMessages[clientMessages.length - 1];
+
+      if (!latestClientMessage?._id) return;
+
+      const readMap = getReadMap();
+      readMap[projectId] = latestClientMessage._id;
+      saveReadMap(readMap);
+
+      setUnreadProjectIds((prev) =>
+        prev.filter((id) => String(id) !== String(projectId))
+      );
+    },
+    [user?.email]
+  );
+
+  const fetchMessages = useCallback(async () => {
+    if (!selectedProjectId) {
+      setMessages([]);
+      return;
+    }
+
+    try {
+      const res = await axios.get(
+        `${API}/messages?projectId=${String(selectedProjectId)}`
+      );
+
+      const projectMessages = Array.isArray(res.data) ? res.data : [];
+
+      setMessages(projectMessages);
+      markProjectMessagesAsRead(selectedProjectId, projectMessages);
+    } catch (err) {
+      console.error("Messages fetch error:", err);
+      setMessages([]);
+    }
+  }, [selectedProjectId, markProjectMessagesAsRead]);
 
   useEffect(() => {
     const fetchManagerProjects = async () => {
@@ -80,7 +148,7 @@ export default function ClientPanel() {
     };
 
     fetchManagerProjects();
-  }, [user?.email]);
+  }, [user?.email, selectedProjectId]);
 
   useEffect(() => {
     if (selectedProjectId) {
@@ -103,9 +171,13 @@ export default function ClientPanel() {
     const fetchFiles = async () => {
       try {
         const res = await axios.get(`${API}/upload/${selectedProjectId}`);
-        const sorted = res.data.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
+
+        const sorted = Array.isArray(res.data)
+          ? res.data.sort(
+              (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            )
+          : [];
+
         setFiles(sorted);
       } catch (err) {
         console.error("Files fetch error:", err);
@@ -117,25 +189,70 @@ export default function ClientPanel() {
   }, [selectedProjectId]);
 
   useEffect(() => {
-    if (!selectedProjectId) {
-      setMessages([]);
-      return;
-    }
+    fetchMessages();
 
-    const fetchMessages = async () => {
+    const interval = setInterval(fetchMessages, 3000);
+
+    return () => clearInterval(interval);
+  }, [fetchMessages]);
+
+  useEffect(() => {
+    if (!projects.length || !user?.email) return;
+
+    const checkUnreadMessages = async () => {
       try {
-        const res = await axios.get(
-          `${API}/messages?projectId=${selectedProjectId}`
+        const readMap = getReadMap();
+
+        const results = await Promise.all(
+          projects.map(async (project) => {
+            const projectId = project._id || project.id;
+
+            try {
+              const res = await axios.get(`${API}/messages?projectId=${projectId}`);
+              const projectMessages = Array.isArray(res.data) ? res.data : [];
+
+              const clientMessages = projectMessages.filter(
+                (msg) =>
+                  msg.sender !== user?.email &&
+                  (msg.senderRole === "client" ||
+                    msg.receiverRole === "manager" ||
+                    msg.type === "client-manager")
+              );
+
+              const latestClientMessage =
+                clientMessages[clientMessages.length - 1];
+
+              if (!latestClientMessage?._id) return null;
+
+              const lastReadMessageId = readMap[projectId];
+
+              if (
+                String(projectId) !== String(selectedProjectId) &&
+                String(lastReadMessageId) !== String(latestClientMessage._id)
+              ) {
+                return projectId;
+              }
+
+              return null;
+            } catch (err) {
+              console.error("Unread check failed for project:", projectId, err);
+              return null;
+            }
+          })
         );
-        setMessages(res.data);
+
+        setUnreadProjectIds(results.filter(Boolean));
       } catch (err) {
-        console.error("Messages fetch error:", err);
-        setMessages([]);
+        console.error("Unread messages check error:", err);
       }
     };
 
-    fetchMessages();
-  }, [selectedProjectId]);
+    checkUnreadMessages();
+
+    const interval = setInterval(checkUnreadMessages, 5000);
+
+    return () => clearInterval(interval);
+  }, [projects, selectedProjectId, user?.email]);
 
   const handleProjectChange = (e) => {
     const projectId = e.target.value;
@@ -153,7 +270,9 @@ export default function ClientPanel() {
   };
 
   const sendMessage = async () => {
-    if (!message.trim()) return;
+    const cleanMessage = message.trim();
+
+    if (!cleanMessage) return;
 
     if (!selectedProjectId) {
       alert("Please select a project first.");
@@ -168,18 +287,33 @@ export default function ClientPanel() {
 
     try {
       const res = await axios.post(`${API}/messages`, {
-        text: message.trim(),
-        sender: user?.email,
-        senderName: user?.name || user?.email,
+        text: cleanMessage,
+        sender: user?.email || "manager",
+        senderName: user?.name || user?.email || "Manager",
+        senderRole: "manager",
+        receiverRole: "client",
+        type: "client-manager",
         time,
-        projectId: selectedProjectId,
+        projectId: String(selectedProjectId),
       });
 
-      setMessages((prev) => [...prev, res.data]);
+      setMessages((prev) => {
+        const exists = prev.some((msg) => msg._id === res.data._id);
+        return exists ? prev : [...prev, res.data];
+      });
+
       setMessage("");
+      setTimeout(fetchMessages, 300);
     } catch (err) {
       console.error("Send message error:", err);
-      alert("❌ Message send failed");
+
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.response?.data?.details ||
+        "Message send failed";
+
+      alert(`❌ ${msg}`);
     }
   };
 
@@ -194,12 +328,18 @@ export default function ClientPanel() {
     try {
       await axios.delete(`${API}/messages/${id}`);
       setMessages((prev) => prev.filter((m) => m._id !== id));
+      setTimeout(fetchMessages, 300);
     } catch (err) {
       console.error("Delete message error:", err);
     }
   };
 
   const clearChat = async () => {
+    if (!selectedProjectId) {
+      alert("Please select a project first.");
+      return;
+    }
+
     if (!window.confirm("Do you want to delete all messages?")) return;
 
     try {
@@ -234,14 +374,14 @@ export default function ClientPanel() {
     setInviteLoading(true);
 
     try {
-     await axios.post(`${API}/invite`, {
-      email,
-      projectId: inviteProjectId,
-      invitedBy: user?.email,
-      inviterName: managerName,
-      managerName,
-      inviteRole: "client",
-    });
+      await axios.post(`${API}/invite`, {
+        email,
+        projectId: inviteProjectId,
+        invitedBy: user?.email,
+        inviterName: managerName,
+        managerName,
+        inviteRole: "client",
+      });
 
       alert(`✅ Invitation sent to ${email}!`);
       setInviteEmail("");
@@ -333,7 +473,7 @@ export default function ClientPanel() {
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("user", user?.email);
+    formData.append("user", user?.email || "manager");
     formData.append("projectId", selectedProjectId);
 
     try {
@@ -380,14 +520,19 @@ export default function ClientPanel() {
           >
             <option value="">Select Project</option>
 
-            {projects.map((project) => (
-              <option
-                key={project._id || project.id}
-                value={project._id || project.id}
-              >
-                {project.title || project.name || "Untitled Project"}
-              </option>
-            ))}
+            {projects.map((project) => {
+              const projectId = project._id || project.id;
+              const hasUnread = unreadProjectIds.some(
+                (id) => String(id) === String(projectId)
+              );
+
+              return (
+                <option key={projectId} value={projectId}>
+                  {hasUnread ? "🔴 " : ""}
+                  {project.title || project.name || "Untitled Project"}
+                </option>
+              );
+            })}
           </select>
         </div>
 
@@ -404,6 +549,7 @@ export default function ClientPanel() {
         <section className="cpCard">
           <div className="cpCardTitle">
             <span>💬 Client Messages</span>
+
             <button onClick={clearChat} className="cpClearBtn">
               Clear All
             </button>
@@ -427,7 +573,7 @@ export default function ClientPanel() {
               >
                 {msg.sender !== user?.email && (
                   <div className="cpSenderName">
-                    {msg.senderName || msg.sender}
+                    {msg.senderName || msg.sender || "User"}
                   </div>
                 )}
 
