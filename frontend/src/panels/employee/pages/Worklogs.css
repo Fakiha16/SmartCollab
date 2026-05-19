@@ -486,3 +486,233 @@
 .wl-modalBtnPrimary:hover{
   background:rgba(16,185,129,.25);
 }
+
+
+/* ================= SELECT TASK TO MOVE MODAL FIX ================= */
+
+/* Modal white box */
+.modal-content,
+.task-modal,
+.move-task-modal,
+.worklog-modal,
+[class*="modal"] {
+  color: #111827 !important;
+}
+
+/* Main modal container */
+.moveTaskModal,
+.selectTaskModal,
+.wl-moveModal,
+.worklogMoveModal {
+  width: 760px !important;
+  max-width: 92vw !important;
+  background: #ffffff !important;
+  border-radius: 28px !important;
+  padding: 28px 30px !important;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* If your modal has no exact class, this targets inner white dialog */
+[class*="modal"] > div,
+[class*="Modal"] > div {
+  color: #111827;
+}
+
+/* Header row */
+.moveTaskModalHeader,
+.modal-header,
+.wl-modalHeader {
+  display: flex !important;
+  align-items: center !important;
+  gap: 18px !important;
+  padding-bottom: 20px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+/* Title */
+.moveTaskModalHeader h2,
+.modal-header h2,
+.wl-modalHeader h2,
+.moveTaskModal h2,
+.selectTaskModal h2 {
+  color: #111827 !important;
+  font-size: 22px !important;
+  font-weight: 900 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Search input */
+.moveTaskModal input[type="text"],
+.selectTaskModal input[type="text"],
+.wl-moveModal input[type="text"],
+.worklogMoveModal input[type="text"] {
+  height: 56px !important;
+  border-radius: 18px !important;
+  border: 1px solid #d1d5db !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  padding: 0 18px !important;
+  font-size: 15px !important;
+  outline: none !important;
+}
+
+.moveTaskModal input[type="text"]::placeholder,
+.selectTaskModal input[type="text"]::placeholder,
+.wl-moveModal input[type="text"]::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Close button */
+.moveTaskModal button,
+.selectTaskModal button,
+.wl-moveModal button {
+  font-family: inherit !important;
+}
+
+/* Task table wrapper */
+.moveTaskTable,
+.taskMoveTable,
+.wl-taskTable,
+.selectTaskTable {
+  margin-top: 28px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+}
+
+/* Table header */
+.moveTaskTableHead,
+.taskMoveTableHead,
+.wl-taskTableHead,
+.selectTaskTableHead {
+  min-height: 60px !important;
+  background: #0f172a !important;
+  color: #ffffff !important;
+  display: grid !important;
+  grid-template-columns: 1fr 110px !important;
+  align-items: center !important;
+  padding: 0 22px !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+}
+
+.moveTaskTableHead *,
+.taskMoveTableHead *,
+.wl-taskTableHead *,
+.selectTaskTableHead * {
+  color: #ffffff !important;
+}
+
+/* Task row */
+.moveTaskRow,
+.taskMoveRow,
+.wl-taskRow,
+.selectTaskRow {
+  min-height: 82px !important;
+  display: grid !important;
+  grid-template-columns: 1fr 110px !important;
+  align-items: center !important;
+  padding: 16px 22px !important;
+  border-top: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+}
+
+.moveTaskRow:hover,
+.taskMoveRow:hover,
+.wl-taskRow:hover,
+.selectTaskRow:hover {
+  background: #f8fafc !important;
+}
+
+/* Task title */
+.moveTaskName,
+.taskMoveName,
+.wl-taskName,
+.selectTaskName {
+  color: #111827 !important;
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  margin-bottom: 6px !important;
+}
+
+/* Assigned text */
+.moveTaskAssigned,
+.taskMoveAssigned,
+.wl-taskAssigned,
+.selectTaskAssigned {
+  color: #64748b !important;
+  font-size: 14px !important;
+}
+
+/* Empty text */
+.moveTaskEmpty,
+.taskMoveEmpty,
+.wl-emptyText,
+.selectTaskEmpty {
+  color: #94a3b8 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  padding: 20px !important;
+}
+
+/* Checkbox */
+.moveTaskRow input[type="checkbox"],
+.taskMoveRow input[type="checkbox"],
+.wl-taskRow input[type="checkbox"],
+.selectTaskRow input[type="checkbox"] {
+  width: 22px !important;
+  height: 22px !important;
+  accent-color: #10b981 !important;
+  justify-self: center !important;
+  cursor: pointer !important;
+}
+
+/* Footer */
+.moveTaskModalFooter,
+.modal-footer,
+.wl-modalFooter {
+  margin-top: 28px !important;
+  padding-top: 20px !important;
+  border-top: 1px solid #e5e7eb !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 14px !important;
+}
+
+/* Cancel / Done buttons */
+.moveTaskModalFooter button,
+.modal-footer button,
+.wl-modalFooter button {
+  min-width: 112px !important;
+  height: 52px !important;
+  border-radius: 16px !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+}
+
+/* Better generic footer button colors */
+.moveTaskModalFooter button:first-child,
+.modal-footer button:first-child,
+.wl-modalFooter button:first-child {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+.moveTaskModalFooter button:last-child,
+.modal-footer button:last-child,
+.wl-modalFooter button:last-child {
+  background: #ccfbf1 !important;
+  color: #0f766e !important;
+  border: 1px solid #99f6e4 !important;
+}
+
+.moveTaskModalFooter button:disabled,
+.modal-footer button:disabled,
+.wl-modalFooter button:disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+}
