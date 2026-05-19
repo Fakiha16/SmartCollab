@@ -3,39 +3,36 @@ import { useNavigate } from "react-router-dom";
 import "./PerProjects.css";
 
 const STATUS_COLORS = {
-  Completed: { bg: "#e6f9f0", color: "#16a34a" },
-  Offtrack:  { bg: "#fbeaea", color: "#d45858" },
+  Completed:     { bg: "#e6f9f0", color: "#16a34a" },
+  Offtrack:      { bg: "#fbeaea", color: "#d45858" },
   "On Progress": { bg: "#fef9c3", color: "#b45309" },
-  Pending:   { bg: "#f3f4f6", color: "#6b7280" },
-  "On Hold":  { bg: "#ede9fe", color: "#7c3aed" },
+  Pending:       { bg: "#f3f4f6", color: "#6b7280" },
+  "On Hold":     { bg: "#ede9fe", color: "#7c3aed" },
 };
 
 const FILTERS = ["All", "Completed", "Offtrack", "On Progress", "Pending", "On Hold"];
 
 export default function PerProjects() {
-  const navigate = useNavigate();
-  const pageSize = 6;
+  const navigate   = useNavigate();
+  const pageSize   = 6;
 
-  const [projects, setProjects]   = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [filter, setFilter]       = useState("All");
-  const [page, setPage]           = useState(1);
-  const [dropOpen, setDropOpen]   = useState(false);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [filter, setFilter]     = useState("All");
+  const [page, setPage]         = useState(1);
+  const [dropOpen, setDropOpen] = useState(false);
 
-  // priority projectId from localStorage (set at login from invite link)
   const priorityId = localStorage.getItem("projectId");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     const fetchProjects = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/projects/client", {
+        const res  = await fetch("http://localhost:5000/api/projects/client", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
 
-        // sort: priority project first
         const sorted = [...(data.projects || data)].sort((a, b) => {
           if (String(a._id) === String(priorityId)) return -1;
           if (String(b._id) === String(priorityId)) return 1;
@@ -49,7 +46,6 @@ export default function PerProjects() {
         setLoading(false);
       }
     };
-
     fetchProjects();
   }, [priorityId]);
 
@@ -74,15 +70,17 @@ export default function PerProjects() {
   const statusStyle = (status) =>
     STATUS_COLORS[status] || { bg: "#f3f4f6", color: "#6b7280" };
 
+  // ── Navigate to client project detail on card click ──
+  const handleCardClick = (projectId) => {
+    localStorage.setItem("projectId", projectId);
+    navigate(`/client/project/${projectId}`);
+  };
+
   return (
     <div className="pr-wrap">
       <div className="pr-header">
         <div className="pr-headerLeft">
-          <button
-            className="pr-backBtn"
-            type="button"
-            onClick={() => navigate(-1)}
-          >
+          <button className="pr-backBtn" type="button" onClick={() => navigate(-1)}>
             ←
           </button>
           <h1 className="pr-title">Projects</h1>
@@ -122,13 +120,14 @@ export default function PerProjects() {
         <div className="pr-grid">
           {pageData.map((p) => {
             const isPriority = String(p._id) === String(priorityId);
-            const st = statusStyle(p.status);
-            const members = p.members || p.teamMembers || [];
+            const st         = statusStyle(p.status);
+            const members    = p.members || p.teamMembers || [];
 
             return (
               <div
                 key={p._id}
                 className={`pr-card ${isPriority ? "pr-card--priority" : ""}`}
+                onClick={() => handleCardClick(p._id)}   // ← click handler added
               >
                 {isPriority && (
                   <div className="pr-priorityBadge">⭐ Recently Joined</div>
@@ -137,7 +136,6 @@ export default function PerProjects() {
                 <div className="pr-cardTop">
                   <div className="pr-cardTitleRow">
                     <div className="pr-cardTitle">{p.name || p.title}</div>
-                    <button className="pr-editBtn" title="Edit" type="button">✎</button>
                   </div>
                   <span
                     className="pr-status"
@@ -159,9 +157,9 @@ export default function PerProjects() {
                     <span>
                       {p.deadline
                         ? new Date(p.deadline).toLocaleDateString("en-GB", {
-                            day: "2-digit",
+                            day:   "2-digit",
                             month: "long",
-                            year: "numeric",
+                            year:  "numeric",
                           })
                         : p.date || "No deadline"}
                     </span>
@@ -187,6 +185,9 @@ export default function PerProjects() {
                     </div>
                   </div>
                 </div>
+
+                {/* View detail hint */}
+                <div className="pr-viewHint">View Details →</div>
               </div>
             );
           })}

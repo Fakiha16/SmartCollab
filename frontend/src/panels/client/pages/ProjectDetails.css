@@ -1,0 +1,508 @@
+/* ═══════════════════════════════════════════════
+   ClientProjectDetail.css
+   Clean professional detail screen for clients
+═══════════════════════════════════════════════ */
+
+:root {
+  --cpd-bg:       #f0f4f8;
+  --cpd-card:     #ffffff;
+  --cpd-primary:  #2563eb;
+  --cpd-primary2: #1d4ed8;
+  --cpd-text:     #1e293b;
+  --cpd-muted:    #64748b;
+  --cpd-border:   #e2e8f0;
+  --cpd-radius:   14px;
+  --cpd-shadow:   0 1px 4px rgba(0,0,0,0.07), 0 6px 20px rgba(0,0,0,0.06);
+}
+
+/* ── Page ──────────────────────────────────── */
+.cpd-wrap {
+  min-height: 100vh;
+  background: var(--cpd-bg);
+  padding: 28px 32px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: var(--cpd-text);
+  animation: cpdFadeIn 0.25s ease;
+}
+
+@keyframes cpdFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 700px) {
+  .cpd-wrap { padding: 16px; }
+}
+
+/* ── Loading ───────────────────────────────── */
+.cpd-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  gap: 16px;
+  color: var(--cpd-muted);
+}
+
+.cpd-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--cpd-border);
+  border-top-color: var(--cpd-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Header ────────────────────────────────── */
+.cpd-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.cpd-backBtn {
+  background: var(--cpd-card);
+  border: 1.5px solid var(--cpd-border);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cpd-text);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.cpd-backBtn:hover {
+  background: var(--cpd-primary);
+  color: #fff;
+  border-color: var(--cpd-primary);
+  transform: translateX(-2px);
+}
+
+.cpd-headerInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.cpd-projectName {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--cpd-text);
+  letter-spacing: -0.5px;
+}
+
+@media (max-width: 600px) {
+  .cpd-projectName { font-size: 18px; }
+}
+
+.cpd-statusBadge {
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cpd-deadline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--cpd-muted);
+  background: var(--cpd-card);
+  border: 1px solid var(--cpd-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  white-space: nowrap;
+}
+
+.cpd-deadlineIcon { font-size: 14px; }
+
+/* ── Tabs ──────────────────────────────────── */
+.cpd-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.cpd-tab {
+  background: var(--cpd-card);
+  border: 1.5px solid var(--cpd-border);
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--cpd-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cpd-tab:hover {
+  border-color: var(--cpd-primary);
+  color: var(--cpd-primary);
+}
+
+.cpd-tab--active {
+  background: var(--cpd-primary);
+  border-color: var(--cpd-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── Body ──────────────────────────────────── */
+.cpd-body {
+  animation: cpdFadeIn 0.2s ease;
+}
+
+.cpd-empty {
+  text-align: center;
+  color: var(--cpd-muted);
+  padding: 60px 20px;
+  font-size: 15px;
+  background: var(--cpd-card);
+  border-radius: var(--cpd-radius);
+  border: 1.5px dashed var(--cpd-border);
+}
+
+/* ── Overview ──────────────────────────────── */
+.cpd-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cpd-infoCard {
+  background: var(--cpd-card);
+  border-radius: var(--cpd-radius);
+  box-shadow: var(--cpd-shadow);
+  padding: 24px;
+}
+
+.cpd-infoCard h3 {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cpd-text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cpd-infoCard p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--cpd-muted);
+  line-height: 1.7;
+}
+
+/* Stats row */
+.cpd-statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 700px) {
+  .cpd-statsRow { grid-template-columns: repeat(2, 1fr); }
+}
+
+.cpd-stat {
+  background: var(--cpd-card);
+  border-radius: var(--cpd-radius);
+  box-shadow: var(--cpd-shadow);
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.cpd-stat:hover { transform: translateY(-2px); }
+
+.cpd-statNum {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--cpd-primary);
+}
+
+.cpd-statLabel {
+  font-size: 12px;
+  color: var(--cpd-muted);
+  margin-top: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* Manager row */
+.cpd-managerRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cpd-managerAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.cpd-managerName {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cpd-text);
+}
+
+.cpd-managerEmail {
+  font-size: 13px;
+  color: var(--cpd-muted);
+  margin-top: 2px;
+}
+
+/* Latest update preview */
+.cpd-latestUpdate {}
+
+.cpd-updateTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cpd-text);
+  margin-bottom: 4px;
+}
+
+.cpd-updateDate {
+  font-size: 12px;
+  color: var(--cpd-muted);
+  margin-bottom: 10px;
+}
+
+.cpd-updateDesc {
+  font-size: 14px;
+  color: var(--cpd-muted);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ── Updates List ──────────────────────────── */
+.cpd-updatesList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cpd-updateCard {
+  background: var(--cpd-card);
+  border-radius: var(--cpd-radius);
+  box-shadow: var(--cpd-shadow);
+  padding: 22px 24px;
+  border-left: 4px solid var(--cpd-primary);
+  transition: transform 0.2s;
+}
+
+.cpd-updateCard:hover { transform: translateX(4px); }
+
+.cpd-updateCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.cpd-updateCardTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cpd-text);
+}
+
+.cpd-updateCardDate {
+  font-size: 12px;
+  color: var(--cpd-muted);
+  white-space: nowrap;
+  background: #f1f5f9;
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+.cpd-updateCardManager {
+  font-size: 12px;
+  color: var(--cpd-primary);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.cpd-updateCardDesc {
+  margin: 0;
+  font-size: 14px;
+  color: var(--cpd-muted);
+  line-height: 1.7;
+}
+
+/* ── Files List ────────────────────────────── */
+.cpd-filesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cpd-fileCard {
+  background: var(--cpd-card);
+  border-radius: var(--cpd-radius);
+  box-shadow: var(--cpd-shadow);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.2s;
+  border: 1.5px solid transparent;
+}
+
+.cpd-fileCard:hover {
+  border-color: var(--cpd-primary);
+  transform: translateY(-2px);
+}
+
+.cpd-fileIcon {
+  width: 48px;
+  height: 48px;
+  background: #eff6ff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--cpd-primary);
+  flex-shrink: 0;
+}
+
+.cpd-fileInfo { flex: 1; overflow: hidden; }
+
+.cpd-fileFileName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cpd-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cpd-fileUploader,
+.cpd-fileDate {
+  font-size: 12px;
+  color: var(--cpd-muted);
+  margin-top: 3px;
+}
+
+.cpd-downloadBtn {
+  background: var(--cpd-primary);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cpd-downloadBtn:hover { background: var(--cpd-primary2); }
+
+/* ── Team Grid ─────────────────────────────── */
+.cpd-teamGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.cpd-memberCard {
+  background: var(--cpd-card);
+  border-radius: var(--cpd-radius);
+  box-shadow: var(--cpd-shadow);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform 0.2s;
+  border: 1.5px solid transparent;
+}
+
+.cpd-memberCard:hover {
+  border-color: var(--cpd-primary);
+  transform: translateY(-2px);
+}
+
+.cpd-memberAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.cpd-memberName {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cpd-text);
+}
+
+.cpd-memberEmail {
+  font-size: 12px;
+  color: var(--cpd-muted);
+  margin-top: 2px;
+}
+
+.cpd-memberRole {
+  display: inline-block;
+  margin-top: 5px;
+  background: #eff6ff;
+  color: var(--cpd-primary);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ── View hint on cards (PerProjects) ──────── */
+.pr-viewHint {
+  margin-top: 10px;
+  text-align: right;
+  font-size: 12px;
+  color: #2563eb;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.2s;
+}
+
+.pr-card:hover .pr-viewHint {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.pr-card {
+  cursor: pointer;
+}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Profile.css";
+import "./EmpProfile.css";
 
 const workedWith = [
   { name: "Addodle", img: "https://i.pravatar.cc/80?img=12" },
@@ -226,10 +226,10 @@ export default function Profile() {
         </section>
 
         {/* RIGHT BOTTOM */}
-        <section className="pf-card pf-total">
+        {/* <section className="pf-card pf-total">
           <div className="pf-rightHead">
             <div className="pf-rightTitle">Total work done</div>
-          </div>
+          </div> 
 
           <div className="pf-donutWrap">
             <div className="pf-donut">
@@ -238,7 +238,7 @@ export default function Profile() {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
       </div>
 
