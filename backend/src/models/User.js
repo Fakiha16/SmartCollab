@@ -13,8 +13,11 @@ const userSchema = new mongoose.Schema(
 },
 
     // ✅ YE ADD KIYA — employee ka assigned projectId
-    projectId: { type: String, default: "" },
-  },
+    projectIds: {
+      type: [String],
+      default: [],
+    },  
+},
   { timestamps: true }
 );
 

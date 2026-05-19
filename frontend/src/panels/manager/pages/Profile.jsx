@@ -1,283 +1,360 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "./Profile.css";
 
-const workedWith = [
-  { name: "Addodle", img: "https://i.pravatar.cc/80?img=12" },
-  { name: "Marketplace.", img: "https://i.pravatar.cc/80?img=21" },
-  { name: "Von Dracula", img: "https://i.pravatar.cc/80?img=32" },
-  { name: "Von Dracula", img: "https://i.pravatar.cc/80?img=35" },
-  { name: "John Joestar", img: "https://i.pravatar.cc/80?img=41" },
-  { name: "Akali Jin", img: "https://i.pravatar.cc/80?img=45" }
-];
-
-const projects = [
-  { title: "Emo stuff", img: "https://picsum.photos/90/90?random=11" },
-  { title: "Tim Burton", img: "https://picsum.photos/90/90?random=12" },
-  { title: "Halloween!", img: "https://picsum.photos/90/90?random=13" },
-  { title: "Spooky Art", img: "https://picsum.photos/90/90?random=14" }
-];
-
 export default function Profile() {
-
   const navigate = useNavigate();
   const fileInputRef = useRef();
 
-  const [user,setUser] = useState(null);
+  const [user, setUser] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [joinedMembers, setJoinedMembers] = useState([]);
+  const [pendingInvites, setPendingInvites] = useState([]);
+  const [showEdit, setShowEdit] = useState(false);
 
-  const [showEdit,setShowEdit] = useState(false);
-
-  const [editData,setEditData] = useState({
-    name:"",
-    email:"",
-    role:"",
-    team:"",
-    isMember:true,
-    avatar:""
+  const [editData, setEditData] = useState({
+    name: "",
+    email: "",
+    role: "",
+    team: "",
+    isMember: true,
+    avatar: "",
   });
 
-  useEffect(()=>{
+  useEffect(() => {
     const storedUser = localStorage.getItem("user");
-
-    if(storedUser){
+    if (storedUser) {
       const parsed = JSON.parse(storedUser);
       setUser(parsed);
-
       setEditData({
         name: parsed.name || "",
         email: parsed.email || "",
         role: parsed.role || "",
         team: parsed.team || "",
         isMember: parsed.isMember ?? true,
-        avatar: parsed.avatar || ""
+        avatar: parsed.avatar || "",
       });
     }
-  },[]);
+  }, []);
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        const managerEmail = storedUser?.email || "";
+        if (!managerEmail) return;
+
+        const projectsRes = await axios.get(
+          `http://localhost:5000/api/projects/manager/${managerEmail}`
+        );
+        const managerProjects = Array.isArray(projectsRes.data)
+          ? projectsRes.data
+          : [];
+        setProjects(managerProjects);
+
+        let allJoined = [];
+        let allPending = [];
+
+        for (const project of managerProjects) {
+          const detailRes = await axios.get(
+            `http://localhost:5000/api/projects/${project._id}`
+          );
+          const projectJoined = (detailRes.data?.joinedMembers || []).map(
+            (member) => ({ ...member, projectTitle: project.title })
+          );
+          const projectPending = (detailRes.data?.pendingInvites || []).map(
+            (invite) => ({ ...invite, projectTitle: project.title })
+          );
+          allJoined = [...allJoined, ...projectJoined];
+          allPending = [...allPending, ...projectPending];
+        }
+
+        setJoinedMembers(allJoined);
+        setPendingInvites(allPending);
+      } catch (err) {
+        console.error("Profile data fetch error:", err);
+      }
+    };
+    fetchProfileData();
+  }, []);
 
   const logout = () => {
     localStorage.clear();
-    navigate("/login",{replace:true});
+    navigate("/login", { replace: true });
   };
 
-  const handleChange = (e)=>{
-    const {name,value,type,checked} = e.target;
-
-    setEditData(prev=>({
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setEditData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  // ✅ IMAGE SELECT HANDLER
-  const handleImageChange = (e)=>{
+  const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if(!file) return;
-
+    if (!file) return;
     const reader = new FileReader();
-
-    reader.onloadend = ()=>{
-      const updated = {
-        ...editData,
-        avatar: reader.result
-      };
-
+    reader.onloadend = () => {
+      const updated = { ...editData, avatar: reader.result };
       setEditData(updated);
       setUser(updated);
       localStorage.setItem("user", JSON.stringify(updated));
     };
-
     reader.readAsDataURL(file);
   };
 
-  const saveProfile = ()=>{
+  const saveProfile = () => {
     localStorage.setItem("user", JSON.stringify(editData));
     setUser(editData);
     setShowEdit(false);
   };
 
+  const getInitial = (value) => (value || "U")[0].toUpperCase();
+
+  const activeProjects = projects.filter(
+    (project) => (project.status || "Active") === "Active"
+  );
+
   return (
-
     <div className="pf-wrap">
-
       <div className="pf-grid">
 
         {/* LEFT PROFILE */}
         <section className="pf-card pf-profile">
-
           <div
             className="pf-avatarRing"
-            onClick={()=>fileInputRef.current.click()}
-            style={{cursor:"pointer"}}
+            onClick={() => fileInputRef.current.click()}
+            style={{ cursor: "pointer" }}
             title="Click to change picture"
           >
             <img
               className="pf-avatar"
-              src={
-                user?.avatar ||
-                "https://i.pravatar.cc/220?img=5"
-              }
+              src={user?.avatar || "https://i.pravatar.cc/220?img=5"}
               alt="profile"
             />
           </div>
 
-          {/* hidden input */}
           <input
             type="file"
             accept="image/*"
             ref={fileInputRef}
-            style={{display:"none"}}
+            style={{ display: "none" }}
             onChange={handleImageChange}
           />
 
-          <div className="pf-name">
-            {user?.name || "User Name"}
-          </div>
-
-          <div className="pf-loc">
-            {user?.role || "Role"}
-          </div>
+          <div className="pf-name">{user?.name || "User Name"}</div>
+          <div className="pf-loc">{user?.role || "Role"}</div>
 
           <div className="pf-info">
-
             <div className="pf-row">
               <span className="pf-ico">👤</span>
-              <span>{user?.role}</span>
+              <span>{user?.role || "Manager"}</span>
             </div>
 
             <div className="pf-row">
               <span className="pf-ico">✉️</span>
-              <span>{user?.email}</span>
+              <span>{user?.email || "No email"}</span>
             </div>
 
             <div className="pf-row">
               <span className="pf-ico">👥</span>
-              <span>{user?.team || "No Team"}</span>
+              <span>
+                {joinedMembers.length > 0
+                  ? `${joinedMembers.length} Team Members`
+                  : "No Team Members"}
+              </span>
+            </div>
+
+            <div className="pf-row">
+              <span className="pf-ico">📁</span>
+              <span>{projects.length} Projects</span>
             </div>
 
             <div className="pf-row">
               <span className="pf-ico">📄</span>
               <span>
-                {user?.isMember ? "SmartCollab Member" : "Not a Member"}
+                {user?.isMember === false
+                  ? "Not a Member"
+                  : "SmartCollab Member"}
               </span>
             </div>
-
           </div>
 
+          <div style={{ flexGrow: 1 }} />
           <div className="pf-actions">
-
-            <button
-              className="pf-editBtn"
-              onClick={()=>setShowEdit(true)}
-            >
+            <button className="pf-editBtn" onClick={() => setShowEdit(true)}>
               ✏️ Edit Profile
             </button>
-
-            <button
-              className="pf-logoutBtn"
-              onClick={logout}
-            >
+            <button className="pf-logoutBtn" onClick={logout}>
               Logout
             </button>
-
           </div>
-
         </section>
 
         {/* CENTER */}
         <section className="pf-card pf-center">
-          <div className="pf-breadcrumb">Inicio &gt; Profile</div>
+          <div className="pf-breadcrumb">SmartCollab &gt; Profile</div>
 
-          <div className="pf-title">
-            {user?.role || "Member"}
-          </div>
+          <div className="pf-title">{user?.role || "Manager"}</div>
 
           <div className="pf-quote">
             Welcome to your SmartCollab workspace
           </div>
 
           <div className="pf-sectionHead">
-            <div className="pf-sectionTitle">Worked with</div>
+            <div className="pf-sectionTitle">Team Members</div>
           </div>
 
-          <div className="pf-peopleGrid">
-            {workedWith.map((p,i)=>(
-              <div key={i} className="pf-person">
-                <img className="pf-personImg" src={p.img} alt={p.name}/>
-                <div className="pf-personName">{p.name}</div>
+          {joinedMembers.length > 0 ? (
+            <div className="pf-realList">
+              {joinedMembers.slice(0, 7).map((member, index) => (
+                <div key={index} className="pf-realItem">
+                  <div className="pf-realAvatar">
+                    {getInitial(member.name || member.email)}
+                  </div>
+
+                  <div className="pf-realText">
+                    <strong>{member.name || "Team Member"}</strong>
+                    <span>{member.email}</span>
+                    <small>{member.projectTitle}</small>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="pf-empty">No joined team members yet.</div>
+          )}
+
+          {pendingInvites.length > 0 && (
+            <>
+              <div className="pf-sectionHead pf-mt">
+                <div className="pf-sectionTitle">Pending Invites</div>
               </div>
-            ))}
-          </div>
+
+              <div className="pf-realList">
+                {pendingInvites.slice(0, 5).map((invite, index) => (
+                  <div key={index} className="pf-realItem">
+                    <div className="pf-realAvatar pf-pendingAvatar">
+                      {getInitial(invite.email)}
+                    </div>
+
+                    <div className="pf-realText">
+                      <strong>{invite.email}</strong>
+                      <span>Invitation sent</span>
+                      <small>Pending Member</small>
+                    </div>
+
+                    <div className="pf-pendingTag">Pending</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </section>
 
-        {/* RIGHT PROJECTS */}
-        <section className="pf-card pf-projects">
-          <div className="pf-rightHead">
-            <div className="pf-rightTitle">Projects</div>
-          </div>
+        {/* RIGHT COLUMN */}
+        <div className="pf-rightColumn">
+          {/* MY PROJECTS */}
+          <section className="pf-card pf-projects">
+            <div className="pf-rightHead">
+              <div className="pf-rightTitle">My Projects</div>
+            </div>
 
-          <div className="pf-projectGrid">
-            {projects.map((p,i)=>(
-              <div key={i} className="pf-projectItem">
-                <img className="pf-projectImg" src={p.img} alt={p.title}/>
-                <div className="pf-projectLabel">{p.title}</div>
+            {projects.length > 0 ? (
+              <div className="pf-projectRealList">
+                {projects.map((project) => (
+                  <div key={project._id} className="pf-projectRealCard">
+                    <div className="pf-projectCardText">
+                      <strong>{project.title}</strong>
+                      <p>{project.desc || "No description added"}</p>
+                    </div>
+
+                    <span className="pf-statusBadge">
+                      {project.status || "Active"}
+                    </span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
+            ) : (
+              <div className="pf-empty">No projects created yet.</div>
+            )}
+          </section>
 
-        {/* RIGHT BOTTOM */}
-        <section className="pf-card pf-total">
-          <div className="pf-rightHead">
-            <div className="pf-rightTitle">Total work done</div>
-          </div>
+          {/* WORKSPACE SUMMARY */}
+          <section className="pf-card pf-total">
+            <div className="pf-rightHead">
+              <div className="pf-rightTitle">Workspace Summary</div>
+            </div>
 
-          <div className="pf-donutWrap">
-            <div className="pf-donut">
-              <div className="pf-donutInner">
-                <div className="pf-donutText">Active</div>
+            <div className="pf-statsGrid">
+              <div className="pf-statBox">
+                <strong>{projects.length}</strong>
+                <span>Total Projects</span>
+              </div>
+
+              <div className="pf-statBox">
+                <strong>{activeProjects.length}</strong>
+                <span>Active Projects</span>
+              </div>
+
+              <div className="pf-statBox">
+                <strong>{joinedMembers.length}</strong>
+                <span>Team Members</span>
+              </div>
+
+              <div className="pf-statBox">
+                <strong>{pendingInvites.length}</strong>
+                <span>Pending Invites</span>
               </div>
             </div>
-          </div>
-        </section>
-
+          </section>
+        </div>
       </div>
 
-      {/* EDIT MODAL SAME AS BEFORE */}
+      {/* EDIT MODAL */}
       {showEdit && (
         <div className="pf-modalOverlay">
           <div className="pf-modal">
             <h2>Edit Profile</h2>
 
-            <input name="name" value={editData.name} onChange={handleChange} />
-            <input name="email" value={editData.email} onChange={handleChange} />
+            <input
+              name="name"
+              value={editData.name}
+              onChange={handleChange}
+            />
 
-            <select name="role" value={editData.role} onChange={handleChange}>
-              <option value="">Select Role</option>
-              <option value="Developer">Developer</option>
-              <option value="Tester">Tester</option>
-              <option value="Designer">Designer</option>
-              <option value="Manager">Manager</option>
-            </select>
+            <input
+              name="email"
+              value={editData.email}
+              onChange={handleChange}
+            />
 
-<input
-  name="team"
-  value={editData.team}
-  onChange={handleChange}
-  placeholder="Enter Team Name"
-/>
+            <input
+              name="role"
+              value={editData.role}
+              readOnly
+              className="pf-readOnlyInput"
+            />
+
             <label>
-              <input type="checkbox" name="isMember" checked={editData.isMember} onChange={handleChange}/>
+              <input
+                type="checkbox"
+                name="isMember"
+                checked={editData.isMember}
+                onChange={handleChange}
+              />
               SmartCollab Member
             </label>
 
             <div className="pf-modalActions">
               <button onClick={saveProfile}>Save</button>
-              <button onClick={()=>setShowEdit(false)}>Cancel</button>
+              <button onClick={() => setShowEdit(false)}>Cancel</button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }

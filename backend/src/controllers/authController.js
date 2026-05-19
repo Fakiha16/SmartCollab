@@ -3,6 +3,25 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+
+const addProjectToUser = async (user, projectId) => {
+  if (!projectId) return user;
+
+  user.projectId = projectId;
+
+  if (!Array.isArray(user.projectIds)) {
+    user.projectIds = [];
+  }
+
+  if (!user.projectIds.includes(projectId)) {
+    user.projectIds.push(projectId);
+  }
+
+  await user.save();
+  return user;
+};
+
+
 const markInviteAsJoined = async (projectId, email) => {
   if (!projectId || !email) return;
 
@@ -63,6 +82,8 @@ exports.signup = async (req, res) => {
       role,
       empType: empType || "",
       projectId: projectId || "",
+      projectIds: projectId ? [projectId] : [],
+
     });
 
     await user.save();
@@ -80,6 +101,8 @@ exports.signup = async (req, res) => {
         role: user.role,
         empType: user.empType,
         projectId: user.projectId || null,
+        projectIds: user.projectIds || [],
+
       },
     });
   } catch (err) {
@@ -144,6 +167,8 @@ exports.login = async (req, res) => {
         role: user.role,
         empType: user.empType,
         projectId: user.projectId || null,
+        projectIds: user.projectIds || [],
+
       },
     });
   } catch (err) {

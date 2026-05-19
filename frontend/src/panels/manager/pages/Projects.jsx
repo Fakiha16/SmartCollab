@@ -19,7 +19,7 @@ export default function Projects() {
   const [isSending, setIsSending] = useState(false);
 
   const [form, setForm] = useState({
-    title: "", desc: "", frontend: "", backend: "", tester: "", designer: ""
+    title: "", desc: "",
   });
 
 useEffect(() => {
@@ -109,7 +109,7 @@ useEffect(() => {
     setShowForm(false);
     setIsEdit(false);
     setEditId(null);
-    setForm({ title: "", desc: "", frontend: "", backend: "", tester: "", designer: "" });
+    setForm({ title: "", desc: ""});
   };
 
   const handleEdit = (p) => {
@@ -243,14 +243,6 @@ useEffect(() => {
             <div className="pr-modalBody">
               <input name="title" placeholder="Project Name" value={form.title} onChange={handleChange} />
               <textarea name="desc" placeholder="Description" value={form.desc} onChange={handleChange} />
-              {!isEdit && (
-                <>
-                  <input name="frontend" placeholder="Frontend" value={form.frontend} onChange={handleChange} />
-                  <input name="backend" placeholder="Backend" value={form.backend} onChange={handleChange} />
-                  <input name="tester" placeholder="QA" value={form.tester} onChange={handleChange} />
-                  <input name="designer" placeholder="Designer" value={form.designer} onChange={handleChange} />
-                </>
-              )}
             </div>
             <div className="pr-modalFooter">
               <button className="pr-btn primary" onClick={handleSubmit}>{isEdit ? "Update" : "Create"}</button>

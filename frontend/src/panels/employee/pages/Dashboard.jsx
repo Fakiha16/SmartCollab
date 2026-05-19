@@ -8,15 +8,20 @@ const socket = io("http://localhost:5000");
 export default function Dashboard() {
 
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
+const user = JSON.parse(localStorage.getItem("user"));
 
-  // ✅ projectId — URL se bhi lo, localStorage se bhi
-  const params = new URLSearchParams(window.location.search);
-  const urlPid = params.get("projectId");
-  const storedPid = localStorage.getItem("projectId");
+const params = new URLSearchParams(window.location.search);
+const urlPid = params.get("projectId");
+const storedPid = localStorage.getItem("projectId");
 
-  // URL wala prefer karo, warna stored use karo
-  const projectId = urlPid || storedPid;
+const userProjectIds = user?.projectIds || [];
+
+const projectId =
+  urlPid ||
+  storedPid ||
+  user?.projectId ||
+  userProjectIds[0] ||
+  "";
 
   // ✅ Agar URL mein tha to localStorage update karo
   useEffect(() => {
@@ -25,6 +30,38 @@ export default function Dashboard() {
       console.log("✅ projectId updated from URL:", urlPid);
     }
   }, [urlPid]);
+
+
+  useEffect(() => {
+  const joinActiveProject = async () => {
+    try {
+      if (!projectId || !user?.email) return;
+
+      const res = await fetch("http://localhost:5000/api/projects/join-project", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId,
+          email: user.email,
+        }),
+      });
+
+      const data = await res.json();
+      console.log("✅ Employee joined active project:", data);
+
+      if (data?.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("projectId", projectId);
+      }
+    } catch (err) {
+      console.error("Join active project failed:", err);
+    }
+  };
+
+  joinActiveProject();
+}, [projectId, user?.email]);
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");   // ✅ FIXED: [] ki jagah ""
