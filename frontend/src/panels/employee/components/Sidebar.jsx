@@ -5,9 +5,8 @@ import "./Sidebar.css";
 
 const menus = [
   { to: "/employee/dashboard",      label: "Dashboard" },
-  { to: "/employee/performance",       label: "Performance" },
   { to: "/employee/work-logs",      label: "WorkLogs" },
-  { to: "/employee/tasks", label: "Task" }
+  { to: "/employee/tasks", label: "Tasks" }
 ];
 
 export default function Sidebar() {
