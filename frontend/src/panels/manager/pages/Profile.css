@@ -12,13 +12,13 @@
 }
 
 /* ── MAIN GRID ── */
-.pf-grid {
-  display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
-  max-width: 1400px;
-  margin: 0 auto;
+.pf-wrap .pf-grid {
+display: grid;
+    grid-template-columns: 300px 1fr 300px;
+    gap: 10px;
+    align-items: start;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 /* ── BASE CARD ── */
@@ -155,7 +155,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  min-height: 250px;
+  min-height: 200px;
 }
 
 .pf-breadcrumb {
@@ -610,7 +610,7 @@
 }
 
 .pf-center .pf-realList {
-  max-height: 330px;
+  max-height: 140px;
   overflow-y: auto;
   padding-right: 6px;
 }
