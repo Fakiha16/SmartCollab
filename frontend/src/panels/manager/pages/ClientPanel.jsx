@@ -6,15 +6,38 @@ const API = "http://localhost:5000/api";
 
 export default function ClientPanel() {
   const user = JSON.parse(localStorage.getItem("user"));
-  const projectId = localStorage.getItem("projectId");
+  const storedProjectId = localStorage.getItem("projectId");
 
-  // ─── State ───────────────────────────────────────────────
+  const getProjectIdFromUrl = () => {
+    const params = new URLSearchParams(window.location.search);
+    const queryProjectId = params.get("projectId");
+
+    if (queryProjectId) return queryProjectId;
+
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const lastPart = pathParts[pathParts.length - 1];
+
+    if (/^[a-f\d]{24}$/i.test(lastPart)) return lastPart;
+
+    return "";
+  };
+
+  const defaultProjectId =
+    storedProjectId ||
+    user?.projectId ||
+    user?.projectIds?.[0] ||
+    getProjectIdFromUrl();
+
   const [files, setFiles] = useState([]);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
 
   const [showInvite, setShowInvite] = useState(false);
   const [showUpdate, setShowUpdate] = useState(false);
+
+  const [projects, setProjects] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [inviteProjectId, setInviteProjectId] = useState("");
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
@@ -29,54 +52,125 @@ export default function ClientPanel() {
   const fileInputRef = useRef(null);
   const chatBodyRef = useRef(null);
 
-  // ─── Derived ─────────────────────────────────────────────
   const managerName = user?.name || user?.email || "Manager";
 
-  // ─── Auto-scroll chat ────────────────────────────────────
+  useEffect(() => {
+    const fetchManagerProjects = async () => {
+      try {
+        if (!user?.email) return;
+
+        const res = await axios.get(`${API}/projects/manager/${user.email}`);
+
+        if (Array.isArray(res.data)) {
+          setProjects(res.data);
+
+         useEffect(() => {
+          const fetchManagerProjects = async () => {
+            try {
+              if (!user?.email) return;
+
+              const res = await axios.get(`${API}/projects/manager/${user.email}`);
+
+              if (Array.isArray(res.data)) {
+                setProjects(res.data);
+              }
+            } catch (err) {
+              console.error("Fetch manager projects error:", err);
+            }
+          };
+
+          fetchManagerProjects();
+        }, [user?.email]);
+        }
+      } catch (err) {
+        console.error("Fetch manager projects error:", err);
+      }
+    };
+
+    fetchManagerProjects();
+  }, [user?.email, selectedProjectId]);
+
+  useEffect(() => {
+    if (selectedProjectId) {
+      localStorage.setItem("projectId", selectedProjectId);
+    }
+  }, [selectedProjectId]);
+
   useEffect(() => {
     if (chatBodyRef.current) {
       chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // ─── Fetch Files ─────────────────────────────────────────
   useEffect(() => {
-    if (!projectId) return;
+    if (!selectedProjectId) {
+      setFiles([]);
+      return;
+    }
+
     const fetchFiles = async () => {
       try {
-        const res = await axios.get(`${API}/upload/${projectId}`);
+        const res = await axios.get(`${API}/upload/${selectedProjectId}`);
         const sorted = res.data.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
         setFiles(sorted);
       } catch (err) {
         console.error("Files fetch error:", err);
+        setFiles([]);
       }
     };
-    fetchFiles();
-  }, [projectId]);
 
-  // ─── Fetch Messages ──────────────────────────────────────
+    fetchFiles();
+  }, [selectedProjectId]);
+
   useEffect(() => {
-    if (!projectId) return;
+    if (!selectedProjectId) {
+      setMessages([]);
+      return;
+    }
+
     const fetchMessages = async () => {
       try {
-        // Filter by projectId if your backend supports it; fallback to all
-        const res = await axios.get(`${API}/messages?projectId=${projectId}`);
+        const res = await axios.get(`${API}/messages?projectId=${selectedProjectId}`);
         setMessages(res.data);
       } catch (err) {
         console.error("Messages fetch error:", err);
+        setMessages([]);
       }
     };
-    fetchMessages();
-  }, [projectId]);
 
-  // ─── Send Message ────────────────────────────────────────
+    fetchMessages();
+  }, [selectedProjectId]);
+
+  const handleProjectChange = (e) => {
+    const projectId = e.target.value;
+
+    setSelectedProjectId(projectId);
+    setInviteProjectId(projectId);
+    setMessages([]);
+    setFiles([]);
+
+    if (projectId) {
+      localStorage.setItem("projectId", projectId);
+    } else {
+      localStorage.removeItem("projectId");
+    }
+  };
+
   const sendMessage = async () => {
     if (!message.trim()) return;
 
+    if (!selectedProjectId) {
+      alert("Please select a project first.");
+      return;
+    }
+
     const now = new Date();
-    const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const time = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
     try {
       const res = await axios.post(`${API}/messages`, {
@@ -84,8 +178,9 @@ export default function ClientPanel() {
         sender: user?.email,
         senderName: user?.name || user?.email,
         time,
-        projectId,
+        projectId: selectedProjectId,
       });
+
       setMessages((prev) => [...prev, res.data]);
       setMessage("");
     } catch (err) {
@@ -101,7 +196,6 @@ export default function ClientPanel() {
     }
   };
 
-  // ─── Delete Single Message ───────────────────────────────
   const deleteMessage = async (id) => {
     try {
       await axios.delete(`${API}/messages/${id}`);
@@ -111,11 +205,11 @@ export default function ClientPanel() {
     }
   };
 
-  // ─── Clear All Chat ──────────────────────────────────────
   const clearChat = async () => {
-    if (!window.confirm("Sab messages delete karna chahte hain?")) return;
+    if (!window.confirm("Do you want to delete all messages?")) return;
+
     try {
-      await axios.delete(`${API}/messages?projectId=${projectId}`);
+      await axios.delete(`${API}/messages?projectId=${selectedProjectId}`);
       setMessages([]);
     } catch (err) {
       console.error("Clear chat error:", err);
@@ -123,68 +217,88 @@ export default function ClientPanel() {
     }
   };
 
-  // ─── Send Invitation ─────────────────────────────────────
   const sendInvite = async () => {
-    if (!inviteEmail.trim()) {
+    const email = inviteEmail.trim();
+
+    if (!email) {
       alert("Please enter an email address.");
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(inviteEmail.trim())) {
+
+    if (!emailRegex.test(email)) {
       alert("Please enter a valid email address.");
       return;
     }
 
+    if (!inviteProjectId) {
+      alert("Please select a project.");
+      return;
+    }
+
     setInviteLoading(true);
+
     try {
       await axios.post(`${API}/invite`, {
-        email: inviteEmail.trim(),
-        projectId,
+        email,
+        projectId: inviteProjectId,
         invitedBy: user?.email,
         inviterName: managerName,
       });
-      alert(`✅ Invitation sent to ${inviteEmail}!`);
+
+      alert(`✅ Invitation sent to ${email}!`);
       setInviteEmail("");
       setShowInvite(false);
     } catch (err) {
       console.error("Invite error:", err);
-      const msg = err.response?.data?.message || "Email send failed";
+
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Email send failed. Please check backend console.";
+
       alert(`❌ ${msg}`);
     } finally {
       setInviteLoading(false);
     }
   };
 
-  // ─── Update Status ───────────────────────────────────────
   const handleUpdateStatus = async () => {
     if (!updateTitle.trim()) {
       alert("Please enter a title.");
       return;
     }
+
     if (!updateDescription.trim()) {
       alert("Please provide a description.");
       return;
     }
 
+    if (!selectedProjectId) {
+      alert("Please select a project first.");
+      return;
+    }
+
     setUpdateLoading(true);
+
     try {
       await axios.post(`${API}/update-status`, {
         title: updateTitle.trim(),
         manager: managerName,
         date: updateDate,
         description: updateDescription.trim(),
-        projectId,
+        projectId: selectedProjectId,
       });
+
       alert("✅ Status updated successfully!");
-      // Reset form
       setUpdateTitle("");
       setUpdateDescription("");
       setUpdateDate(new Date().toISOString().split("T")[0]);
       setShowUpdate(false);
     } catch (err) {
       console.error("Update status error:", err);
+
       const msg = err.response?.data?.message || "Update failed";
       alert(`❌ ${msg}`);
     } finally {
@@ -192,23 +306,28 @@ export default function ClientPanel() {
     }
   };
 
-  // ─── File Upload ─────────────────────────────────────────
   const handleUpload = async (e) => {
     const file = e.target.files[0];
+
     if (!file) return;
 
-    // Reset so same file can be re-uploaded if needed
+    if (!selectedProjectId) {
+      alert("Please select a project first.");
+      return;
+    }
+
     e.target.value = "";
 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("user", user?.email);
-    formData.append("projectId", projectId);
+    formData.append("projectId", selectedProjectId);
 
     try {
       const res = await axios.post(`${API}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       setFiles((prev) => [res.data, ...prev]);
     } catch (err) {
       console.error("Upload error:", err);
@@ -216,14 +335,15 @@ export default function ClientPanel() {
     }
   };
 
-  // ─── File Delete ─────────────────────────────────────────
   const handleDeleteFile = async (file) => {
-    // Only uploader can delete
     if (file.uploadedBy && file.uploadedBy !== user?.email) {
-      alert("Sirf apna uploaded file delete kar sakte hain.");
+      alert("You can only delete your own uploaded file.");
       return;
     }
-    if (!window.confirm(`"${file.name || file.filename}" delete karna chahte hain?`)) return;
+
+    if (!window.confirm(`Do you want to delete "${file.name || file.filename}"?`)) {
+      return;
+    }
 
     try {
       await axios.delete(`${API}/upload/${file._id}`);
@@ -234,44 +354,72 @@ export default function ClientPanel() {
     }
   };
 
-  // ─── Render ──────────────────────────────────────────────
   return (
     <div className="cpDash">
-
-      {/* TOP ACTION BUTTONS */}
       <div className="cpInviteWrap">
+        <div className="cpProjectSelectBox">
+          <span className="cpProjectSelectIcon">📌</span>
+
+          <select
+            className="cpTopProjectSelect"
+            value={selectedProjectId}
+            onChange={handleProjectChange}
+          >
+            <option value="">Select Project</option>
+
+            {projects.map((project) => (
+              <option key={project._id || project.id} value={project._id || project.id}>
+                {project.title || project.name || "Untitled Project"}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <button className="cpInviteBtn" onClick={() => setShowInvite(true)}>
           ✉ Send Invitation
         </button>
+
         <button className="cpUpdateBtn" onClick={() => setShowUpdate(true)}>
           📋 Update Status
         </button>
       </div>
 
       <div className="cpDashWrap">
-
-        {/* ── CHAT SECTION ── */}
         <section className="cpCard">
           <div className="cpCardTitle">
             <span>💬 Client Messages</span>
-            <button onClick={clearChat} className="cpClearBtn">Clear All</button>
+            <button onClick={clearChat} className="cpClearBtn">
+              Clear All
+            </button>
           </div>
 
           <div className="cpChatBody" ref={chatBodyRef}>
             {messages.length === 0 && (
-              <div className="cpEmpty">No messages yet. Start the conversation!</div>
+              <div className="cpEmpty">
+                {selectedProjectId
+                  ? "No messages yet. Start the conversation!"
+                  : "Please select a project to view messages."}
+              </div>
             )}
+
             {messages.map((msg) => (
               <div
                 key={msg._id}
-                className={`cpChatBubble ${msg.sender === user?.email ? "cpMe" : "cpOther"}`}
+                className={`cpChatBubble ${
+                  msg.sender === user?.email ? "cpMe" : "cpOther"
+                }`}
               >
                 {msg.sender !== user?.email && (
-                  <div className="cpSenderName">{msg.senderName || msg.sender}</div>
+                  <div className="cpSenderName">
+                    {msg.senderName || msg.sender}
+                  </div>
                 )}
+
                 <div className="cpBubbleText">{msg.text}</div>
+
                 <div className="cpChatMeta">
                   <span className="cpChatTime">{msg.time}</span>
+
                   {msg.sender === user?.email && (
                     <button
                       className="cpDeleteMsgBtn"
@@ -293,18 +441,20 @@ export default function ClientPanel() {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleMessageKeyDown}
               placeholder="Type a message... (Enter to send)"
+              disabled={!selectedProjectId}
             />
-            <button onClick={sendMessage} disabled={!message.trim()}>➤</button>
+
+            <button onClick={sendMessage} disabled={!message.trim() || !selectedProjectId}>
+              ➤
+            </button>
           </div>
         </section>
 
-        {/* ── FILES SECTION ── */}
         <section className="cpCard">
           <div className="cpCardTitle">
             <span>📁 Shared Documents</span>
           </div>
 
-          {/* Hidden file input */}
           <input
             type="file"
             ref={fileInputRef}
@@ -313,7 +463,6 @@ export default function ClientPanel() {
           />
 
           <div className="cpDocContainer">
-            {/* Upload trigger */}
             <div
               className="cpUploadBox"
               onClick={() => fileInputRef.current?.click()}
@@ -323,25 +472,34 @@ export default function ClientPanel() {
               <span className="cpUploadLabel">Upload File</span>
             </div>
 
-            {/* File list */}
             <div className="cpDocBody">
               {files.length === 0 ? (
-                <div className="cpEmpty">No files uploaded yet.</div>
+                <div className="cpEmpty">
+                  {selectedProjectId
+                    ? "No files uploaded yet."
+                    : "Please select a project to view files."}
+                </div>
               ) : (
                 files.map((f, i) => {
                   const fileName = f.name || f.filename || "file";
                   const ext = fileName.split(".").pop().toUpperCase();
+
                   return (
                     <div key={f._id || i} className="cpFileCard">
                       <div className="cpFileIcon">
                         <span className="cpFileExt">{ext}</span>
                       </div>
+
                       <div className="cpFileMiddle">
-                        <div className="cpFileName" title={fileName}>{fileName}</div>
+                        <div className="cpFileName" title={fileName}>
+                          {fileName}
+                        </div>
+
                         {f.uploadedBy && (
                           <div className="cpFileUploader">{f.uploadedBy}</div>
                         )}
                       </div>
+
                       <div className="cpFileActions">
                         <a
                           href={`http://localhost:5000/uploads/${fileName}`}
@@ -351,6 +509,7 @@ export default function ClientPanel() {
                         >
                           ⬇
                         </a>
+
                         <button
                           className="cpFileBtn cpDelete"
                           onClick={() => handleDeleteFile(f)}
@@ -366,21 +525,40 @@ export default function ClientPanel() {
             </div>
           </div>
         </section>
-
       </div>
 
-      {/* ── INVITE MODAL ── */}
       {showInvite && (
         <div className="cpModalOverlay" onClick={() => setShowInvite(false)}>
           <div className="cpModal" onClick={(e) => e.stopPropagation()}>
             <div className="cpModalHeader">
               <h3>✉ Send Invitation</h3>
-              <button className="cpModalClose" onClick={() => setShowInvite(false)}>✕</button>
+
+              <button
+                className="cpModalClose"
+                onClick={() => setShowInvite(false)}
+              >
+                ✕
+              </button>
             </div>
-            <p className="cpModalSubtitle">
-              Client ko project access ke liye invite karein.
-            </p>
+
+            <label className="cpLabel">Select Project *</label>
+
+            <select
+              value={inviteProjectId}
+              onChange={(e) => setInviteProjectId(e.target.value)}
+              className="cpSelect"
+            >
+              <option value="">Select Project</option>
+
+              {projects.map((project) => (
+                <option key={project._id || project.id} value={project._id || project.id}>
+                  {project.title || project.name || "Untitled Project"}
+                </option>
+              ))}
+            </select>
+
             <label className="cpLabel">Email Address *</label>
+
             <input
               type="email"
               value={inviteEmail}
@@ -389,15 +567,20 @@ export default function ClientPanel() {
               onKeyDown={(e) => e.key === "Enter" && sendInvite()}
               autoFocus
             />
+
             <div className="cpModalActions">
               <button
                 className="cpBtnPrimary"
                 onClick={sendInvite}
-                disabled={inviteLoading || !inviteEmail.trim()}
+                disabled={inviteLoading || !inviteEmail.trim() || !inviteProjectId}
               >
                 {inviteLoading ? "Sending..." : "Send Invite"}
               </button>
-              <button className="cpBtnSecondary" onClick={() => setShowInvite(false)}>
+
+              <button
+                className="cpBtnSecondary"
+                onClick={() => setShowInvite(false)}
+              >
                 Cancel
               </button>
             </div>
@@ -405,19 +588,26 @@ export default function ClientPanel() {
         </div>
       )}
 
-      {/* ── UPDATE STATUS MODAL ── */}
       {showUpdate && (
         <div className="cpModalOverlay" onClick={() => setShowUpdate(false)}>
           <div className="cpModal cpModalLarge" onClick={(e) => e.stopPropagation()}>
             <div className="cpModalHeader">
               <h3>📋 Update Project Status</h3>
-              <button className="cpModalClose" onClick={() => setShowUpdate(false)}>✕</button>
+
+              <button
+                className="cpModalClose"
+                onClick={() => setShowUpdate(false)}
+              >
+                ✕
+              </button>
             </div>
+
             <p className="cpModalSubtitle">
-              Client ko project ki latest update bhejein.
+              Send the latest project update to the client.
             </p>
 
             <label className="cpLabel">Update Title *</label>
+
             <input
               type="text"
               placeholder="e.g. Phase 1 Complete"
@@ -427,6 +617,7 @@ export default function ClientPanel() {
             />
 
             <label className="cpLabel">Manager</label>
+
             <input
               type="text"
               value={managerName}
@@ -435,6 +626,7 @@ export default function ClientPanel() {
             />
 
             <label className="cpLabel">Date *</label>
+
             <input
               type="date"
               value={updateDate}
@@ -442,8 +634,9 @@ export default function ClientPanel() {
             />
 
             <label className="cpLabel">Description *</label>
+
             <textarea
-              placeholder="Update ki details likhein... (kya complete hua, next steps kya hain)"
+              placeholder="Write update details..."
               value={updateDescription}
               onChange={(e) => setUpdateDescription(e.target.value)}
               rows={5}
@@ -453,18 +646,25 @@ export default function ClientPanel() {
               <button
                 className="cpBtnPrimary"
                 onClick={handleUpdateStatus}
-                disabled={updateLoading || !updateTitle.trim() || !updateDescription.trim()}
+                disabled={
+                  updateLoading ||
+                  !updateTitle.trim() ||
+                  !updateDescription.trim()
+                }
               >
                 {updateLoading ? "Updating..." : "Send Update"}
               </button>
-              <button className="cpBtnSecondary" onClick={() => setShowUpdate(false)}>
+
+              <button
+                className="cpBtnSecondary"
+                onClick={() => setShowUpdate(false)}
+              >
                 Cancel
               </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }

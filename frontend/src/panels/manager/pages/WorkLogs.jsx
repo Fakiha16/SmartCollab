@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import "./EmployeeWorkLogs.css";
 import axios from "axios";
 
@@ -39,9 +39,10 @@ function CardItem({ item }) {
     <div className="wl-card">
       <div className="wl-cardTop">
         <div className="wl-cardTitle">{item.title}</div>
+
         <div className="wl-days">
           <Icon>⏱</Icon>
-          <span>{calculateRemainingDays(item.endDate)}</span>
+          <span>{calculateRemainingDays(item.endDate || item.taskEndDate)}</span>
         </div>
       </div>
 
@@ -80,6 +81,7 @@ export default function WorkLogs() {
 
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState("");
+
   const [columnSearch, setColumnSearch] = useState({
     backlog: "",
     inprogress: "",
@@ -96,7 +98,35 @@ export default function WorkLogs() {
   const [assignedTo, setAssignedTo] = useState("");
   const [projectMembers, setProjectMembers] = useState([]);
 
-  // Load only current manager projects
+  const fetchTasks = useCallback(async () => {
+    if (!selectedProject) return;
+
+    try {
+      const res = await axios.get("http://localhost:5000/api/tasks");
+
+      const grouped = {
+        backlog: [],
+        inprogress: [],
+        review: [],
+        completed: [],
+      };
+
+      if (Array.isArray(res.data)) {
+        res.data.forEach((task) => {
+          const pid = task.projectId?._id || task.projectId;
+
+          if (pid === selectedProject && grouped[task.status]) {
+            grouped[task.status].push(task);
+          }
+        });
+      }
+
+      setData(grouped);
+    } catch (err) {
+      console.error("Fetch tasks error:", err);
+    }
+  }, [selectedProject]);
+
   useEffect(() => {
     const fetchManagerProjects = async () => {
       try {
@@ -134,12 +164,9 @@ export default function WorkLogs() {
   }, [managerId]);
 
   useEffect(() => {
-    if (selectedProject) {
-      fetchTasks();
-    }
-  }, [selectedProject]);
+    fetchTasks();
+  }, [fetchTasks]);
 
-  // Load selected project members
   useEffect(() => {
     if (!selectedProject) {
       setProjectMembers([]);
@@ -150,7 +177,6 @@ export default function WorkLogs() {
       .get(`http://localhost:5000/api/projects/${selectedProject}`)
       .then((res) => {
         const joinedMembers = res.data?.joinedMembers || [];
-
         const memberEmails = joinedMembers.map((member) => member.email);
 
         setProjectMembers(memberEmails);
@@ -160,33 +186,6 @@ export default function WorkLogs() {
         setProjectMembers([]);
       });
   }, [selectedProject]);
-
-  const fetchTasks = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/tasks");
-
-      const grouped = {
-        backlog: [],
-        inprogress: [],
-        review: [],
-        completed: [],
-      };
-
-      if (Array.isArray(res.data)) {
-        res.data.forEach((task) => {
-          const pid = task.projectId;
-
-          if (pid === selectedProject && grouped[task.status]) {
-            grouped[task.status].push(task);
-          }
-        });
-      }
-
-      setData(grouped);
-    } catch (err) {
-      console.error("Fetch tasks error:", err);
-    }
-  };
 
   const openModal = () => setIsModalOpen(true);
 
@@ -225,10 +224,10 @@ export default function WorkLogs() {
         status: "backlog",
         projectId: selectedProject,
         assignedTo,
-        taskStartDate: taskStartDate,
-        taskEndDate: taskEndDate,
-       // startDate: taskStartDate,
-       // endDate: taskEndDate,
+        taskStartDate,
+        taskEndDate,
+        startDate: taskStartDate,
+        endDate: taskEndDate,
         taskType,
       });
 
@@ -388,6 +387,7 @@ export default function WorkLogs() {
               onChange={(e) => setAssignedTo(e.target.value)}
             >
               <option value="">Assign To</option>
+
               {projectMembers.map((email, i) => (
                 <option key={i} value={email}>
                   {email}
