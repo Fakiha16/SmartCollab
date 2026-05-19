@@ -1,5 +1,5 @@
 .ac-wrap {
-  padding: 20px;
+  padding: 0px 20px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -21,7 +21,8 @@
 .ac-team {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 4px;
+  height: 450px;
 }
 
 /* heading */
@@ -30,6 +31,7 @@
   font-weight: 900;
   color: #111827;
   margin-bottom: 10px;
+  margin-top: -10px;
 }
 
 /* dropdowns */
@@ -470,13 +472,12 @@
   transform: scale(1.05);
 }
 .ac-selectedInfo {
-  margin-top: 10px;
   color: #64748b;
   font-size: 14px;
 }
 
 .ac-membersSection {
-  margin-top: 22px;
+  margin-top: -15px;
 }
 
 .ac-membersSection h4 {
@@ -489,7 +490,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 220px;
+  max-height: 120px;
   overflow-y: auto;
   padding-right: 6px;
 }
@@ -587,3 +588,6 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+
+

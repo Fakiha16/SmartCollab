@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Task = require("../models/Task");
+const User = require("../models/User");
 
 
 // ✅ GET ALL TASKS (FIX ADDED)
@@ -114,5 +115,76 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+router.get("/assigned/:email", async (req, res) => {
+  try {
+    const email = req.params.email;
+
+    const tasks = await Task.find({
+      $or: [
+        { assignedTo: email },
+        { assigneeEmail: email },
+        { employeeEmail: email },
+        { assignedToEmail: email },
+        { "assignedTo.email": email },
+        { assignedEmail: email },
+      ],
+    }).sort({ createdAt: -1 });
+
+    res.json(tasks);
+  } catch (err) {
+    console.error("Assigned tasks fetch error:", err);
+    res.status(500).json({ message: "Error fetching assigned tasks" });
+  }
+});
+
+
+// GET assigned tasks by employee email
+router.get("/assigned/:email", async (req, res) => {
+  try {
+    const email = decodeURIComponent(req.params.email);
+
+    const user = await User.findOne({ email });
+
+    const userId = user?._id?.toString();
+    const userName = user?.name;
+    const empType = user?.empType;
+
+    const tasks = await Task.find({
+      $or: [
+        { assignedTo: email },
+        { assigneeEmail: email },
+        { employeeEmail: email },
+        { assignedToEmail: email },
+        { assignedEmail: email },
+
+        { "assignedTo.email": email },
+        { "assignee.email": email },
+        { "employee.email": email },
+
+        { assignedTo: userId },
+        { assignee: userId },
+        { employee: userId },
+
+        { "assignedTo._id": userId },
+        { "assignee._id": userId },
+        { "employee._id": userId },
+
+        { assignedTo: userName },
+        { assignee: userName },
+        { employee: userName },
+
+        { assignedTo: empType },
+        { assignee: empType },
+        { employeeRole: empType },
+        { empType: empType },
+      ],
+    }).sort({ createdAt: -1 });
+
+    res.json(tasks);
+  } catch (err) {
+    console.error("Assigned tasks fetch error:", err);
+    res.status(500).json({ message: "Error fetching assigned tasks" });
+  }
+});
 
 module.exports = router;

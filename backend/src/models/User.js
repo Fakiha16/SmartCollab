@@ -11,6 +11,15 @@ const userSchema = new mongoose.Schema(
     phone: String, // added phone field
 
     // ✅ YE ADD KIYA — employee ka assigned projectId
+    projectIds: {
+      type: [String],
+      default: [],
+    }, 
+    
+    isMember: {
+  type: Boolean,
+  default: true,
+}, 
     projectId: { type: String, default: null },
   },
   { timestamps: true }

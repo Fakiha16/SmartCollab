@@ -1,45 +1,90 @@
-// router.get("/employees/:team", async (req, res) => {
-//   try {
-//     const users = await User.find({
-//       role: "employee",
-//       team: req.params.team,
-//     });
-
-//     res.json(users);
-//   } catch (err) {
-//     res.status(500).json({ message: "Error fetching employees" });
-//   }
-// });
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
 
+const User = require("../models/User");
+const Task = require("../models/Task");
+const Project = require("../models/Project");
+
+
+// GET employees by team
 router.get("/employees/:team", async (req, res) => {
   try {
+    const team = decodeURIComponent(req.params.team).trim();
+
     const users = await User.find({
       role: "employee",
-      team: req.params.team,
-    });
+      team: { $regex: `^${team}$`, $options: "i" },
+    }).select("-password");
 
     res.json(users);
   } catch (err) {
+    console.error("Error fetching employees:", err);
     res.status(500).json({ message: "Error fetching employees" });
   }
 });
 
-// Update user profile
-router.put("/:id", async (req, res) => {
+// GET logged user/profile by email
+router.get("/profile/:email", async (req, res) => {
   try {
-    const { name, email, phone } = req.body;
-    const user = await User.findById(req.params.id);
-    
+    const email = decodeURIComponent(req.params.email);
+
+    const user = await User.findOne({ email }).select("-password");
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (name) user.name = name;
-    if (email) user.email = email;
-    if (phone) user.phone = phone;
+    res.json(user);
+  } catch (err) {
+    console.error("Profile fetch error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// UPDATE profile by email
+router.put("/profile/:email", async (req, res) => {
+  try {
+    const email = decodeURIComponent(req.params.email);
+    const { name, empType, team, isMember, avatar, phone } = req.body;
+
+    const updatedUser = await User.findOneAndUpdate(
+      { email },
+      {
+        ...(name !== undefined && { name }),
+        ...(empType !== undefined && { empType }),
+        ...(team !== undefined && { team }),
+        ...(isMember !== undefined && { isMember }),
+        ...(avatar !== undefined && { avatar }),
+        ...(phone !== undefined && { phone }),
+      },
+      { new: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(updatedUser);
+  } catch (err) {
+    console.error("Profile update error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// UPDATE user profile by id
+router.put("/:id", async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (name !== undefined) user.name = name;
+    if (email !== undefined) user.email = email;
+    if (phone !== undefined) user.phone = phone;
 
     await user.save();
 
@@ -50,11 +95,104 @@ router.put("/:id", async (req, res) => {
       phone: user.phone,
       role: user.role,
       empType: user.empType,
-      projectId: user.projectId
+      team: user.team,
+      isMember: user.isMember,
+      projectId: user.projectId,
+      projectIds: user.projectIds,
     });
   } catch (err) {
     console.error("Error updating user profile:", err);
     res.status(500).json({ message: "Error updating user profile" });
+  }
+});
+
+// GET managers worked with by employee email
+router.get("/worked-with-managers/:email", async (req, res) => {
+  try {
+    const email = decodeURIComponent(req.params.email);
+
+    const employee = await User.findOne({ email }).select("-password");
+
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    const employeeId = employee._id.toString();
+
+    const tasks = await Task.find({
+      $or: [
+        { assignedTo: email },
+        { assigneeEmail: email },
+        { employeeEmail: email },
+        { assignedToEmail: email },
+        { assignedEmail: email },
+        { "assignedTo.email": email },
+        { "assignee.email": email },
+        { "employee.email": email },
+        { assignedTo: employeeId },
+        { assignee: employeeId },
+        { employee: employeeId },
+      ],
+    });
+
+    const managerIds = new Set();
+    const managerEmails = new Set();
+
+    tasks.forEach((task) => {
+      if (task.createdBy) managerIds.add(task.createdBy.toString());
+      if (task.assignedBy) managerIds.add(task.assignedBy.toString());
+      if (task.managerId) managerIds.add(task.managerId.toString());
+      if (task.projectManager) managerIds.add(task.projectManager.toString());
+
+      if (task.createdByEmail) managerEmails.add(task.createdByEmail);
+      if (task.assignedByEmail) managerEmails.add(task.assignedByEmail);
+      if (task.managerEmail) managerEmails.add(task.managerEmail);
+    });
+
+    const projectIds = tasks
+      .map((task) => task.projectId || task.project)
+      .filter(Boolean);
+
+    if (projectIds.length > 0) {
+      const projects = await Project.find({ _id: { $in: projectIds } });
+
+      projects.forEach((project) => {
+        if (project.createdBy) managerIds.add(project.createdBy.toString());
+        if (project.managerId) managerIds.add(project.managerId.toString());
+        if (project.projectManager) {
+          managerIds.add(project.projectManager.toString());
+        }
+        if (project.adminId) managerIds.add(project.adminId.toString());
+
+        if (project.createdByEmail) managerEmails.add(project.createdByEmail);
+        if (project.managerEmail) managerEmails.add(project.managerEmail);
+        if (project.adminEmail) managerEmails.add(project.adminEmail);
+      });
+    }
+
+    const orConditions = [];
+
+    if (managerIds.size > 0) {
+      orConditions.push({ _id: { $in: Array.from(managerIds) } });
+    }
+
+    if (managerEmails.size > 0) {
+      orConditions.push({ email: { $in: Array.from(managerEmails) } });
+    }
+
+    if (orConditions.length === 0) {
+      return res.json([]);
+    }
+
+    const managers = await User.find({
+      $or: orConditions,
+      role: { $in: ["manager", "admin", "projectManager", "Manager"] },
+    }).select("-password");
+
+    res.json(managers);
+  } catch (err) {
+    console.error("Worked with managers fetch error:", err);
+    res.status(500).json({ message: "Error fetching worked with managers" });
   }
 });
 
