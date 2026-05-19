@@ -7,10 +7,8 @@ const userSchema = new mongoose.Schema(
     password: String,
     role: String,
     team: String,
-    empType: {
-  type: String,
-  default: "",
-},
+    empType: String,
+    phone: String, // added phone field
 
     // ✅ YE ADD KIYA — employee ka assigned projectId
     projectIds: {
@@ -22,7 +20,8 @@ const userSchema = new mongoose.Schema(
   type: Boolean,
   default: true,
 }, 
-},
+    projectId: { type: String, default: null },
+  },
   { timestamps: true }
 );
 

@@ -1,10 +1,25 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import logo from "../../../assets/Logo.png";
 import "./Topbar.css";
 
 export default function Topbar() {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Failed to parse user from localStorage", e);
+      }
+    }
+  }, []);
+
+  const userName = user?.name || "Client";
+  const userInitial = userName.charAt(0).toUpperCase();
 
   return (
     <div className="sc-topbar">
@@ -40,10 +55,10 @@ export default function Topbar() {
           title="Open Profile"
         >
           <div className="sc-userMeta">
-            <div className="sc-userName">Kashaf</div>
+            <div className="sc-userName">{userName}</div>
             <div className="sc-muted">Pakistan</div>
           </div>
-          <div className="sc-userAvatar">K</div>
+          <div className="sc-userAvatar">{userInitial}</div>
         </button>
       </div>
     </div>

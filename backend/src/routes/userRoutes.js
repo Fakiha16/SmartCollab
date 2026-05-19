@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
 
+const User = require("../models/User");
 const Task = require("../models/Task");
 const Project = require("../models/Project");
 
@@ -11,6 +11,7 @@ router.get("/employees/:team", async (req, res) => {
     const team = decodeURIComponent(req.params.team).trim();
 
     const users = await User.find({
+      role: "employee",
       team: { $regex: `^${team}$`, $options: "i" },
     }).select("-password");
 
@@ -39,20 +40,21 @@ router.get("/profile/:email", async (req, res) => {
   }
 });
 
-// UPDATE profile
+// UPDATE profile by email
 router.put("/profile/:email", async (req, res) => {
   try {
     const email = decodeURIComponent(req.params.email);
-    const { name, empType, team, isMember, avatar } = req.body;
+    const { name, empType, team, isMember, avatar, phone } = req.body;
 
     const updatedUser = await User.findOneAndUpdate(
       { email },
       {
-        name,
-        empType,
-        team,
-        isMember,
-        avatar,
+        ...(name !== undefined && { name }),
+        ...(empType !== undefined && { empType }),
+        ...(team !== undefined && { team }),
+        ...(isMember !== undefined && { isMember }),
+        ...(avatar !== undefined && { avatar }),
+        ...(phone !== undefined && { phone }),
       },
       { new: true }
     ).select("-password");
@@ -68,7 +70,40 @@ router.put("/profile/:email", async (req, res) => {
   }
 });
 
+// UPDATE user profile by id
+router.put("/:id", async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
 
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (name !== undefined) user.name = name;
+    if (email !== undefined) user.email = email;
+    if (phone !== undefined) user.phone = phone;
+
+    await user.save();
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      empType: user.empType,
+      team: user.team,
+      isMember: user.isMember,
+      projectId: user.projectId,
+      projectIds: user.projectIds,
+    });
+  } catch (err) {
+    console.error("Error updating user profile:", err);
+    res.status(500).json({ message: "Error updating user profile" });
+  }
+});
 
 // GET managers worked with by employee email
 router.get("/worked-with-managers/:email", async (req, res) => {
@@ -123,7 +158,9 @@ router.get("/worked-with-managers/:email", async (req, res) => {
       projects.forEach((project) => {
         if (project.createdBy) managerIds.add(project.createdBy.toString());
         if (project.managerId) managerIds.add(project.managerId.toString());
-        if (project.projectManager) managerIds.add(project.projectManager.toString());
+        if (project.projectManager) {
+          managerIds.add(project.projectManager.toString());
+        }
         if (project.adminId) managerIds.add(project.adminId.toString());
 
         if (project.createdByEmail) managerEmails.add(project.createdByEmail);
@@ -132,12 +169,23 @@ router.get("/worked-with-managers/:email", async (req, res) => {
       });
     }
 
+    const orConditions = [];
+
+    if (managerIds.size > 0) {
+      orConditions.push({ _id: { $in: Array.from(managerIds) } });
+    }
+
+    if (managerEmails.size > 0) {
+      orConditions.push({ email: { $in: Array.from(managerEmails) } });
+    }
+
+    if (orConditions.length === 0) {
+      return res.json([]);
+    }
+
     const managers = await User.find({
-      $or: [
-        { _id: { $in: Array.from(managerIds) } },
-        { email: { $in: Array.from(managerEmails) } },
-        { role: { $in: ["manager", "admin", "projectManager"] } },
-      ],
+      $or: orConditions,
+      role: { $in: ["manager", "admin", "projectManager", "Manager"] },
     }).select("-password");
 
     res.json(managers);
@@ -146,4 +194,5 @@ router.get("/worked-with-managers/:email", async (req, res) => {
     res.status(500).json({ message: "Error fetching worked with managers" });
   }
 });
+
 module.exports = router;

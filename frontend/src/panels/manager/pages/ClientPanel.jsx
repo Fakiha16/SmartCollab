@@ -36,17 +36,20 @@ export default function ClientPanel() {
   const [showUpdate, setShowUpdate] = useState(false);
 
   const [projects, setProjects] = useState([]);
-  const [selectedProjectId, setSelectedProjectId] = useState("");
-  const [inviteProjectId, setInviteProjectId] = useState("");
+  const [selectedProjectId, setSelectedProjectId] = useState(defaultProjectId || "");
+  const [inviteProjectId, setInviteProjectId] = useState(defaultProjectId || "");
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
 
-  const [updateTitle, setUpdateTitle] = useState("");
   const [updateDate, setUpdateDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-  const [updateDescription, setUpdateDescription] = useState("");
+  const [frontendProgress, setFrontendProgress] = useState("");
+  const [backendProgress, setBackendProgress] = useState("");
+  const [workDone, setWorkDone] = useState("");
+  const [currentErrors, setCurrentErrors] = useState("");
+  const [nextWork, setNextWork] = useState("");
   const [updateLoading, setUpdateLoading] = useState(false);
 
   const fileInputRef = useRef(null);
@@ -64,23 +67,12 @@ export default function ClientPanel() {
         if (Array.isArray(res.data)) {
           setProjects(res.data);
 
-         useEffect(() => {
-          const fetchManagerProjects = async () => {
-            try {
-              if (!user?.email) return;
-
-              const res = await axios.get(`${API}/projects/manager/${user.email}`);
-
-              if (Array.isArray(res.data)) {
-                setProjects(res.data);
-              }
-            } catch (err) {
-              console.error("Fetch manager projects error:", err);
-            }
-          };
-
-          fetchManagerProjects();
-        }, [user?.email]);
+          if (!selectedProjectId && res.data.length > 0) {
+            const firstProjectId = res.data[0]._id || res.data[0].id;
+            setSelectedProjectId(firstProjectId);
+            setInviteProjectId(firstProjectId);
+            localStorage.setItem("projectId", firstProjectId);
+          }
         }
       } catch (err) {
         console.error("Fetch manager projects error:", err);
@@ -88,7 +80,7 @@ export default function ClientPanel() {
     };
 
     fetchManagerProjects();
-  }, [user?.email, selectedProjectId]);
+  }, [user?.email]);
 
   useEffect(() => {
     if (selectedProjectId) {
@@ -132,7 +124,9 @@ export default function ClientPanel() {
 
     const fetchMessages = async () => {
       try {
-        const res = await axios.get(`${API}/messages?projectId=${selectedProjectId}`);
+        const res = await axios.get(
+          `${API}/messages?projectId=${selectedProjectId}`
+        );
         setMessages(res.data);
       } catch (err) {
         console.error("Messages fetch error:", err);
@@ -245,6 +239,7 @@ export default function ClientPanel() {
         projectId: inviteProjectId,
         invitedBy: user?.email,
         inviterName: managerName,
+        managerName,
       });
 
       alert(`✅ Invitation sent to ${email}!`);
@@ -265,18 +260,23 @@ export default function ClientPanel() {
   };
 
   const handleUpdateStatus = async () => {
-    if (!updateTitle.trim()) {
-      alert("Please enter a title.");
-      return;
-    }
-
-    if (!updateDescription.trim()) {
-      alert("Please provide a description.");
-      return;
-    }
-
     if (!selectedProjectId) {
       alert("Please select a project first.");
+      return;
+    }
+
+    if (!frontendProgress.trim()) {
+      alert("Please enter frontend progress.");
+      return;
+    }
+
+    if (!backendProgress.trim()) {
+      alert("Please enter backend progress.");
+      return;
+    }
+
+    if (!workDone.trim()) {
+      alert("Please describe completed work.");
       return;
     }
 
@@ -284,22 +284,34 @@ export default function ClientPanel() {
 
     try {
       await axios.post(`${API}/update-status`, {
-        title: updateTitle.trim(),
-        manager: managerName,
-        date: updateDate,
-        description: updateDescription.trim(),
         projectId: selectedProjectId,
+        manager: managerName,
+        managerEmail: user?.email,
+        date: updateDate,
+        frontendProgress: frontendProgress.trim(),
+        backendProgress: backendProgress.trim(),
+        workDone: workDone.trim(),
+        currentErrors: currentErrors.trim(),
+        nextWork: nextWork.trim(),
       });
 
-      alert("✅ Status updated successfully!");
-      setUpdateTitle("");
-      setUpdateDescription("");
+      alert("✅ Project status updated successfully!");
+
+      setFrontendProgress("");
+      setBackendProgress("");
+      setWorkDone("");
+      setCurrentErrors("");
+      setNextWork("");
       setUpdateDate(new Date().toISOString().split("T")[0]);
       setShowUpdate(false);
     } catch (err) {
       console.error("Update status error:", err);
 
-      const msg = err.response?.data?.message || "Update failed";
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Update failed";
+
       alert(`❌ ${msg}`);
     } finally {
       setUpdateLoading(false);
@@ -368,7 +380,10 @@ export default function ClientPanel() {
             <option value="">Select Project</option>
 
             {projects.map((project) => (
-              <option key={project._id || project.id} value={project._id || project.id}>
+              <option
+                key={project._id || project.id}
+                value={project._id || project.id}
+              >
                 {project.title || project.name || "Untitled Project"}
               </option>
             ))}
@@ -444,7 +459,10 @@ export default function ClientPanel() {
               disabled={!selectedProjectId}
             />
 
-            <button onClick={sendMessage} disabled={!message.trim() || !selectedProjectId}>
+            <button
+              onClick={sendMessage}
+              disabled={!message.trim() || !selectedProjectId}
+            >
               ➤
             </button>
           </div>
@@ -551,7 +569,10 @@ export default function ClientPanel() {
               <option value="">Select Project</option>
 
               {projects.map((project) => (
-                <option key={project._id || project.id} value={project._id || project.id}>
+                <option
+                  key={project._id || project.id}
+                  value={project._id || project.id}
+                >
                   {project.title || project.name || "Untitled Project"}
                 </option>
               ))}
@@ -590,7 +611,10 @@ export default function ClientPanel() {
 
       {showUpdate && (
         <div className="cpModalOverlay" onClick={() => setShowUpdate(false)}>
-          <div className="cpModal cpModalLarge" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="cpModal cpModalLarge"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="cpModalHeader">
               <h3>📋 Update Project Status</h3>
 
@@ -603,21 +627,10 @@ export default function ClientPanel() {
             </div>
 
             <p className="cpModalSubtitle">
-              Send the latest project update to the client.
+              Add current project progress, completed work, and issues for the client.
             </p>
 
-            <label className="cpLabel">Update Title *</label>
-
-            <input
-              type="text"
-              placeholder="e.g. Phase 1 Complete"
-              value={updateTitle}
-              onChange={(e) => setUpdateTitle(e.target.value)}
-              autoFocus
-            />
-
             <label className="cpLabel">Manager</label>
-
             <input
               type="text"
               value={managerName}
@@ -626,20 +639,56 @@ export default function ClientPanel() {
             />
 
             <label className="cpLabel">Date *</label>
-
             <input
               type="date"
               value={updateDate}
               onChange={(e) => setUpdateDate(e.target.value)}
             />
 
-            <label className="cpLabel">Description *</label>
+            <div className="cpFormGrid">
+              <div>
+                <label className="cpLabel">Frontend Progress *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 70% completed"
+                  value={frontendProgress}
+                  onChange={(e) => setFrontendProgress(e.target.value)}
+                />
+              </div>
 
+              <div>
+                <label className="cpLabel">Backend Progress *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. APIs 80% completed"
+                  value={backendProgress}
+                  onChange={(e) => setBackendProgress(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <label className="cpLabel">Completed Work *</label>
             <textarea
-              placeholder="Write update details..."
-              value={updateDescription}
-              onChange={(e) => setUpdateDescription(e.target.value)}
-              rows={5}
+              placeholder="Write what work has been completed so far..."
+              value={workDone}
+              onChange={(e) => setWorkDone(e.target.value)}
+              rows={4}
+            />
+
+            <label className="cpLabel">Current Errors / Issues</label>
+            <textarea
+              placeholder="Mention current bugs/errors, if any..."
+              value={currentErrors}
+              onChange={(e) => setCurrentErrors(e.target.value)}
+              rows={3}
+            />
+
+            <label className="cpLabel">Next Working Plan</label>
+            <textarea
+              placeholder="Write next steps or remaining work..."
+              value={nextWork}
+              onChange={(e) => setNextWork(e.target.value)}
+              rows={3}
             />
 
             <div className="cpModalActions">
@@ -648,8 +697,9 @@ export default function ClientPanel() {
                 onClick={handleUpdateStatus}
                 disabled={
                   updateLoading ||
-                  !updateTitle.trim() ||
-                  !updateDescription.trim()
+                  !frontendProgress.trim() ||
+                  !backendProgress.trim() ||
+                  !workDone.trim()
                 }
               >
                 {updateLoading ? "Updating..." : "Send Update"}
