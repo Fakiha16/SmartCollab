@@ -13,8 +13,11 @@ router.post("/", async (req, res) => {
     inviterName,
     invitedBy,
     inviteRole,
+    inviteType,
+    userType,
     role,
     name,
+    empType,
   } = req.body;
 
   if (!email) {
@@ -37,30 +40,86 @@ router.post("/", async (req, res) => {
     }
 
     /*
-      Client Panel invite:
-      - agar inviteRole explicitly "client" aaye to client
-      - agar role Frontend/Backend/QA/Designer aaye to employee
-      - agar dono na aayein, to default client rakha hai because this route is used from ClientPanel too
+      Invite role handling:
+
+      Manager panel "Create Team":
+      frontend sends:
+      role: "employee"
+      inviteType: "employee"
+      userType: "employee"
+
+      Client invite:
+      frontend should send:
+      role: "client"
+      inviteRole: "client"
+      inviteType: "client"
+
+      Agar kuch bhi na aaye, default client rakha hai
+      taake existing ClientPanel flow break na ho.
     */
-    const normalizedInviteRole = (inviteRole || "").trim().toLowerCase();
-    const normalizedRole = (role || "").trim();
 
-    const teamRoles = ["Frontend", "Backend", "QA", "Designer", "Testing", "Development"];
-    const isTeamInvite = teamRoles.includes(normalizedRole);
+    const normalizedInviteRole = String(inviteRole || "")
+      .trim()
+      .toLowerCase();
 
-    const signupRole =
-      normalizedInviteRole === "client"
-        ? "client"
-        : isTeamInvite
-        ? "employee"
+    const normalizedInviteType = String(inviteType || "")
+      .trim()
+      .toLowerCase();
+
+    const normalizedUserType = String(userType || "")
+      .trim()
+      .toLowerCase();
+
+    const normalizedRole = String(role || "")
+      .trim();
+
+    const normalizedRoleLower = normalizedRole.toLowerCase();
+
+    const teamRoles = [
+      "frontend",
+      "backend",
+      "qa",
+      "designer",
+      "testing",
+      "development",
+      "developer",
+      "tester",
+      "employee",
+    ];
+
+    const isClientInvite =
+      normalizedInviteRole === "client" ||
+      normalizedInviteType === "client" ||
+      normalizedUserType === "client" ||
+      normalizedRoleLower === "client";
+
+    const isEmployeeInvite =
+      normalizedInviteRole === "employee" ||
+      normalizedInviteType === "employee" ||
+      normalizedUserType === "employee" ||
+      teamRoles.includes(normalizedRoleLower);
+
+    let signupRole = "client";
+
+    if (isEmployeeInvite && !isClientInvite) {
+      signupRole = "employee";
+    }
+
+    if (isClientInvite) {
+      signupRole = "client";
+    }
+
+    const displayRole =
+      signupRole === "employee"
+        ? normalizedRole && normalizedRoleLower !== "employee"
+          ? normalizedRole
+          : empType || "employee"
         : "client";
-
-    const displayRole = signupRole === "client" ? "client" : normalizedRole || "employee";
 
     const senderName =
       managerName || inviterName || invitedBy || "Project Manager";
 
-    const joinLink = `http://localhost:5173/signup?projectId=${projectId}&role=${signupRole}`;
+    const joinLink = `http://localhost:5173/signup?projectId=${projectId}&role=${signupRole}&inviteType=${signupRole}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -75,7 +134,10 @@ router.post("/", async (req, res) => {
         process.env.EMAIL_USER || "bismaumar001@gmail.com"
       }>`,
       to: cleanEmail,
-      subject: "SmartCollab Invitation 🚀",
+      subject:
+        signupRole === "employee"
+          ? "SmartCollab Team Invitation 🚀"
+          : "SmartCollab Client Invitation 🚀",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>You are invited to SmartCollab 🚀</h2>
@@ -135,11 +197,13 @@ router.post("/", async (req, res) => {
       message: "Invitation sent and saved as pending",
       email: cleanEmail,
       projectId,
+      role: displayRole,
       inviteRole: signupRole,
       invitedMembers: updatedProject.invitedMembers,
     });
   } catch (error) {
     console.log("Invite error ❌", error);
+
     res.status(500).json({
       error: "Invitation failed",
       details: error.message,

@@ -53,6 +53,7 @@ export default function ClientPanel() {
   const [workDone, setWorkDone] = useState("");
   const [currentErrors, setCurrentErrors] = useState("");
   const [nextWork, setNextWork] = useState("");
+  const [demoLink, setDemoLink] = useState("");
   const [updateLoading, setUpdateLoading] = useState(false);
 
   const fileInputRef = useRef(null);
@@ -434,6 +435,7 @@ export default function ClientPanel() {
         workDone: workDone.trim(),
         currentErrors: currentErrors.trim(),
         nextWork: nextWork.trim(),
+        demoLink: demoLink.trim(),
       });
 
       alert("✅ Project status updated successfully!");
@@ -443,6 +445,7 @@ export default function ClientPanel() {
       setWorkDone("");
       setCurrentErrors("");
       setNextWork("");
+      setDemoLink("");
       setUpdateDate(new Date().toISOString().split("T")[0]);
       setShowUpdate(false);
     } catch (err) {
@@ -774,7 +777,7 @@ export default function ClientPanel() {
             </div>
 
             <p className="cpModalSubtitle">
-              Add current project progress, completed work, and issues for the client.
+              Add current project progress, completed work, demo link, and issues for the client.
             </p>
 
             <label className="cpLabel">Manager</label>
@@ -836,6 +839,14 @@ export default function ClientPanel() {
               value={nextWork}
               onChange={(e) => setNextWork(e.target.value)}
               rows={3}
+            />
+
+            <label className="cpLabel">Demo Link</label>
+            <input
+              type="url"
+              placeholder="e.g. https://smartcollab-demo.vercel.app"
+              value={demoLink}
+              onChange={(e) => setDemoLink(e.target.value)}
             />
 
             <div className="cpModalActions">

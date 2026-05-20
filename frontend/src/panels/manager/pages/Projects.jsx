@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import "./Projects.css";
 
 export default function Projects() {
-
   const navigate = useNavigate();
   const manager = JSON.parse(localStorage.getItem("user"));
   const managerId = manager?.email || "";
@@ -19,31 +18,33 @@ export default function Projects() {
   const [isSending, setIsSending] = useState(false);
 
   const [form, setForm] = useState({
-    title: "", desc: "",
+    title: "",
+    desc: "",
   });
 
-useEffect(() => {
-  if (!managerId) {
-    setProjects([]);
-    return;
-  }
-
-  fetch(`http://localhost:5000/api/projects/manager/${managerId}`)
-    .then((res) => res.json())
-    .then((data) => {
-      if (Array.isArray(data)) {
-        setProjects(data);
-      } else {
-        setProjects([]);
-      }
-    })
-    .catch((err) => {
-      console.error("Fetch manager projects error:", err);
+  useEffect(() => {
+    if (!managerId) {
       setProjects([]);
-    });
-}, [managerId]);
+      return;
+    }
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+    fetch(`http://localhost:5000/api/projects/manager/${managerId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setProjects(data);
+        } else {
+          setProjects([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Fetch manager projects error:", err);
+        setProjects([]);
+      });
+  }, [managerId]);
+
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleEmailChange = (index, value) => {
     const updated = [...emailInputs];
@@ -59,18 +60,27 @@ useEffect(() => {
         const res = await fetch(`http://localhost:5000/api/projects/${editId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: form.title, desc: form.desc })
+          body: JSON.stringify({
+            title: form.title,
+            desc: form.desc,
+          }),
         });
-        // FIX 2: fallback to form values if backend returns different field names
+
         const raw = await res.json();
+
         const updated = {
           ...raw,
           title: raw.title || form.title,
-          desc:  raw.desc || raw.description || form.desc,
+          desc: raw.desc || raw.description || form.desc,
         };
-        setProjects(prev => prev.map(p => (p._id || p.id) === editId ? updated : p));
-      } catch (err) { alert("Update failed"); }
 
+        setProjects((prev) =>
+          prev.map((p) => ((p._id || p.id) === editId ? updated : p))
+        );
+      } catch (err) {
+        console.error("Update project error:", err);
+        alert("Update failed");
+      }
     } else {
       try {
         const res = await fetch("http://localhost:5000/api/projects", {
@@ -82,25 +92,32 @@ useEffect(() => {
             managerId: managerId,
             team: {
               Frontend: form.frontend ? [form.frontend] : [],
-              Backend:  form.backend  ? [form.backend]  : [],
-              QA:       form.tester   ? [form.tester]   : [],
-              Designer: form.designer ? [form.designer] : []
-            }
-          })
+              Backend: form.backend ? [form.backend] : [],
+              QA: form.tester ? [form.tester] : [],
+              Designer: form.designer ? [form.designer] : [],
+            },
+          }),
         });
-        // FIX 1: fallback to form values if backend returns different field names
+
         const data = await res.json();
+
         const newProject = {
           ...data,
           title: data.title || form.title,
-          desc:  data.desc  || data.description || form.desc,
+          desc: data.desc || data.description || form.desc,
         };
-        setProjects(prev => [...prev, newProject]);
 
-        const pid = newProject._id;
-        setTeamInviteLink(`${window.location.origin}/signup?projectId=${pid}`);
+        setProjects((prev) => [...prev, newProject]);
+
+        const pid = newProject._id || newProject.id;
+
+        setTeamInviteLink(
+          `${window.location.origin}/signup?projectId=${pid}&role=employee&inviteType=employee`
+        );
+
         setCurrentProjectId(pid);
       } catch (err) {
+        console.error("Create project error:", err);
         alert("Could not save project. Check backend.");
         return;
       }
@@ -109,27 +126,48 @@ useEffect(() => {
     setShowForm(false);
     setIsEdit(false);
     setEditId(null);
-    setForm({ title: "", desc: ""});
+    setForm({
+      title: "",
+      desc: "",
+    });
   };
 
   const handleEdit = (p) => {
     setIsEdit(true);
     setEditId(p._id || p.id);
     setShowForm(true);
-    setForm({ title: p.title, desc: p.desc || p.description || "", frontend: "", backend: "", tester: "", designer: "" });
+
+    setForm({
+      title: p.title || "",
+      desc: p.desc || p.description || "",
+      frontend: "",
+      backend: "",
+      tester: "",
+      designer: "",
+    });
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this project?")) return;
+
     try {
-      await fetch(`http://localhost:5000/api/projects/${id}`, { method: "DELETE" });
-    } catch (err) { console.error(err); }
-    setProjects(prev => prev.filter(p => (p._id || p.id) !== id));
+      await fetch(`http://localhost:5000/api/projects/${id}`, {
+        method: "DELETE",
+      });
+    } catch (err) {
+      console.error("Delete project error:", err);
+    }
+
+    setProjects((prev) => prev.filter((p) => (p._id || p.id) !== id));
   };
 
   const openTeamModal = (p) => {
     const pid = p._id || p.id;
-    setTeamInviteLink(`${window.location.origin}/signup?projectId=${pid}`);
+
+    setTeamInviteLink(
+      `${window.location.origin}/signup?projectId=${pid}&role=employee&inviteType=employee`
+    );
+
     setCurrentProjectId(pid);
     setEmailInputs([""]);
     setShowAddMembersScreen(true);
@@ -141,8 +179,17 @@ useEffect(() => {
   };
 
   const sendInvites = async () => {
-    const validEmails = emailInputs.filter(e => e.trim() !== "");
-    if (validEmails.length === 0) return alert("Please enter at least one email.");
+    const validEmails = emailInputs
+      .map((email) => email.trim())
+      .filter((email) => email !== "");
+
+    if (validEmails.length === 0) {
+      return alert("Please enter at least one email.");
+    }
+
+    if (!currentProjectId) {
+      return alert("Project ID not found. Please open Create Team again.");
+    }
 
     setIsSending(true);
     let successCount = 0;
@@ -153,14 +200,24 @@ useEffect(() => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-  email: email.trim(),
-  projectId: currentProjectId,
-  managerName: manager?.name || manager?.fullName || manager?.email || "Project Manager",
-})
+            email,
+            projectId: currentProjectId,
+            managerName:
+              manager?.name ||
+              manager?.fullName ||
+              manager?.email ||
+              "Project Manager",
+
+            role: "employee",
+            inviteType: "employee",
+            userType: "employee",
+          }),
         });
-        if (res.ok) successCount++;
-        else {
-          const err = await res.json();
+
+        if (res.ok) {
+          successCount++;
+        } else {
+          const err = await res.json().catch(() => ({}));
           console.error("Failed for:", email, err);
         }
       } catch (err) {
@@ -171,7 +228,7 @@ useEffect(() => {
     setIsSending(false);
 
     if (successCount > 0) {
-      alert(`✅ Invitation sent to ${successCount} member(s)!`);
+      alert(`✅ Invitation sent to ${successCount} employee(s)!`);
       closeAddMembersScreen();
     } else {
       alert("❌ Failed to send. Check backend console for errors.");
@@ -180,19 +237,38 @@ useEffect(() => {
 
   return (
     <div className="pr-wrap">
-
       <div className="pr-header">
         <h1 className="pr-title">Projects</h1>
+
         {projects.length > 0 && (
-          <button className="pr-createBtn" onClick={() => { setShowForm(true); setIsEdit(false); }}>
+          <button
+            className="pr-createBtn"
+            onClick={() => {
+              setShowForm(true);
+              setIsEdit(false);
+            }}
+          >
             + Create New Project
           </button>
         )}
       </div>
 
       {projects.length === 0 && (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>
-          <button className="pr-createCenterBtn" onClick={() => setShowForm(true)}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "60vh",
+          }}
+        >
+          <button
+            className="pr-createCenterBtn"
+            onClick={() => {
+              setShowForm(true);
+              setIsEdit(false);
+            }}
+          >
             + Create Project
           </button>
         </div>
@@ -202,6 +278,7 @@ useEffect(() => {
         <div className="pr-grid">
           {projects.map((p) => {
             const pid = p._id || p.id;
+
             return (
               <div
                 key={String(pid)}
@@ -211,20 +288,50 @@ useEffect(() => {
               >
                 <div className="pr-cardTop">
                   <div className="pr-cardTitle">{p.title}</div>
+
                   <div className="pr-status">{p.status || "Active"}</div>
-                  <button className="pr-status" onClick={(e) => { e.stopPropagation(); openTeamModal(p); }}>
+
+                  <button
+                    className="pr-status"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openTeamModal(p);
+                    }}
+                  >
                     Create Team
                   </button>
                 </div>
+
                 <div className="pr-divider" />
-                {/* FIX 3: fallback to p.description if p.desc is undefined */}
+
                 <p className="pr-desc">{p.desc || p.description}</p>
+
                 <div className="pr-bottom">
-                  <div className="pr-date">{p.date || new Date().toDateString()}</div>
+                  <div className="pr-date">
+                    {p.date || new Date().toDateString()}
+                  </div>
                 </div>
+
                 <div className="pr-actions">
-                  <button className="pr-editBtn" onClick={(e) => { e.stopPropagation(); handleEdit(p); }}>✏️ Edit</button>
-                  <button className="pr-editBtn" onClick={(e) => { e.stopPropagation(); handleDelete(pid); }}>Delete</button>
+                  <button
+                    className="pr-editBtn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(p);
+                    }}
+                  >
+                    ✏️ Edit
+                  </button>
+
+                  <button
+                    className="pr-editBtn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(pid);
+                    }}
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             );
@@ -232,68 +339,229 @@ useEffect(() => {
         </div>
       )}
 
-      {/* CREATE / EDIT MODAL */}
       {showForm && (
         <div className="pr-modalOverlay">
           <div className="pr-modal">
             <div className="pr-modalHeader">
               <h2>{isEdit ? "Edit Project" : "Create Project"}</h2>
-              <span className="pr-close" onClick={() => setShowForm(false)}>✕</span>
+
+              <span className="pr-close" onClick={() => setShowForm(false)}>
+                ✕
+              </span>
             </div>
+
             <div className="pr-modalBody">
-              <input name="title" placeholder="Project Name" value={form.title} onChange={handleChange} />
-              <textarea name="desc" placeholder="Description" value={form.desc} onChange={handleChange} />
+              <input
+                name="title"
+                placeholder="Project Name"
+                value={form.title}
+                onChange={handleChange}
+              />
+
+              <textarea
+                name="desc"
+                placeholder="Description"
+                value={form.desc}
+                onChange={handleChange}
+              />
             </div>
+
             <div className="pr-modalFooter">
-              <button className="pr-btn primary" onClick={handleSubmit}>{isEdit ? "Update" : "Create"}</button>
-              <button className="pr-btn secondary" onClick={() => setShowForm(false)}>Cancel</button>
+              <button className="pr-btn primary" onClick={handleSubmit}>
+                {isEdit ? "Update" : "Create"}
+              </button>
+
+              <button
+                className="pr-btn secondary"
+                onClick={() => setShowForm(false)}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* INVITE MODAL */}
       {showAddMembersScreen && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "#fff", borderRadius: "20px", padding: "28px", width: "100%", maxWidth: "480px", margin: "0 16px", boxShadow: "0 12px 40px rgba(0,0,0,0.2)" }}>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.55)",
+            backdropFilter: "blur(6px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "20px",
+              padding: "28px",
+              width: "100%",
+              maxWidth: "480px",
+              margin: "0 16px",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.2)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "24px",
+              }}
+            >
+              <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 600 }}>
+                Create Team
+              </h2>
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-              <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 600 }}>Create Team</h2>
-              <span onClick={closeAddMembersScreen} style={{ cursor: "pointer", fontSize: "20px", color: "#999" }}>✕</span>
+              <span
+                onClick={closeAddMembersScreen}
+                style={{ cursor: "pointer", fontSize: "20px", color: "#999" }}
+              >
+                ✕
+              </span>
             </div>
 
-            <p style={{ margin: "0 0 8px", fontSize: "13px", color: "#666", fontWeight: 600 }}>Project invite link</p>
+            <p
+              style={{
+                margin: "0 0 8px",
+                fontSize: "13px",
+                color: "#666",
+                fontWeight: 600,
+              }}
+            >
+              Employee invite link
+            </p>
+
             <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
-              <input type="text" value={teamInviteLink} readOnly
-                style={{ flex: 1, borderRadius: "999px", border: "1px solid #e0e0e0", padding: "10px 16px", fontSize: "13px", background: "#f7f7f7", color: "#555", outline: "none" }} />
-              <button onClick={() => { navigator.clipboard.writeText(teamInviteLink); alert("Link copied!"); }}
-                style={{ borderRadius: "999px", border: "1px solid #e0e0e0", background: "#fff", padding: "10px 18px", fontSize: "13px", cursor: "pointer", fontWeight: 500 }}>
+              <input
+                type="text"
+                value={teamInviteLink}
+                readOnly
+                style={{
+                  flex: 1,
+                  borderRadius: "999px",
+                  border: "1px solid #e0e0e0",
+                  padding: "10px 16px",
+                  fontSize: "13px",
+                  background: "#f7f7f7",
+                  color: "#555",
+                  outline: "none",
+                }}
+              />
+
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(teamInviteLink);
+                  alert("Link copied!");
+                }}
+                style={{
+                  borderRadius: "999px",
+                  border: "1px solid #e0e0e0",
+                  background: "#fff",
+                  padding: "10px 18px",
+                  fontSize: "13px",
+                  cursor: "pointer",
+                  fontWeight: 500,
+                }}
+              >
                 Copy
               </button>
             </div>
 
-            <p style={{ margin: "0 0 12px", fontSize: "13px", color: "#666", fontWeight: 600 }}>Add members via email</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "12px" }}>
+            <p
+              style={{
+                margin: "0 0 12px",
+                fontSize: "13px",
+                color: "#666",
+                fontWeight: 600,
+              }}
+            >
+              Add employees via email
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+                marginBottom: "12px",
+              }}
+            >
               {emailInputs.map((email, index) => (
-                <input key={index} type="email" value={email}
+                <input
+                  key={index}
+                  type="email"
+                  value={email}
                   onChange={(e) => handleEmailChange(index, e.target.value)}
-                  placeholder="Enter email address"
-                  style={{ borderRadius: "999px", border: "1px solid #e0e0e0", padding: "10px 18px", fontSize: "14px", outline: "none", width: "100%", boxSizing: "border-box" }} />
+                  placeholder="Enter employee email address"
+                  style={{
+                    borderRadius: "999px",
+                    border: "1px solid #e0e0e0",
+                    padding: "10px 18px",
+                    fontSize: "14px",
+                    outline: "none",
+                    width: "100%",
+                    boxSizing: "border-box",
+                  }}
+                />
               ))}
             </div>
 
-            <button onClick={() => setEmailInputs([...emailInputs, ""])}
-              style={{ width: "100%", borderRadius: "999px", border: "1px solid #e0e0e0", background: "#fff", padding: "10px 0", fontSize: "14px", cursor: "pointer", marginBottom: "20px", fontWeight: 500 }}>
+            <button
+              onClick={() => setEmailInputs([...emailInputs, ""])}
+              style={{
+                width: "100%",
+                borderRadius: "999px",
+                border: "1px solid #e0e0e0",
+                background: "#fff",
+                padding: "10px 0",
+                fontSize: "14px",
+                cursor: "pointer",
+                marginBottom: "20px",
+                fontWeight: 500,
+              }}
+            >
               + Add another email
             </button>
 
             <div style={{ display: "flex", gap: "10px" }}>
-              <button disabled={isSending} onClick={sendInvites}
-                style={{ flex: 1, borderRadius: "999px", border: "none", background: isSending ? "#888" : "#111", color: "#fff", padding: "12px 0", fontSize: "14px", cursor: isSending ? "not-allowed" : "pointer", fontWeight: 600 }}>
-                {isSending ? "Sending..." : "Send invitation"}
+              <button
+                disabled={isSending}
+                onClick={sendInvites}
+                style={{
+                  flex: 1,
+                  borderRadius: "999px",
+                  border: "none",
+                  background: isSending ? "#888" : "#111",
+                  color: "#fff",
+                  padding: "12px 0",
+                  fontSize: "14px",
+                  cursor: isSending ? "not-allowed" : "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                {isSending ? "Sending..." : "Send employee invitation"}
               </button>
-              <button onClick={closeAddMembersScreen}
-                style={{ flex: 1, borderRadius: "999px", border: "1px solid #e0e0e0", background: "#fff", color: "#111", padding: "12px 0", fontSize: "14px", cursor: "pointer", fontWeight: 500 }}>
+
+              <button
+                onClick={closeAddMembersScreen}
+                style={{
+                  flex: 1,
+                  borderRadius: "999px",
+                  border: "1px solid #e0e0e0",
+                  background: "#fff",
+                  color: "#111",
+                  padding: "12px 0",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  fontWeight: 500,
+                }}
+              >
                 Cancel
               </button>
             </div>
