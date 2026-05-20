@@ -14,6 +14,43 @@ const STATUS_STYLE = {
   "Not Started": { bg: "#f3f4f6", color: "#6b7280" },
 };
 
+const mapStatusToPerformance = (update) => {
+  if (!update) return {};
+
+  const parsePercent = (str) => {
+    if (!str) return 0;
+    const num = parseInt(str.replace('%', ''), 10);
+    return isNaN(num)? 0 : num;
+  };
+
+  const getStatus = (percent) => {
+    if (percent >= 100) return "Completed";
+    if (percent > 0) return "In Progress";
+    return "Not Started";
+  };
+
+  const fePercent = parsePercent(update.frontendProgress);
+  const bePercent = parsePercent(update.backendProgress);
+
+  return {
+    frontend: {
+      status: getStatus(fePercent),
+      progress: fePercent
+    },
+    backend: {
+      status: getStatus(bePercent),
+      progress: bePercent
+    },
+    testing: { status: "Not Started" }, // you don't save this yet
+    deadline: update.nextWork || "Not set",
+    demoLink: null,
+    chartData: {
+      // For now, use latest values. You can build history later
+      achieved: [fePercent, bePercent],
+      target: [100, 100]
+    }
+  };
+};
 export default function PerformanceReport() {
   const navigate  = useNavigate();
   const { id }    = useParams();
@@ -21,15 +58,33 @@ export default function PerformanceReport() {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   fetch(`http://localhost:5000/api/projects/${id}/performance`, {
+  //     headers: { Authorization: `Bearer ${token}` },
+  //   })
+  //     .then((r) => r.json())
+  //     .then((d) => { setData(d); setLoading(false); })
+  //     .catch(() => setLoading(false));
+  // }, [id]);
+  // new
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    fetch(`http://localhost:5000/api/projects/${id}/performance`, {
-      headers: { Authorization: `Bearer ${token}` },
+  const token = localStorage.getItem("token");
+  setLoading(true);
+
+  fetch(`http://localhost:5000/api/update-status?projectId=${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+   .then((r) => r.json())
+   .then((updates) => {
+      // Take the latest update
+      const latest = updates[0] || {};
+      setData({ performance: mapStatusToPerformance(latest) });
+      setLoading(false);
     })
-      .then((r) => r.json())
-      .then((d) => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [id]);
+   .catch(() => setLoading(false));
+}, [id]);
+ // 
 
   const perf = data?.performance || {};
 

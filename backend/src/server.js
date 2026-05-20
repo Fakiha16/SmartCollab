@@ -215,6 +215,10 @@ app.use("/api/projects", projectRoutes);
 const accessControlRoutes = require("./routes/accessControl");
 app.use("/api/access-control", accessControlRoutes);
 
+const statusRoutes = require("./routes/statusRoutes");
+app.use("/api", statusRoutes);
+
+// 
 // ================= SOCKET.IO =================
 
 const server = http.createServer(app);
